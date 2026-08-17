@@ -1,38 +1,39 @@
-# Código de *Rust a fondo*
+# Code for *Rust a fondo*
 
-[![Verificación](https://github.com/franmolmedo/rust-a-fondo-codigo/actions/workflows/ci.yml/badge.svg)](https://github.com/franmolmedo/rust-a-fondo-codigo/actions/workflows/ci.yml)
+[English](README.md) | [Español](README.es.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-Repositorio complementario de *Rust a fondo: Sin atajos: domina ownership,
+[![Verification](https://github.com/franmolmedo/rust-a-fondo-codigo/actions/workflows/ci.yml/badge.svg)](https://github.com/franmolmedo/rust-a-fondo-codigo/actions/workflows/ci.yml)
+
+Companion repository for *Rust a fondo: Sin atajos: domina ownership,
 concurrencia, async, unsafe y el diseño de sistemas robustos*.
 
-Autor: **Francisco M. Olmedo Bueno**.
+Author: **Francisco M. Olmedo Bueno**.
 
-Contiene los ejemplos, ejercicios implementados, katas, proyectos y pruebas
-automatizadas del libro. El manuscrito, el PDF y el EPUB no forman parte de
-este repositorio.
+It contains the book's examples, implemented exercises, katas, projects, and
+automated tests. The manuscript, PDF, and EPUB are not part of this repository.
 
-## Qué incluye
+## What's included
 
-- **891 bloques** conservados en `listings/`, identificados por capítulo.
-- **403 soluciones ejecutables** de referencia en `solutions/`.
-- **447 tests** asociados a las soluciones.
-- Doctests, ejemplos `compile_fail` y casos `should_panic`.
-- Laboratorios reales de macros procedurales, MIR, LLVM IR y assembly.
-- Un manifiesto con trazabilidad y hashes SHA-256 de cada listado.
+- **891 code blocks** preserved under `listings/` and identified by chapter.
+- **403 executable reference solutions** under `solutions/`.
+- **447 tests** associated with those solutions.
+- Doctests, `compile_fail` examples, and `should_panic` cases.
+- Real laboratories for procedural macros, MIR, LLVM IR, and assembly.
+- A manifest providing traceability and SHA-256 hashes for every listing.
 
-Los identificadores del libro son estables. Por ejemplo, `C24-E06` significa
-«capítulo 24, ejercicio 6» y se conserva igual en todas las traducciones.
+Book identifiers are stable. For example, `C24-E06` means “chapter 24,
+exercise 6” and remains unchanged in every translation.
 
-## Requisitos
+## Requirements
 
-- [Rustup](https://rustup.rs/) y Cargo.
-- Python 3.11 o posterior.
-- PowerShell 5.1 o posterior para `verify.ps1` en Windows.
+- [Rustup](https://rustup.rs/) and Cargo.
+- Python 3.11 or later.
+- PowerShell 5.1 or later for `verify.ps1` on Windows.
 
-El archivo `rust-toolchain.toml` instala automáticamente Rust 1.95.0 con
-Clippy y rustfmt. Las crates declaran Rust 1.85 como versión mínima.
+`rust-toolchain.toml` automatically installs Rust 1.95.0 with Clippy and
+rustfmt. The crates declare Rust 1.85 as their minimum supported version.
 
-## Empezar
+## Getting started
 
 ```bash
 git clone https://github.com/franmolmedo/rust-a-fondo-codigo.git
@@ -40,7 +41,7 @@ cd rust-a-fondo-codigo
 cargo test --workspace --all-targets --all-features --locked
 ```
 
-Para ejecutar la misma auditoría que utiliza la integración continua:
+To run the same audit used by continuous integration:
 
 ```powershell
 # Windows
@@ -48,31 +49,31 @@ Para ejecutar la misma auditoría que utiliza la integración continua:
 ```
 
 ```bash
-# Linux y macOS
+# Linux and macOS
 ./verify.sh
 ```
 
-La auditoría comprueba hashes, TOML, configuraciones de features, tests,
-doctests, formato, Clippy y la emisión real de MIR, LLVM IR y assembly.
+The audit checks hashes, TOML files, feature configurations, tests, doctests,
+formatting, Clippy, and the actual emission of MIR, LLVM IR, and assembly.
 
-## Declaración sobre el uso de inteligencia artificial
+## Artificial intelligence disclosure
 
-En el desarrollo de este repositorio se utilizaron herramientas de IA
-generativa para crear y revisar partes del código, ejemplos, soluciones,
-tests y documentación. Francisco M. Olmedo Bueno dirigió el trabajo, tomó las
-decisiones finales y asume la responsabilidad sobre el material publicado.
-La auditoría reproducible aporta evidencia técnica, pero no garantiza que el
-código esté libre de errores ni que sea adecuado para cualquier uso concreto.
+Generative AI tools were used to create and review portions of the code,
+examples, solutions, tests, and documentation in this repository. Francisco
+M. Olmedo Bueno directed the work, made the final decisions, and assumes
+responsibility for the published material. The reproducible audit provides
+technical evidence, but it does not guarantee that the code is error-free or
+suitable for any particular purpose.
 
-## Encontrar una solución
+## Finding a solution
 
-Busca el identificador que aparece en el libro:
+Search for the identifier shown in the book:
 
 ```bash
 rg "SOLUTION: C24-E06" solutions/src
 ```
 
-También puedes ejecutar únicamente las pruebas de un capítulo o módulo:
+You can also run the tests for a single chapter or module:
 
 ```bash
 cargo test -p course-solutions c24
@@ -80,37 +81,48 @@ cargo test -p course-solutions katas
 cargo test -p course-solutions projects
 ```
 
-El índice técnico de módulos está en [`solutions/README.md`](solutions/README.md).
+The technical module index is available in
+[`solutions/README.md`](solutions/README.md).
 
-## Estructura
+## Language policy
+
+Source identifiers—including modules, public APIs, types, fields, variables,
+and tests—are written in English so the same code can accompany every
+translation of the book. Stable identifiers such as `C24-E06` are never
+translated. Natural-language comments and messages inside `listings/` may
+mirror the original Spanish edition because that directory preserves the
+published code blocks verbatim.
+
+## Structure
 
 ```text
 .
-├── solutions/         soluciones, katas y proyectos con tests
-├── listings/          un archivo por bloque publicado en el libro
-├── doctests/          harness de documentación y compile_fail
-├── macro_lab/         macro procedural
-├── macro_api/         API pública y reexportaciones de la macro
-├── macro_fixture/     consumidor con dependencia renombrada
-├── compiler_lab/      fuente estable para inspeccionar el compilador
-├── tools/             auditoría reproducible
-├── manifest.json      trazabilidad de los listados
-└── VERIFICATION.md    último informe de verificación
+├── solutions/         solutions, katas, and projects with tests
+├── listings/          one file for each code block published in the book
+├── doctests/          documentation harness and compile_fail cases
+├── macro_lab/         procedural macro implementation
+├── macro_api/         public API and macro re-exports
+├── macro_fixture/     consumer with a renamed dependency
+├── compiler_lab/      stable source for compiler inspection
+├── tools/             reproducible audit tooling
+├── manifest.json      listing traceability
+└── VERIFICATION.md    latest verification report
 ```
 
-`listings/`, `doctests/book.md` y `manifest.json` reflejan literalmente la
-edición publicada. No deben modificarse de forma aislada: una errata debe
-corregirse primero en el libro y propagarse después al corpus.
+`listings/`, `doctests/book.md`, and `manifest.json` reproduce the published
+edition. Do not edit them in isolation: fix an erratum in the book first and
+then propagate it to the corpus.
 
-## Informar de una errata
+## Reporting an erratum
 
-Abre una incidencia indicando el identificador del bloque o solución, la
-versión de `rustc`, el comportamiento observado y el esperado. Antes de enviar
-un cambio, consulta [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Open an issue and include the code block or solution identifier, the `rustc`
+version, the observed behavior, and the expected behavior. Before submitting
+a change, read [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## Licencia
+## License
 
-El código de este repositorio se distribuye bajo la [licencia MIT](LICENSE).
-El manuscrito y las ediciones del libro no quedan cubiertos por esta licencia.
+The code in this repository is distributed under the [MIT License](LICENSE).
+The manuscript and published editions of the book are not covered by this
+license.
 
 Copyright © 2026 Francisco M. Olmedo Bueno.

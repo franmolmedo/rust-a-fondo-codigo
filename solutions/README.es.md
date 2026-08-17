@@ -1,28 +1,29 @@
-# Executable solutions
+# Soluciones ejecutables
 
 [English](README.md) | [Español](README.es.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-This crate contains reference implementations for the exercises, fourteen
-katas, and nine projects in *Rust a fondo*.
+Esta crate reúne implementaciones de referencia para los ejercicios, las
+catorce katas y los nueve proyectos de *Rust a fondo*.
 
-Each implementation carries a stable marker such as:
+Cada implementación lleva un marcador estable como este:
 
 ```rust
 // SOLUTION: C24-E06
 ```
 
-The full prompt, discussion, and alternatives remain in the book. This
-repository provides code that readers can compile, run, and modify.
+El enunciado completo, la discusión y las alternativas permanecen en el
+libro. El repositorio aporta el código que se puede compilar, ejecutar y
+modificar.
 
-## Module map
+## Mapa de módulos
 
-| File | Chapters |
+| Archivo | Capítulos |
 |---|---:|
 | `fundamentals.rs` | 1–10 |
 | `functional.rs` | 11–14 |
 | `abstraction.rs` | 15–20 |
 | `memory.rs` | 21–24 |
-| `organization.rs` | 25–29, 49–51, and 53–55 |
+| `organization.rs` | 25–29, 49–51 y 53–55 |
 | `concurrency.rs` | 30–32 |
 | `async_rust.rs` | 33–43 |
 | `unsafe_low_level.rs` | 44–48 |
@@ -31,9 +32,9 @@ repository provides code that readers can compile, run, and modify.
 | `projects.rs` | 57 |
 | `mastery.rs` | 58 |
 
-## Running the tests
+## Ejecutar las pruebas
 
-From the repository root:
+Desde la raíz del repositorio:
 
 ```bash
 cargo test -p course-solutions --locked
@@ -41,12 +42,12 @@ cargo test -p course-solutions --all-features --locked
 cargo clippy -p course-solutions --all-targets --all-features --locked -- -D warnings
 ```
 
-To find or run a specific solution:
+Para localizar o ejecutar una solución concreta:
 
 ```bash
 rg "SOLUTION: C35-E04" solutions/src
 cargo test -p course-solutions c35
 ```
 
-Open-ended solutions represent one reasoned alternative, not the only valid
-architecture.
+Las soluciones abiertas representan una alternativa razonada, no la única
+arquitectura válida.
