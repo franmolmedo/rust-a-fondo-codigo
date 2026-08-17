@@ -6,7 +6,7 @@ Este documento se genera desde `docs/` y alimenta `cargo test --doc`.
 
 ### `ch00-b001` — Preparación del entorno
 
-Source: `0.Introducción.md:166` · mode: `reference`
+Source: `0.Introducción.md:184` · mode: `reference`
 
 ```console
 rustc --version
@@ -19,7 +19,7 @@ cargo run
 
 ### `ch00-b002` — Preparación del entorno
 
-Source: `0.Introducción.md:177` · mode: `reference`
+Source: `0.Introducción.md:195` · mode: `reference`
 
 ```console
 cargo check

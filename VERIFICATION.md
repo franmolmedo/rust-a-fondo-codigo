@@ -17,12 +17,12 @@
 
 ## Comprobaciones
 
-- **OK** — `cargo check --workspace --locked` (0.19 s)
-- **OK** — `cargo check --workspace --all-features --locked` (0.16 s)
-- **OK** — `cargo test --workspace --all-targets --locked` (0.84 s)
-- **OK** — `cargo test --workspace --all-targets --all-features --locked` (0.91 s)
-- **OK** — `cargo test --workspace --doc --locked` (5.83 s)
-- **OK** — `cargo test --workspace --doc --all-features --locked` (6.67 s)
-- **OK** — `cargo fmt --all --check` (0.22 s)
-- **OK** — `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings` (0.25 s)
-- **OK** — `python tools/compiler_probe.py` (0.44 s)
+- **OK** — `cargo check --workspace --locked` (0.27 s)
+- **OK** — `cargo check --workspace --all-features --locked` (0.14 s)
+- **OK** — `cargo test --workspace --all-targets --locked` (0.89 s)
+- **OK** — `cargo test --workspace --all-targets --all-features --locked` (0.88 s)
+- **OK** — `cargo test --workspace --doc --locked` (5.67 s)
+- **OK** — `cargo test --workspace --doc --all-features --locked` (6.11 s)
+- **OK** — `cargo fmt --all --check` (0.2 s)
+- **OK** — `cargo clippy --workspace --all-targets --all-features --locked -- -D warnings` (0.31 s)
+- **OK** — `python tools/compiler_probe.py` (0.48 s)
