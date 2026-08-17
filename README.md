@@ -5,6 +5,8 @@
 Repositorio complementario de *Rust a fondo: Sin atajos: domina ownership,
 concurrencia, async, unsafe y el diseño de sistemas robustos*.
 
+Autor: **Francisco M. Olmedo Bueno**.
+
 Contiene los ejemplos, ejercicios implementados, katas, proyectos y pruebas
 automatizadas del libro. El manuscrito, el PDF y el EPUB no forman parte de
 este repositorio.
@@ -96,3 +98,10 @@ corregirse primero en el libro y propagarse después al corpus.
 Abre una incidencia indicando el identificador del bloque o solución, la
 versión de `rustc`, el comportamiento observado y el esperado. Antes de enviar
 un cambio, consulta [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+## Licencia
+
+El código de este repositorio se distribuye bajo la [licencia MIT](LICENSE).
+El manuscrito y las ediciones del libro no quedan cubiertos por esta licencia.
+
+Copyright © 2026 Francisco M. Olmedo Bueno.

@@ -32,7 +32,7 @@
       "command": "cargo check --workspace --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.27
+      "seconds": 0.22
     },
     {
       "command": "cargo check --workspace --all-features --locked",
@@ -44,43 +44,43 @@
       "command": "cargo test --workspace --all-targets --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.89
+      "seconds": 0.84
     },
     {
       "command": "cargo test --workspace --all-targets --all-features --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.88
+      "seconds": 0.91
     },
     {
       "command": "cargo test --workspace --doc --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 5.67
+      "seconds": 5.98
     },
     {
       "command": "cargo test --workspace --doc --all-features --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 6.11
+      "seconds": 5.55
     },
     {
       "command": "cargo fmt --all --check",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.2
+      "seconds": 0.22
     },
     {
       "command": "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.31
+      "seconds": 2.42
     },
     {
       "command": "python tools/compiler_probe.py",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.48
+      "seconds": 0.47
     }
   ],
   "failures": []
