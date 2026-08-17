@@ -1,0 +1,4 @@
+¿muchas esperas concurrentes (red, timers)?      -> async
+¿pocos flujos, llamadas bloqueantes, simplicidad? -> threads
+¿cálculo divisible que satura cores?              -> pool paralelo (p. ej. rayon)
+¿mezcla?                                          -> fronteras: channels entre modelos

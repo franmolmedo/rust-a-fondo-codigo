@@ -1,0 +1,2 @@
+String  -> texto owned, growable
+&str    -> vista prestada de texto UTF-8

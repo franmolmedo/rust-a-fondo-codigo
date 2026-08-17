@@ -1,0 +1,3 @@
+T       → poseer; se puede transferir o destruir
+&T      → observar temporalmente
+&mut T  → observar y modificar temporalmente en exclusiva

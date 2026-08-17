@@ -1,0 +1,7 @@
+entrada pública
+→ validación / normalización
+→ tipo o estado interno
+→ selección de backend
+→ efecto / syscall / await
+→ mapeo de error
+→ resultado observable

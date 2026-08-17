@@ -1,0 +1,17 @@
+Pregunta y criterio de cierre:
+Versión / commit / checksum:
+Toolchain / target / features:
+Promesa pública y enlace:
+Grafo relevante:
+Corte vertical:
+Tipos y ownership:
+Errores y efectos:
+Concurrencia / cancelación:
+Unsafe y premisas:
+Tests que sostienen el contrato:
+Historia relevante:
+Hechos:
+Inferencias pendientes:
+Idea transferible:
+Restricción que impide copiarla:
+Experimento mínimo y resultado:

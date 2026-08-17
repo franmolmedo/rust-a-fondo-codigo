@@ -1,0 +1,6 @@
+[lints.rust]
+missing_docs = "warn"
+
+[lints.clippy]
+unwrap_used = "warn"
+dbg_macro = "warn"

@@ -1,0 +1,3 @@
+A carga source = 10; B carga source = 10
+A decide transferir 7; B decide transferir 7
+ambos debitan y acreditan por separado

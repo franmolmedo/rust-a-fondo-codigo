@@ -1,0 +1,5 @@
+[package]
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true

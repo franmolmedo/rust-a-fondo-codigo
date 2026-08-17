@@ -1,0 +1,3 @@
+&String   → normalmente &str
+&Vec<T>   → normalmente &[T]
+&PathBuf  → normalmente &Path

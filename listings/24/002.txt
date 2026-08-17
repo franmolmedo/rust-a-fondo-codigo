@@ -1,0 +1,3 @@
+ExampleFuture (estado tras el primer poll)
+├── data: [u8; 64]          bytes propios del future
+└── view: puntero ────────> ...hacia data, DENTRO del mismo future

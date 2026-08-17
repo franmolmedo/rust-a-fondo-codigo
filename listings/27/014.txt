@@ -1,0 +1,6 @@
+cargo metadata
+cargo tree
+cargo tree -e features
+cargo update -p crate_name
+cargo build --all-targets
+cargo test --workspace

@@ -1,0 +1,6 @@
+crate root
+├── Client
+├── Error
+├── model::{Id, Record}
+├── traits::Transport
+└── feature-gated integrations

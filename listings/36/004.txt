@@ -1,0 +1,2 @@
+Future + Send + 'static
+Future::Output + Send + 'static

@@ -1,0 +1,5 @@
+cargo check
+cargo test
+cargo fmt --all
+cargo clippy --all-targets --all-features
+cargo doc --no-deps --open

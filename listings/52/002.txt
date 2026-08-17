@@ -1,0 +1,2 @@
+source(api) → HIR(api) → typeck(api) → metadata(crate)
+source(body privado) → MIR(body) → codegen(unit)

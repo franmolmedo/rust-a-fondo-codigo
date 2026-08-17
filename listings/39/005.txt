@@ -1,0 +1,4 @@
+stream<Item>
+  -> map(Item -> Future<Output>)
+  -> buffer_unordered(N)
+  -> stream<Output en orden de finalización>

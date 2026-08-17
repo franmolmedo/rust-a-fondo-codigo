@@ -1,0 +1,6 @@
+rustc --version
+cargo --version
+rustup component add rustfmt clippy
+cargo new rust-lab
+cd rust-lab
+cargo run

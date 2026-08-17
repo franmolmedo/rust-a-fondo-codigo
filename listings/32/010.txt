@@ -1,0 +1,5 @@
+thread A: lee top = nodo X, se prepara para CAS(X -> X.next)
+thread B: pop X, pop Y, push X          (top vuelve a ser X...
+                                         ...pero X.next ya no es Y)
+thread A: CAS(top, X -> X.next)          éxito aparente;
+                                         top apunta ahora a un nodo liberado

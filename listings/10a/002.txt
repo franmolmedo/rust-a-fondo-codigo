@@ -1,0 +1,2 @@
+enum EmailError        conjunto cerrado; el caller conoce los casos
+Box<dyn DomainError>   conjunto abierto; el caller conoce capacidades

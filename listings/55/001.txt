@@ -1,0 +1,4 @@
+cargo metadata --format-version 1
+cargo tree -e normal,build
+cargo tree -e features
+cargo tree -d

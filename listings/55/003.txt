@@ -1,0 +1,2 @@
+cargo package --list
+cargo package

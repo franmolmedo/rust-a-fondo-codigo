@@ -1,0 +1,8 @@
+[dependencies]
+tracing = "0.1"
+
+[dev-dependencies]
+proptest = "1"
+
+[build-dependencies]
+cc = "1"

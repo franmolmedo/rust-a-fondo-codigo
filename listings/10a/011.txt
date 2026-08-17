@@ -1,0 +1,4 @@
+domain/email/error.rs          EmailError
+domain/order/error.rs          CancelOrderError
+application/register/error.rs RegisterUserError
+adapters/database/error.rs     RepositoryError

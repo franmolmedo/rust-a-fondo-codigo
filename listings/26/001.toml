@@ -1,0 +1,8 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/domain",
+    "crates/application",
+    "crates/adapters",
+    "apps/server",
+]

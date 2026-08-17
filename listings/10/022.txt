@@ -1,0 +1,4 @@
+map       transforma Ok(T) en Ok(U)
+map_err   transforma Err(E) en Err(F)
+and_then  encadena T -> Result<U, E>
+or_else   intenta recuperarse con E -> Result<T, F>

@@ -1,0 +1,3 @@
+iter()      Item = &T       observa; la colección sobrevive
+iter_mut()  Item = &mut T   modifica con exclusividad
+into_iter() Item = T        consume o transfiere los elementos

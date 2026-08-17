@@ -1,0 +1,4 @@
+macro_lab/      crate proc-macro: parsea y genera tokens
+macro_api/      trait Entity + reexport de las tres macros
+macro_fixture/  consumidor externo; renombra macro_api como domain_api
+solutions/      ejercicios y asserts de contrato

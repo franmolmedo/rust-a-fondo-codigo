@@ -1,0 +1,2 @@
+Vec<T>  -> buffer owned y growable
+&[T]    -> vista prestada de elementos contiguos

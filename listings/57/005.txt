@@ -1,0 +1,2 @@
+native-checksum-sys   # bindings raw + build/link
+native-checksum       # API safe + ownership + errores

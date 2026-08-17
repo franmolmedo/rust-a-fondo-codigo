@@ -1,0 +1,5 @@
+tests/
+├── api.rs          # cada archivo .rs es una crate de test
+├── workflows.rs
+└── common/
+    └── mod.rs      # compartido: NO se ejecuta como test propio

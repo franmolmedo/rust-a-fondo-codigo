@@ -1,0 +1,12 @@
+[package]
+name = "course-macro-fixture"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+
+[dependencies]
+domain-api = { package = "course-macro-api", path = "../macro_api" }
+
+[lints]
+workspace = true

@@ -1,0 +1,2 @@
+cargo test -p course-solutions --lib mastery
+cargo clippy -p course-solutions --lib --all-features -- -D warnings

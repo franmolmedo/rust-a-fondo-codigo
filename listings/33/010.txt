@@ -1,0 +1,4 @@
+request scope
+├── load user
+├── load permissions
+└── timeout/cancel -> ambos trabajos resueltos

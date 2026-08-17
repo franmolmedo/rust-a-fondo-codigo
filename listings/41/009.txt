@@ -1,0 +1,3 @@
+entidad / value object -> invariantes puras y síncronas
+caso de uso            -> coordina puertos; puede ser async
+adaptador              -> runtime, red, base de datos

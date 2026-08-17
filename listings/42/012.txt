@@ -1,0 +1,4 @@
+cargo fix --edition --workspace --all-targets --all-features
+# actualizar cada Cargo.toml a edition = "2024"
+cargo test --workspace --all-targets --all-features
+cargo clippy --workspace --all-targets --all-features -- -D warnings

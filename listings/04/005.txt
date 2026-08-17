@@ -1,0 +1,4 @@
+String
+├── puntero ──────► buffer UTF-8 en el heap
+├── longitud
+└── capacidad

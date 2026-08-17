@@ -1,0 +1,5 @@
+Tauri ─┐
+       ├─> application ─> domain
+Axum ──┘        │
+                ├─> storage port <─ adapter local
+                └─> sync port    <─ adapter HTTP

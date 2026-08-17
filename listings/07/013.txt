@@ -1,0 +1,5 @@
+field()       → observa una vista o valor Copy
+field_mut()   → presta acceso mutable directo
+as_*()        → vista barata
+to_*()        → crea una representación nueva
+into_*()      → consume y transfiere

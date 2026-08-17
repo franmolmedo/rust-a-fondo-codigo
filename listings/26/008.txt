@@ -1,0 +1,1 @@
+JSON/SQL/IPC DTO <-> comando o respuesta de aplicación <-> tipos de dominio

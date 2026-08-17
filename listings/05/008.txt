@@ -1,0 +1,4 @@
+muchos &T             → lectura compartida
+un &mut T             → lectura y escritura exclusivas
+&T junto a &mut T     → no, si los préstamos se solapan
+varios &mut T         → no, si alcanzan datos solapados

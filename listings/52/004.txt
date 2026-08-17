@@ -1,0 +1,2 @@
+rustc --edition=2024 --crate-type=lib --emit=mir,llvm-ir,asm code/compiler_lab/pipeline.rs
+rustc --edition=2024 -C opt-level=3 --crate-type=lib --emit=asm code/compiler_lab/pipeline.rs

@@ -1,0 +1,7 @@
+Cargo.toml
+README.md
+DESIGN.md
+src/
+tests/
+examples/
+benches/       # solo si existe una afirmación de rendimiento

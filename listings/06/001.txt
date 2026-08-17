@@ -1,0 +1,3 @@
+vida del dato       → tramo de ejecución en que el valor existe
+región del préstamo → tramo en que una referencia puede utilizarse
+anotación 'a        → relación genérica exigida entre referencias

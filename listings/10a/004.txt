@@ -1,0 +1,1 @@
+puntero a datos + puntero a vtable

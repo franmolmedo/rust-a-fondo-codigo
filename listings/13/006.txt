@@ -1,0 +1,3 @@
+Option<T>      --map--> Option<U>
+Result<T, E>   --map--> Result<U, E>
+Iterator<T>    --map--> Iterator<U>

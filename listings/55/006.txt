@@ -1,0 +1,1 @@
+rg -n "unsafe|SAFETY|MaybeUninit|from_raw|into_raw|transmute|NonNull" src

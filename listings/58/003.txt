@@ -1,0 +1,6 @@
+PREDICTION.md    regla y resultado antes de compilar
+src/             implementación mínima
+tests/           éxito, borde, fallo y contrato negativo
+EXPLANATION.md   compila · garantiza · cuesta
+EVIDENCE.md      comandos, fuentes, medidas y versiones
+CHANGE.md        requisito sorpresa y adaptación

@@ -1,0 +1,6 @@
+domain       cambios · versiones · conflictos
+application  editar · sincronizar · resolver
+storage      documento + log local transaccional
+http         servidor Axum
+desktop      comandos Tauri
+runtime      tasks Tokio supervisadas

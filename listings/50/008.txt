@@ -1,0 +1,5 @@
+error: el campo `missing` no existe en esta struct
+ --> src/lib.rs:4:15
+  |
+4 | #[entity(id = "missing")]
+  |               ^^^^^^^^^

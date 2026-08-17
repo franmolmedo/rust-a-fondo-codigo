@@ -1,0 +1,6 @@
+crates/
+├── catalog-domain
+├── catalog-application
+└── catalog-adapters
+apps/
+└── catalog-server

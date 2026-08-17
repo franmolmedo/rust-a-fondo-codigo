@@ -1,0 +1,9 @@
+# crates/application/Cargo.toml
+[dependencies]
+domain = { path = "../domain" }
+
+# crates/adapters/Cargo.toml
+[dependencies]
+domain = { path = "../domain" }
+application = { path = "../application" }
+sqlx = "0.8"   # la infraestructura pesada vive aquí, no en el núcleo

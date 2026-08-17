@@ -1,0 +1,7 @@
+bindings raw: símbolos, ABI y constantes
+        ↓
+wrapper de ownership: handles, Drop, strings, errores
+        ↓
+API safe: préstamos, Result, tipos de dominio
+        ↓
+aplicación: sin raw pointers ni códigos C

@@ -1,0 +1,5 @@
+values.iter()                         Item = &i32
+      .copied()                       Item = i32
+      .filter(|value| value % 2 == 0) Item = i32
+      .map(|value| value * 2)         Item = i32
+      .collect::<Vec<_>>()            Vec<i32>

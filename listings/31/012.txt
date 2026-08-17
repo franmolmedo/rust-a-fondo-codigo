@@ -1,0 +1,7 @@
+error: future cannot be sent between threads safely
+note: future is not `Send` as this value is used across an await
+    |
+    |     let guard = state.lock().unwrap();
+    |         ----- has type `MutexGuard<'_, u64>` which is not `Send`
+    |     pause().await;
+    |     ^^^^^^^^^^^^^ await occurs here, with `guard` maybe used later

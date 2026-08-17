@@ -1,0 +1,4 @@
+cargo test --workspace --all-targets --all-features --locked
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+cargo +1.85.0 test -p course-solutions --lib unsafe_low_level::c48::tests --all-features
+cargo +nightly miri test -p course-solutions --lib unsafe_low_level::c48::tests

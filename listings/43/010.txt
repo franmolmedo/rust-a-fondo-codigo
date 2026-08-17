@@ -1,0 +1,2 @@
+webview -> comando IPC -> DTO de entrada -> caso de uso -> dominio/adaptadores
+webview <- Result/DTO  <- traducción estable <-----------+

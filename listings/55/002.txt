@@ -1,0 +1,3 @@
+cargo tree -e features -i nombre-dependencia
+cargo tree --target all -e normal,build
+cargo tree -d

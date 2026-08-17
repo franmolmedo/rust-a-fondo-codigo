@@ -1,0 +1,6 @@
+cargo test                      # todos los targets de test
+cargo test parse                # filtra por nombre parcial
+cargo test -- --nocapture       # muestra stdout/stderr de tests que pasan
+cargo test -- --test-threads=1  # serializa (diagnóstico de interferencias)
+cargo test --doc                # solo doctests
+cargo test -p application       # un package del workspace

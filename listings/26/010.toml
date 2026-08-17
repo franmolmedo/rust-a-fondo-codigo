@@ -1,0 +1,3 @@
+# crates/application/Cargo.toml
+[dev-dependencies]
+test-support = { path = "../test-support" }

@@ -1,0 +1,1 @@
+S = (pointer, capacity, initialized, exposed_length, layout, owner)

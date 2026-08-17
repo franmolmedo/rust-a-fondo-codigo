@@ -1,0 +1,4 @@
+# MAL DISEÑO: dos features que eligen backend
+[features]
+backend-postgres = []
+backend-sqlite = []

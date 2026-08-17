@@ -1,0 +1,2 @@
+'long: 'short → 'long es válido al menos durante 'short
+T: 'a         → los préstamos contenidos en T permiten usar T durante 'a

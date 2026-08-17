@@ -1,0 +1,3 @@
+RUNNING -> QUIESCING -> DRAINING -> FORCING -> STOPPED
+             |             |            |
+      cerrar admisión   deadline    abort + join

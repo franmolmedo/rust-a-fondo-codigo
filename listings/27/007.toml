@@ -1,0 +1,7 @@
+[features]
+default = []
+json = ["dep:serde", "dep:serde_json"]
+
+[dependencies]
+serde = { version = "1", optional = true }
+serde_json = { version = "1", optional = true }

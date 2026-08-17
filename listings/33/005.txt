@@ -1,0 +1,3 @@
+ready queue -> poll task -> Ready(result)
+                         -> Pending + registrar Waker
+evento -> wake -> ready queue

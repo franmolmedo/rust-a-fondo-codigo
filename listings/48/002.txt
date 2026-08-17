@@ -1,0 +1,3 @@
+1. producir T                 ← puede devolver error o hacer panic
+2. escribir T en el slot k   ← el slot pasa a ser válido
+3. incrementar initialized   ← el guard ya puede destruirlo

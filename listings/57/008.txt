@@ -1,0 +1,7 @@
+1. checkout limpio y toolchain fijado
+2. cargo test --workspace --all-targets --all-features
+3. iniciar componentes con puertos efímeros
+4. ejecutar escenario y guardar IDs
+5. provocar el fallo documentado
+6. cerrar y comprobar reporte
+7. repetir sin estado residual

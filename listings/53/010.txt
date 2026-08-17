@@ -1,0 +1,6 @@
+cargo fmt --all --check
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --all-targets
+cargo test --workspace --doc
+cargo package --list
+cargo publish --dry-run

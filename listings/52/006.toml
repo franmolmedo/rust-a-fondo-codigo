@@ -1,0 +1,6 @@
+[profile.release-observable]
+inherits = "release"
+debug = "line-tables-only"
+lto = "thin"
+codegen-units = 1
+incremental = false

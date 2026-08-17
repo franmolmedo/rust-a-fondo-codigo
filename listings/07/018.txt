@@ -1,0 +1,4 @@
+email.as_str()
+user.deactivate()
+cart.add_item(item)
+rectangle.area()

@@ -1,0 +1,4 @@
+T              siempre produce un valor válido
+Option<T>      produce un valor o ausencia normal
+Result<T, E>   produce un valor o un fallo explicado
+panic          denuncia una suposición interna rota

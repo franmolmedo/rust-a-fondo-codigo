@@ -1,0 +1,2 @@
+thread A: lock users -> lock orders
+thread B: lock orders -> lock users

@@ -1,0 +1,98 @@
+# Código de *Rust a fondo*
+
+[![Verificación](https://github.com/franmolmedo/rust-a-fondo-codigo/actions/workflows/ci.yml/badge.svg)](https://github.com/franmolmedo/rust-a-fondo-codigo/actions/workflows/ci.yml)
+
+Repositorio complementario de *Rust a fondo: Sin atajos: domina ownership,
+concurrencia, async, unsafe y el diseño de sistemas robustos*.
+
+Contiene los ejemplos, ejercicios implementados, katas, proyectos y pruebas
+automatizadas del libro. El manuscrito, el PDF y el EPUB no forman parte de
+este repositorio.
+
+## Qué incluye
+
+- **891 bloques** conservados en `listings/`, identificados por capítulo.
+- **403 soluciones ejecutables** de referencia en `solutions/`.
+- **447 tests** asociados a las soluciones.
+- Doctests, ejemplos `compile_fail` y casos `should_panic`.
+- Laboratorios reales de macros procedurales, MIR, LLVM IR y assembly.
+- Un manifiesto con trazabilidad y hashes SHA-256 de cada listado.
+
+Los identificadores del libro son estables. Por ejemplo, `C24-E06` significa
+«capítulo 24, ejercicio 6» y se conserva igual en todas las traducciones.
+
+## Requisitos
+
+- [Rustup](https://rustup.rs/) y Cargo.
+- Python 3.11 o posterior.
+- PowerShell 5.1 o posterior para `verify.ps1` en Windows.
+
+El archivo `rust-toolchain.toml` instala automáticamente Rust 1.95.0 con
+Clippy y rustfmt. Las crates declaran Rust 1.85 como versión mínima.
+
+## Empezar
+
+```bash
+git clone https://github.com/franmolmedo/rust-a-fondo-codigo.git
+cd rust-a-fondo-codigo
+cargo test --workspace --all-targets --all-features --locked
+```
+
+Para ejecutar la misma auditoría que utiliza la integración continua:
+
+```powershell
+# Windows
+.\verify.ps1
+```
+
+```bash
+# Linux y macOS
+./verify.sh
+```
+
+La auditoría comprueba hashes, TOML, configuraciones de features, tests,
+doctests, formato, Clippy y la emisión real de MIR, LLVM IR y assembly.
+
+## Encontrar una solución
+
+Busca el identificador que aparece en el libro:
+
+```bash
+rg "SOLUTION: C24-E06" solutions/src
+```
+
+También puedes ejecutar únicamente las pruebas de un capítulo o módulo:
+
+```bash
+cargo test -p course-solutions c24
+cargo test -p course-solutions katas
+cargo test -p course-solutions projects
+```
+
+El índice técnico de módulos está en [`solutions/README.md`](solutions/README.md).
+
+## Estructura
+
+```text
+.
+├── solutions/         soluciones, katas y proyectos con tests
+├── listings/          un archivo por bloque publicado en el libro
+├── doctests/          harness de documentación y compile_fail
+├── macro_lab/         macro procedural
+├── macro_api/         API pública y reexportaciones de la macro
+├── macro_fixture/     consumidor con dependencia renombrada
+├── compiler_lab/      fuente estable para inspeccionar el compilador
+├── tools/             auditoría reproducible
+├── manifest.json      trazabilidad de los listados
+└── VERIFICATION.md    último informe de verificación
+```
+
+`listings/`, `doctests/book.md` y `manifest.json` reflejan literalmente la
+edición publicada. No deben modificarse de forma aislada: una errata debe
+corregirse primero en el libro y propagarse después al corpus.
+
+## Informar de una errata
+
+Abre una incidencia indicando el identificador del bloque o solución, la
+versión de `rustc`, el comportamiento observado y el esperado. Antes de enviar
+un cambio, consulta [`CONTRIBUTING.md`](CONTRIBUTING.md).

@@ -1,0 +1,4 @@
+Parent
+├── child: F       [estructuralmente pinneado]
+├── output: Option [movible si la invariante lo permite]
+└── state          [movible si la invariante lo permite]

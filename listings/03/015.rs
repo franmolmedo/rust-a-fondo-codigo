@@ -1,0 +1,1 @@
+struct MoneyCents(i64);

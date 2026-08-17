@@ -1,0 +1,5 @@
+cargo test -p course-macro-fixture --all-targets
+cargo test -p course-macro-api --doc
+cargo test -p course-solutions --lib organization::c50::tests --all-features
+cargo +1.85.0 test -p course-macro-api --doc
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings

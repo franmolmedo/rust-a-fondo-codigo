@@ -1,0 +1,1 @@
+struct UserId(u64);

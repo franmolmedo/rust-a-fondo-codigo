@@ -1,0 +1,5 @@
+consumidor: comprueba la cola      -> vacía
+productor:  encola el dato
+productor:  mira si hay waker      -> aún no hay -> no despierta a nadie
+consumidor: registra su waker
+consumidor: devuelve Pending       -> el evento ya pasó y nadie lo despertará

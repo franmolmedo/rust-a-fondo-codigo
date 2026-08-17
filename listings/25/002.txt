@@ -1,0 +1,6 @@
+src/
+├── lib.rs
+├── domain.rs
+└── domain/
+    ├── order.rs
+    └── user.rs

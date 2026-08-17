@@ -1,0 +1,4 @@
+cargo test --workspace --all-targets --locked
+cargo test --workspace --doc --locked
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+cargo fmt --all --check

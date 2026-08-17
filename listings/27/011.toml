@@ -1,0 +1,3 @@
+[[bin]]
+name = "debug-inspector"
+required-features = ["inspector"]

@@ -1,0 +1,2 @@
+thread::spawn  exige F: Send + 'static   (el thread puede sobrevivir al caller)
+scope.spawn    exige F: Send + 'scope    (el join está garantizado antes del fin)

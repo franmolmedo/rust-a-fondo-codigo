@@ -1,0 +1,4 @@
+rustup +nightly component add miri
+cargo +nightly miri test
+cargo test --release --all-targets --all-features
+cargo clippy --all-targets --all-features -- -D warnings
