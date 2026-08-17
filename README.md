@@ -55,6 +55,15 @@ Para ejecutar la misma auditoría que utiliza la integración continua:
 La auditoría comprueba hashes, TOML, configuraciones de features, tests,
 doctests, formato, Clippy y la emisión real de MIR, LLVM IR y assembly.
 
+## Declaración sobre el uso de inteligencia artificial
+
+En el desarrollo de este repositorio se utilizaron herramientas de IA
+generativa para crear y revisar partes del código, ejemplos, soluciones,
+tests y documentación. Francisco M. Olmedo Bueno dirigió el trabajo, tomó las
+decisiones finales y asume la responsabilidad sobre el material publicado.
+La auditoría reproducible aporta evidencia técnica, pero no garantiza que el
+código esté libre de errores ni que sea adecuado para cualquier uso concreto.
+
 ## Encontrar una solución
 
 Busca el identificador que aparece en el libro:
