@@ -142,21 +142,21 @@ pub mod c12 {
     }
 
     // SOLUTION: C12-E02
-    pub fn doubled_evens(values: &[i32]) -> Vec<i32> {
+    pub fn doubled_evens(values: &[i32]) -> Vec<i64> {
         values
             .iter()
             .copied()
             .filter(|value| value % 2 == 0)
-            .map(|value| value * 2)
+            .map(|value| i64::from(value) * 2)
             .collect()
     }
 
     // SOLUTION: C12-E03
-    pub fn lazy_map_observation(values: &[i32]) -> (usize, usize, Vec<i32>) {
+    pub fn lazy_map_observation(values: &[i32]) -> (usize, usize, Vec<i64>) {
         let calls = Cell::new(0);
         let pipeline = values.iter().copied().map(|value| {
             calls.set(calls.get() + 1);
-            value * 2
+            i64::from(value) * 2
         });
         let before_consuming = calls.get();
         let result = pipeline.collect();
@@ -180,18 +180,18 @@ pub mod c12 {
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct Countdown {
-        next: u32,
+        next: usize,
     }
 
     // SOLUTION: C12-E07
     impl Countdown {
-        pub fn new(start: u32) -> Self {
+        pub fn new(start: usize) -> Self {
             Self { next: start }
         }
     }
 
     impl Iterator for Countdown {
-        type Item = u32;
+        type Item = usize;
 
         fn next(&mut self) -> Option<Self::Item> {
             if self.next == 0 {
@@ -203,7 +203,7 @@ pub mod c12 {
         }
 
         fn size_hint(&self) -> (usize, Option<usize>) {
-            let remaining = self.next as usize;
+            let remaining = self.next;
             (remaining, Some(remaining))
         }
     }
@@ -294,11 +294,11 @@ pub mod c13 {
     use thiserror::Error;
 
     // SOLUTION: C13-E01
-    pub fn total_selected(values: &[u64]) -> u64 {
+    pub fn total_selected(values: &[u64]) -> u128 {
         values
             .iter()
             .copied()
-            .map(|value| value * 2)
+            .map(|value| u128::from(value) * 2)
             .filter(|value| value % 3 == 0)
             .sum()
     }
@@ -386,18 +386,18 @@ pub mod c13 {
     }
 
     // SOLUTION: C13-E04
-    pub fn total<I>(items: I) -> u64
+    pub fn total<I>(items: I) -> Option<u64>
     where
         I: IntoIterator<Item = u64>,
     {
-        items.into_iter().sum()
+        items.into_iter().try_fold(0_u64, u64::checked_add)
     }
 
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub struct ReviewReport {
         pub accepted: Vec<u64>,
         pub rejected: Vec<u64>,
-        pub total_cents: u64,
+        pub total_cents: u128,
     }
 
     // SOLUTION: C13-E05
@@ -414,7 +414,7 @@ pub mod c13 {
                 continue;
             }
             report.accepted.push(id);
-            report.total_cents += amount;
+            report.total_cents += u128::from(amount);
         }
         report
     }
@@ -488,9 +488,9 @@ pub mod c13 {
             ];
             assert_eq!(active_names(&users), ["Ada"]);
             assert_eq!(active_names_owned(&users), [String::from("Ada")]);
-            assert_eq!(total([100, 200]), 300);
-            assert_eq!(total(vec![300, 400]), 700);
-            assert_eq!(total((1..=3).map(|value| value * 10)), 60);
+            assert_eq!(total([100, 200]), Some(300));
+            assert_eq!(total(vec![300, 400]), Some(700));
+            assert_eq!(total((1..=3).map(|value| value * 10)), Some(60));
         }
 
         #[test]

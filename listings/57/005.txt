@@ -1,2 +1,2 @@
-native-checksum-sys   # bindings raw + build/link
-native-checksum       # API safe + ownership + errores
+native-checksum-sys   # declaraciones de bajo nivel + compilación y enlace
+native-checksum       # API segura + propiedad + errores

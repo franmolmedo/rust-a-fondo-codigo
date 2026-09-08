@@ -8,11 +8,11 @@ let flag = Arc::clone(&shutdown);
 let worker = thread::spawn(move || {
     let mut processed = 0_u64;
     while !flag.load(Ordering::Relaxed) {
-        processed += 1; // una unidad de trabajo
+        processed = processed.saturating_add(1); // Count completed work, up to u64::MAX.
     }
     processed
 });
 
 shutdown.store(true, Ordering::Relaxed);
 let total = worker.join().unwrap();
-println!("procesadas {total} unidades");
+println!("processed {total} units");

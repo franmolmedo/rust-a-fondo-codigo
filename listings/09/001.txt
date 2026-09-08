@@ -1,2 +1,2 @@
-literales · bindings · _ · tuplas · structs · enums
-slices · rangos · or-patterns · guards · bindings @
+literales · variables · _ · tuplas · structs · enums
+slices · rangos · alternativas con | · asociaciones con @

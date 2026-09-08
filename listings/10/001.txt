@@ -1,4 +1,4 @@
-T              siempre produce un valor válido
-Option<T>      produce un valor o ausencia normal
-Result<T, E>   produce un valor o un fallo explicado
-panic          denuncia una suposición interna rota
+T              devuelve un valor sin representar un fallo en la firma
+Option<T>      devuelve un valor o indica que no lo hay
+Result<T, E>   devuelve un valor o un error con información
+panic!         interrumpe la ejecución normal ante un fallo no tratado

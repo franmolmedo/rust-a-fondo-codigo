@@ -6,7 +6,7 @@ Este documento se genera desde `docs/` y alimenta `cargo test --doc`.
 
 ### `ch00-b001` — Preparación del entorno
 
-Source: `0.Introducción.md:198` · mode: `reference`
+Source: `0.Introducción.md:212` · mode: `reference`
 
 ```console
 rustc --version
@@ -19,7 +19,7 @@ cargo run
 
 ### `ch00-b002` — Preparación del entorno
 
-Source: `0.Introducción.md:209` · mode: `reference`
+Source: `0.Introducción.md:229` · mode: `reference`
 
 ```console
 cargo check
@@ -33,7 +33,7 @@ cargo doc --no-deps --open
 
 ### `ch01-b001` — 1.2 Seguridad sin recolector de basura
 
-Source: `01.Filosofía-y-modelo-mental.md:41` · mode: `run`
+Source: `01.Filosofía-y-modelo-mental.md:49` · mode: `run`
 
 ```rust
 fn main() {
@@ -44,7 +44,7 @@ fn main() {
 
 ### `ch01-b002` — 1.2 Seguridad sin recolector de basura
 
-Source: `01.Filosofía-y-modelo-mental.md:50` · mode: `run`
+Source: `01.Filosofía-y-modelo-mental.md:62` · mode: `run`
 
 ```rust
 struct ConnectionGuard(&'static str);
@@ -60,14 +60,14 @@ fn main() {
     {
         let _cache = ConnectionGuard("cache");
         println!("trabajando con ambas");
-    } // la cache se cierra exactamente aquí
+    } // aquí se destruye `_cache` y se imprime su mensaje de cierre
     println!("solo queda la base de datos");
-} // la base de datos se cierra al final
+} // al final se destruye `_database` y se imprime su mensaje de cierre
 ```
 
 ### `ch01-b003` — 1.3 Safe Rust y Unsafe Rust
 
-Source: `01.Filosofía-y-modelo-mental.md:91` · mode: `run`
+Source: `01.Filosofía-y-modelo-mental.md:109` · mode: `run`
 
 ```rust
 fn first_byte(bytes: &[u8]) -> Option<u8> {
@@ -87,21 +87,21 @@ fn main() {
 
 ### `ch01-b004` — 1.4 Abstracciones de coste cero
 
-Source: `01.Filosofía-y-modelo-mental.md:117` · mode: `run`
+Source: `01.Filosofía-y-modelo-mental.md:139` · mode: `run`
 
 ```rust
 fn main() {
-    // El compilador usa la representación imposible (puntero nulo)
-    // para codificar None: la seguridad no añade ni un byte.
+    // Rust representa None mediante un puntero nulo.
+    // En estos dos tipos, Option no necesita espacio adicional.
     assert_eq!(size_of::<Option<&u8>>(), size_of::<&u8>());
     assert_eq!(size_of::<Option<Box<u64>>>(), size_of::<Box<u64>>());
-    println!("Option sobre punteros: mismo tamaño que el puntero desnudo");
+    println!("En estos dos casos, Option ocupa lo mismo que el tipo que contiene");
 }
 ```
 
 ### `ch01-b005` — 1.6 El compilador como colaborador
 
-Source: `01.Filosofía-y-modelo-mental.md:167` · mode: `compile_fail`
+Source: `01.Filosofía-y-modelo-mental.md:193` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn greet(name: String) {
@@ -110,7 +110,7 @@ fn greet(name: String) {
 
 fn main() {
     let name = String::from("Ada");
-    greet(name); // move: `name` se transfiere a greet
+    greet(name); // `greet` recibe la propiedad de `name`
     println!("{name}");
     // error[E0382]: borrow of moved value: `name`
 }
@@ -118,7 +118,7 @@ fn main() {
 
 ### `ch01-b006` — 1.6 El compilador como colaborador
 
-Source: `01.Filosofía-y-modelo-mental.md:182` · mode: `run`
+Source: `01.Filosofía-y-modelo-mental.md:208` · mode: `run`
 
 ```rust
 fn greet(name: &str) {
@@ -128,13 +128,13 @@ fn greet(name: &str) {
 fn main() {
     let name = String::from("Ada");
     greet(&name);
-    println!("{name}"); // sigue disponible: nadie lo consumió
+    println!("{name}"); // `main` conserva el nombre después del préstamo
 }
 ```
 
-### `ch01-b007` — 1.7 El método del curso: tres preguntas
+### `ch01-b007` — 1.7 El método del libro: tres preguntas
 
-Source: `01.Filosofía-y-modelo-mental.md:206` · mode: `run`
+Source: `01.Filosofía-y-modelo-mental.md:234` · mode: `run`
 
 ```rust
 struct User {
@@ -150,7 +150,7 @@ fn first_active(users: &[User]) -> Option<&User> {
 
 ### `ch02-b001` — 2.1 Rust es principalmente un lenguaje de expresiones
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:11` · mode: `illustrative`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:13` · mode: `illustrative`
 
 ```rust,ignore
 5 + 6
@@ -168,7 +168,7 @@ match value {
 
 ### `ch02-b002` — 2.1 Rust es principalmente un lenguaje de expresiones
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:27` · mode: `illustrative`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:29` · mode: `illustrative`
 
 ```rust,ignore
 let x = 3;
@@ -178,7 +178,7 @@ struct User { name: String }
 
 ### `ch02-b003` — 2.1 Rust es principalmente un lenguaje de expresiones
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:35` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:37` · mode: `run`
 
 ```rust
 fn main() {
@@ -196,7 +196,7 @@ fn main() {
 
 ### `ch02-b004` — 2.2 El punto y coma cambia el valor
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:55` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:59` · mode: `run`
 
 ```rust
 fn plus_one(x: i32) -> i32 {
@@ -206,7 +206,7 @@ fn plus_one(x: i32) -> i32 {
 
 ### `ch02-b005` — 2.2 El punto y coma cambia el valor
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:63` · mode: `compile_fail`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:67` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn plus_one(x: i32) -> i32 {
@@ -218,7 +218,7 @@ fn plus_one(x: i32) -> i32 {
 
 ### `ch02-b006` — 2.3 Los bloques producen valores
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:84` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:88` · mode: `run`
 
 ```rust
 fn main() {
@@ -233,7 +233,7 @@ fn main() {
 
 ### `ch02-b007` — 2.3 Los bloques producen valores
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:97` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:101` · mode: `run`
 
 ```rust
 fn main() {
@@ -241,7 +241,7 @@ fn main() {
         let raw = String::from("  Ada Lovelace  ");
         let clean = raw.trim();
         format!("nombre: {clean}")
-    }; // `clean` termina y `raw` se destruye; `summary` posee otro String
+    }; // `raw` se destruye; `summary` conserva un String independiente
 
     assert_eq!(summary, "nombre: Ada Lovelace");
 }
@@ -249,7 +249,7 @@ fn main() {
 
 ### `ch02-b008` — 2.4 `if` como expresión
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:115` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:121` · mode: `run`
 
 ```rust
 fn main() {
@@ -265,7 +265,7 @@ fn main() {
 
 ### `ch02-b009` — 2.4 `if` como expresión
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:129` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:135` · mode: `run`
 
 ```rust
 fn main() {
@@ -277,7 +277,7 @@ fn main() {
 
 ### `ch02-b010` — 2.4 `if` como expresión
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:139` · mode: `compile_fail`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:145` · mode: `compile_fail`
 
 ```rust,compile_fail
 let condition = true;
@@ -287,7 +287,7 @@ let value = if condition { 1 } else { "dos" };
 
 ### `ch02-b011` — 2.4 `if` como expresión
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:149` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:155` · mode: `run`
 
 ```rust
 fn main() {
@@ -300,7 +300,7 @@ fn main() {
 
 ### `ch02-b012` — 2.5 `match` como expresión
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:164` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:170` · mode: `run`
 
 ```rust
 fn main() {
@@ -316,7 +316,7 @@ fn main() {
 
 ### `ch02-b013` — 2.6 `loop` puede devolver valores
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:182` · mode: `compile_only`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:192` · mode: `compile_only`
 
 ```rust,no_run
 fn ready() -> bool {
@@ -335,7 +335,7 @@ fn main() {
 
 ### `ch02-b014` — 2.6 `loop` puede devolver valores
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:201` · mode: `compile_only`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:211` · mode: `compile_only`
 
 ```rust,no_run
 fn main() {
@@ -352,9 +352,32 @@ fn main() {
 }
 ```
 
+### `ch02-b029` — 2.6 `loop` puede devolver valores
+
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:234` · mode: `run`
+
+```rust
+fn main() {
+    let mut remaining = 3;
+    while remaining > 0 {
+        remaining -= 1;
+    }
+    assert_eq!(remaining, 0);
+
+    let mut total = 0;
+    for number in 1..=5 {
+        if number == 3 {
+            continue;
+        }
+        total += number;
+    }
+    assert_eq!(total, 12);
+}
+```
+
 ### `ch02-b015` — 2.7 Bindings e inmutabilidad por defecto
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:222` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:263` · mode: `run`
 
 ```rust
 let x = 5;
@@ -362,7 +385,7 @@ let x = 5;
 
 ### `ch02-b016` — 2.7 Bindings e inmutabilidad por defecto
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:228` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:269` · mode: `run`
 
 ```rust
 let mut x = 5;
@@ -371,7 +394,7 @@ x = 6;
 
 ### `ch02-b017` — 2.8 Shadowing no es mutación
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:241` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:284` · mode: `run`
 
 ```rust
 let input = " 42 ";
@@ -381,7 +404,7 @@ let input = input.parse::<u32>().expect("número válido");
 
 ### `ch02-b018` — 2.8 Shadowing no es mutación
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:251` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:296` · mode: `run`
 
 ```rust
 let spaces = "   ";
@@ -390,7 +413,7 @@ let spaces = spaces.len();
 
 ### `ch02-b019` — 2.9 `return` y salida temprana
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:264` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:321` · mode: `run`
 
 ```rust
 fn classify_number(x: i32) -> &'static str {
@@ -400,7 +423,7 @@ fn classify_number(x: i32) -> &'static str {
 
 ### `ch02-b020` — 2.9 `return` y salida temprana
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:272` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:329` · mode: `run`
 
 ```rust
 fn checked_divide(a: i32, b: i32) -> Option<i32> {
@@ -414,7 +437,7 @@ fn checked_divide(a: i32, b: i32) -> Option<i32> {
 
 ### `ch02-b021` — 2.10 Place expressions y value expressions
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:288` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:349` · mode: `run`
 
 ```rust
 struct User {
@@ -428,9 +451,9 @@ fn main() {
 }
 ```
 
-### `ch02-b022` — 2.11 Primer puente hacia ownership
+### `ch02-b022` — 2.11 Primeras reglas de ownership
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:308` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:369` · mode: `run`
 
 ```rust
 let first = String::from("hola");
@@ -439,7 +462,7 @@ let second = first;
 
 ### `ch02-b023` — Ejercicio 1 — valor de un bloque
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:348` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:411` · mode: `run`
 
 ```rust
 fn main() {
@@ -454,7 +477,7 @@ fn main() {
 
 ### `ch02-b024` — Ejercicio 2 — el punto y coma
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:363` · mode: `compile_fail`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:426` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn calculate() -> i32 {
@@ -465,7 +488,7 @@ fn calculate() -> i32 {
 
 ### `ch02-b025` — Ejercicio 3 — shadowing
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:374` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:437` · mode: `run`
 
 ```rust
 fn main() {
@@ -478,7 +501,7 @@ fn main() {
 
 ### `ch02-b026` — Ejercicio 4 — asignación y move
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:387` · mode: `compile_fail`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:450` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -488,9 +511,9 @@ fn main() {
 }
 ```
 
-### `ch02-b027` — Ejercicio 5 — eliminar estado intermedio
+### `ch02-b027` — Ejercicio 5 — evitar una variable mutable
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:399` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:462` · mode: `run`
 
 ```rust
 fn label_for(score: u8) -> &'static str {
@@ -507,9 +530,9 @@ fn main() {
 }
 ```
 
-### `ch02-b028` — Ejercicio 6 — `loop` como productor de un valor
+### `ch02-b028` — Ejercicio 6 — obtener un resultado de `loop`
 
-Source: `02.Expresiones-bindings-y-control-de-flujo.md:418` · mode: `run`
+Source: `02.Expresiones-bindings-y-control-de-flujo.md:481` · mode: `run`
 
 ```rust
 fn first_even(values: &[i32]) -> Option<i32> {
@@ -615,22 +638,22 @@ let maximum: u8 = 255;
 
 ### `ch03-b009` — 3.4 Overflow explícito
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:100` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:102` · mode: `run`
 
 ```rust
 fn main() {
     let x: u8 = 255;
 
-    assert_eq!(x.wrapping_add(1), 0);
     assert_eq!(x.checked_add(1), None);
     assert_eq!(x.saturating_add(1), 255);
+    assert_eq!(x.wrapping_add(1), 0);
     assert_eq!(x.overflowing_add(1), (0, true));
 }
 ```
 
 ### `ch03-b010` — 3.4 Overflow explícito
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:120` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:122` · mode: `run`
 
 ```rust
 fn add_stock(current: u32, incoming: u32) -> Option<u32> {
@@ -640,7 +663,7 @@ fn add_stock(current: u32, incoming: u32) -> Option<u32> {
 
 ### `ch03-b011` — 3.5 Conversiones numéricas
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:134` · mode: `compile_fail`
+Source: `03.Tipos-fundamentales-y-compuestos.md:136` · mode: `compile_fail`
 
 ```rust,compile_fail
 let a: u32 = 10;
@@ -651,7 +674,7 @@ let c = a + b;
 
 ### `ch03-b012` — 3.5 Conversiones numéricas
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:143` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:145` · mode: `run`
 
 ```rust
 fn main() {
@@ -664,7 +687,7 @@ fn main() {
 
 ### `ch03-b013` — 3.5 Conversiones numéricas
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:154` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:156` · mode: `run`
 
 ```rust
 use std::convert::TryFrom;
@@ -676,7 +699,7 @@ assert!(small.is_err());
 
 ### `ch03-b014` — 3.6 Coma flotante
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:174` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:176` · mode: `run`
 
 ```rust
 let wide = 2.0;          // f64
@@ -685,7 +708,7 @@ let compact: f32 = 3.0;
 
 ### `ch03-b015` — 3.6 Coma flotante
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:183` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:185` · mode: `run`
 
 ```rust
 struct MoneyCents(i64);
@@ -693,7 +716,7 @@ struct MoneyCents(i64);
 
 ### `ch03-b016` — 3.6 Coma flotante
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:189` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:191` · mode: `run`
 
 ```rust
 fn main() {
@@ -704,7 +727,7 @@ fn main() {
 
 ### `ch03-b017` — 3.7 `bool`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:202` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:208` · mode: `run`
 
 ```rust
 let active = true;
@@ -716,7 +739,7 @@ if active {
 
 ### `ch03-b018` — 3.7 `bool`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:212` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:218` · mode: `run`
 
 ```rust
 let x = 1;
@@ -727,7 +750,7 @@ if x != 0 {
 
 ### `ch03-b019` — 3.8 `char` y Unicode
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:225` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:231` · mode: `run`
 
 ```rust
 let letter = 'a';
@@ -736,7 +759,7 @@ let crab = '🦀';
 
 ### `ch03-b020` — 3.8 `char` y Unicode
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:232` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:242` · mode: `run`
 
 ```rust
 fn main() {
@@ -752,7 +775,7 @@ fn main() {
 
 ### `ch03-b021` — 3.9 Unit type `()`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:250` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:262` · mode: `run`
 
 ```rust
 fn log(message: &str) {
@@ -762,7 +785,7 @@ fn log(message: &str) {
 
 ### `ch03-b022` — 3.9 Unit type `()`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:258` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:270` · mode: `run`
 
 ```rust
 fn log(message: &str) -> () {
@@ -772,7 +795,7 @@ fn log(message: &str) -> () {
 
 ### `ch03-b023` — 3.9 Unit type `()`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:268` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:280` · mode: `run`
 
 ```rust
 fn validate_nonempty(text: &str) -> Result<(), &'static str> {
@@ -791,7 +814,7 @@ fn main() {
 
 ### `ch03-b024` — 3.10 Never type `!`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:287` · mode: `compile_only`
+Source: `03.Tipos-fundamentales-y-compuestos.md:299` · mode: `compile_only`
 
 ```rust,no_run
 fn fail(message: &str) -> ! {
@@ -801,7 +824,7 @@ fn fail(message: &str) -> ! {
 
 ### `ch03-b025` — 3.10 Never type `!`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:295` · mode: `compile_only`
+Source: `03.Tipos-fundamentales-y-compuestos.md:307` · mode: `compile_only`
 
 ```rust,no_run
 fn wait_forever() -> ! {
@@ -813,7 +836,7 @@ fn wait_forever() -> ! {
 
 ### `ch03-b026` — 3.10 Never type `!`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:305` · mode: `compile_only`
+Source: `03.Tipos-fundamentales-y-compuestos.md:317` · mode: `compile_only`
 
 ```rust,no_run
 let value: i32 = match Some(10) {
@@ -824,7 +847,7 @@ let value: i32 = match Some(10) {
 
 ### `ch03-b027` — 3.11 Tuplas
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:320` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:336` · mode: `run`
 
 ```rust
 let point: (i32, i32) = (10, 20);
@@ -834,7 +857,7 @@ let y = point.1;
 
 ### `ch03-b028` — 3.11 Tuplas
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:328` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:344` · mode: `run`
 
 ```rust
 let rgb = (255, 128, 64);
@@ -843,7 +866,7 @@ let (red, green, blue) = rgb;
 
 ### `ch03-b029` — 3.11 Tuplas
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:337` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:353` · mode: `run`
 
 ```rust
 fn min_max(values: &[i32]) -> Option<(i32, i32)> {
@@ -855,7 +878,7 @@ fn min_max(values: &[i32]) -> Option<(i32, i32)> {
 
 ### `ch03-b030` — 3.12 Arrays `[T; N]`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:351` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:369` · mode: `run`
 
 ```rust
 let values: [i32; 4] = [1, 2, 3, 4];
@@ -864,7 +887,7 @@ let zeros = [0; 10];
 
 ### `ch03-b031` — 3.12 Arrays `[T; N]`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:358` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:376` · mode: `run`
 
 ```rust
 let matrix: [[i32; 3]; 3] = [
@@ -876,7 +899,7 @@ let matrix: [[i32; 3]; 3] = [
 
 ### `ch03-b032` — 3.12 Arrays `[T; N]`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:370` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:388` · mode: `run`
 
 ```rust
 fn main() {
@@ -890,7 +913,7 @@ fn main() {
 
 ### `ch03-b033` — 3.13 Slices `[T]`, `&[T]` y `&mut [T]`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:388` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:406` · mode: `run`
 
 ```rust
 fn sum(values: &[i32]) -> i32 {
@@ -909,7 +932,7 @@ fn main() {
 
 ### `ch03-b034` — 3.13 Slices `[T]`, `&[T]` y `&mut [T]`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:405` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:423` · mode: `run`
 
 ```rust
 fn double_all(values: &mut [i32]) {
@@ -921,7 +944,7 @@ fn double_all(values: &mut [i32]) {
 
 ### `ch03-b035` — 3.14 `str` y `&str`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:423` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:441` · mode: `run`
 
 ```rust
 let literal: &'static str = "hola";
@@ -929,7 +952,7 @@ let literal: &'static str = "hola";
 
 ### `ch03-b036` — 3.14 `str` y `&str`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:431` · mode: `compile_fail`
+Source: `03.Tipos-fundamentales-y-compuestos.md:449` · mode: `compile_fail`
 
 ```rust,compile_fail
 let text = "hola";
@@ -939,7 +962,7 @@ let first = text[0];
 
 ### `ch03-b037` — 3.14 `str` y `&str`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:439` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:457` · mode: `run`
 
 ```rust
 fn main() {
@@ -954,7 +977,7 @@ fn main() {
 
 ### `ch03-b038` — 3.14 `str` y `&str`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:454` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:472` · mode: `run`
 
 ```rust
 let text = "é";
@@ -965,7 +988,7 @@ assert_eq!(text.get(0..1), None);
 
 ### `ch03-b039` — 3.15 `String`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:467` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:485` · mode: `run`
 
 ```rust
 let mut text = String::from("hola");
@@ -975,7 +998,7 @@ text.push_str(" mundo");
 
 ### `ch03-b040` — 3.15 `String`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:475` · mode: `reference`
+Source: `03.Tipos-fundamentales-y-compuestos.md:493` · mode: `reference`
 
 ```text
 String = puntero + longitud + capacidad
@@ -983,17 +1006,17 @@ String = puntero + longitud + capacidad
 
 ### `ch03-b041` — 3.15 `String`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:483` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:509` · mode: `run`
 
 ```rust
 let first = String::from("hola");
 let second = first;
-// `first` ya no es usable
+// `first` ya no puede utilizarse
 ```
 
 ### `ch03-b042` — 3.15 `String`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:491` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:517` · mode: `run`
 
 ```rust
 let first = String::from("hola");
@@ -1002,16 +1025,16 @@ let second = first.clone();
 
 ### `ch03-b043` — 3.16 `String` frente a `&str`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:502` · mode: `reference`
+Source: `03.Tipos-fundamentales-y-compuestos.md:528` · mode: `reference`
 
 ```text
-String  -> texto owned, growable
-&str    -> vista prestada de texto UTF-8
+String  -> posee el texto UTF-8 y permite modificarlo
+&str    -> permite consultar texto UTF-8 prestado
 ```
 
 ### `ch03-b044` — 3.16 `String` frente a `&str`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:509` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:535` · mode: `run`
 
 ```rust
 fn print_name(name: &str) {
@@ -1027,7 +1050,7 @@ fn main() {
 
 ### `ch03-b045` — 3.17 `Vec<T>`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:535` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:563` · mode: `run`
 
 ```rust
 let mut values = Vec::new();
@@ -1037,7 +1060,7 @@ values.push(2);
 
 ### `ch03-b046` — 3.17 `Vec<T>`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:543` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:571` · mode: `run`
 
 ```rust
 let values = vec![1, 2, 3];
@@ -1045,7 +1068,7 @@ let values = vec![1, 2, 3];
 
 ### `ch03-b047` — 3.17 `Vec<T>`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:549` · mode: `reference`
+Source: `03.Tipos-fundamentales-y-compuestos.md:577` · mode: `reference`
 
 ```text
 Vec<T> = puntero + longitud + capacidad
@@ -1053,7 +1076,7 @@ Vec<T> = puntero + longitud + capacidad
 
 ### `ch03-b048` — 3.17 `Vec<T>`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:557` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:587` · mode: `run`
 
 ```rust
 fn main() {
@@ -1068,7 +1091,7 @@ fn main() {
 
 ### `ch03-b049` — 3.18 Realocación e invalidación de referencias
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:574` · mode: `compile_fail`
+Source: `03.Tipos-fundamentales-y-compuestos.md:606` · mode: `compile_fail`
 
 ```rust,compile_fail
 let mut values = vec![1, 2, 3];
@@ -1081,7 +1104,7 @@ println!("{first}");
 
 ### `ch03-b050` — 3.18 Realocación e invalidación de referencias
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:587` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:621` · mode: `run`
 
 ```rust
 fn main() {
@@ -1094,7 +1117,7 @@ fn main() {
 
 ### `ch03-b051` — 3.18 Realocación e invalidación de referencias
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:598` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:632` · mode: `run`
 
 ```rust
 fn main() {
@@ -1107,16 +1130,16 @@ fn main() {
 
 ### `ch03-b052` — 3.19 `Vec<T>` frente a `&[T]`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:613` · mode: `reference`
+Source: `03.Tipos-fundamentales-y-compuestos.md:654` · mode: `reference`
 
 ```text
-Vec<T>  -> buffer owned y growable
-&[T]    -> vista prestada de elementos contiguos
+Vec<T>  -> posee los elementos y puede cambiar su longitud
+&[T]    -> permite consultar una secuencia contigua prestada
 ```
 
 ### `ch03-b053` — 3.19 `Vec<T>` frente a `&[T]`
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:620` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:661` · mode: `run`
 
 ```rust
 fn total(values: &[i32]) -> i32 {
@@ -1126,7 +1149,7 @@ fn total(values: &[i32]) -> i32 {
 
 ### `ch03-b054` — 3.20 Tipos `Copy` y compuestos
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:646` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:687` · mode: `run`
 
 ```rust
 let x = 10;
@@ -1136,7 +1159,7 @@ println!("{x} {y}");
 
 ### `ch03-b055` — 3.20 Tipos `Copy` y compuestos
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:654` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:695` · mode: `run`
 
 ```rust
 let first = [1, 2, 3];
@@ -1146,7 +1169,7 @@ println!("{first:?} {second:?}");
 
 ### `ch03-b056` — 3.21 Tipos de tamaño dinámico
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:678` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:723` · mode: `run`
 
 ```rust
 fn main() {
@@ -1160,7 +1183,7 @@ fn main() {
 
 ### `ch03-b057` — 3.22 Alias frente a newtype
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:694` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:743` · mode: `run`
 
 ```rust
 type UserId = u64;
@@ -1168,16 +1191,16 @@ type UserId = u64;
 
 ### `ch03-b058` — 3.22 Alias frente a newtype
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:702` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:751` · mode: `run`
 
 ```rust
 struct UserId(u64);
 struct OrderId(u64);
 ```
 
-### `ch03-b059` — 3.23 Checklist de diseño
+### `ch03-b059` — 3.23 Guía para elegir tipos
 
-Source: `03.Tipos-fundamentales-y-compuestos.md:723` · mode: `run`
+Source: `03.Tipos-fundamentales-y-compuestos.md:772` · mode: `run`
 
 ```rust
 struct UserId(u64);
@@ -1188,20 +1211,20 @@ struct Quantity(u32);
 
 ## 04.Ownership
 
-### `ch04-b001` — 4.1 Las tres reglas operativas
+### `ch04-b001` — 4.1 Las tres reglas de la propiedad
 
-Source: `04.Ownership.md:17` · mode: `run`
+Source: `04.Ownership.md:19` · mode: `run`
 
 ```rust
 fn main() {
     let text = String::from("hola");
     assert_eq!(text.len(), 4);
-} // `text` se destruye aquí y libera su buffer
+} // `text` se destruye aquí y libera la memoria del texto
 ```
 
-### `ch04-b002` — 4.2 Scope, destrucción y orden
+### `ch04-b002` — 4.2 Ámbitos, destrucción y orden
 
-Source: `04.Ownership.md:32` · mode: `run`
+Source: `04.Ownership.md:36` · mode: `run`
 
 ```rust
 struct Tracer(&'static str);
@@ -1225,9 +1248,9 @@ fn main() {
 }
 ```
 
-### `ch04-b003` — 4.2 Scope, destrucción y orden
+### `ch04-b003` — 4.2 Ámbitos, destrucción y orden
 
-Source: `04.Ownership.md:56` · mode: `reference`
+Source: `04.Ownership.md:60` · mode: `reference`
 
 ```text
 inside
@@ -1237,9 +1260,9 @@ outside
 drop outer
 ```
 
-### `ch04-b004` — 4.3 Move semantics
+### `ch04-b004` — 4.3 Transferencia de propiedad con `move`
 
-Source: `04.Ownership.md:74` · mode: `compile_fail`
+Source: `04.Ownership.md:80` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -1252,20 +1275,20 @@ fn main() {
 }
 ```
 
-### `ch04-b005` — 4.3 Move semantics
+### `ch04-b005` — 4.3 Transferencia de propiedad con `move`
 
-Source: `04.Ownership.md:89` · mode: `reference`
+Source: `04.Ownership.md:95` · mode: `reference`
 
 ```text
 String
-├── puntero ──────► buffer UTF-8 en el heap
+├── puntero ──────► bytes UTF-8 en memoria dinámica
 ├── longitud
 └── capacidad
 ```
 
 ### `ch04-b006` — 4.4 Valor movido y reinicialización
 
-Source: `04.Ownership.md:108` · mode: `run`
+Source: `04.Ownership.md:118` · mode: `run`
 
 ```rust
 fn main() {
@@ -1281,7 +1304,7 @@ fn main() {
 
 ### `ch04-b007` — 4.5 Pasar argumentos por valor puede consumir
 
-Source: `04.Ownership.md:128` · mode: `run`
+Source: `04.Ownership.md:140` · mode: `run`
 
 ```rust
 fn consume(text: String) -> usize {
@@ -1296,7 +1319,7 @@ fn main() {
 
 ### `ch04-b008` — 4.5 Pasar argumentos por valor puede consumir
 
-Source: `04.Ownership.md:143` · mode: `compile_fail`
+Source: `04.Ownership.md:155` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn consume(text: String) {
@@ -1311,9 +1334,9 @@ fn main() {
 }
 ```
 
-### `ch04-b009` — 4.6 Retornar transfiere ownership
+### `ch04-b009` — 4.6 Devolver un valor transfiere su propiedad
 
-Source: `04.Ownership.md:170` · mode: `run`
+Source: `04.Ownership.md:182` · mode: `run`
 
 ```rust
 fn make_name() -> String {
@@ -1331,17 +1354,17 @@ fn main() {
 }
 ```
 
-### `ch04-b010` — 4.6 Retornar transfiere ownership
+### `ch04-b010` — 4.6 Devolver un valor transfiere su propiedad
 
-Source: `04.Ownership.md:188` · mode: `reference`
+Source: `04.Ownership.md:200` · mode: `reference`
 
 ```text
 make_name → retorno → name → parámetro text → retorno → same_name
 ```
 
-### `ch04-b011` — 4.7 El patrón torpe sin borrowing
+### `ch04-b011` — 4.7 Devolver un valor para seguir utilizándolo
 
-Source: `04.Ownership.md:198` · mode: `run`
+Source: `04.Ownership.md:210` · mode: `run`
 
 ```rust
 fn length_owned(text: String) -> (String, usize) {
@@ -1357,9 +1380,9 @@ fn main() {
 }
 ```
 
-### `ch04-b012` — 4.7 El patrón torpe sin borrowing
+### `ch04-b012` — 4.7 Devolver un valor para seguir utilizándolo
 
-Source: `04.Ownership.md:214` · mode: `run`
+Source: `04.Ownership.md:226` · mode: `run`
 
 ```rust
 fn length(text: &str) -> usize {
@@ -1375,7 +1398,7 @@ fn main() {
 
 ### `ch04-b013` — 4.8 `Copy`
 
-Source: `04.Ownership.md:232` · mode: `run`
+Source: `04.Ownership.md:244` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -1394,7 +1417,7 @@ fn main() {
 
 ### `ch04-b014` — 4.8 `Copy`
 
-Source: `04.Ownership.md:253` · mode: `compile_fail`
+Source: `04.Ownership.md:269` · mode: `compile_fail`
 
 ```rust,compile_fail
 #[derive(Clone, Copy)]
@@ -1406,7 +1429,7 @@ fn main() {}
 
 ### `ch04-b015` — 4.9 `Clone`
 
-Source: `04.Ownership.md:267` · mode: `run`
+Source: `04.Ownership.md:283` · mode: `run`
 
 ```rust
 fn main() {
@@ -1421,7 +1444,7 @@ fn main() {
 
 ### `ch04-b016` — 4.10 `Drop` y liberación anticipada
 
-Source: `04.Ownership.md:290` · mode: `run`
+Source: `04.Ownership.md:308` · mode: `run`
 
 ```rust
 struct Guard;
@@ -1449,7 +1472,7 @@ fn main() {
 
 ### `ch04-b017` — 4.10 `Drop` y liberación anticipada
 
-Source: `04.Ownership.md:320` · mode: `compile_fail`
+Source: `04.Ownership.md:340` · mode: `compile_fail`
 
 ```rust,compile_fail
 struct Guard;
@@ -1465,9 +1488,9 @@ fn main() {
 }
 ```
 
-### `ch04-b018` — 4.11 Moves parciales
+### `ch04-b018` — 4.11 Movimientos parciales
 
-Source: `04.Ownership.md:342` · mode: `run`
+Source: `04.Ownership.md:366` · mode: `run`
 
 ```rust
 struct Person {
@@ -1487,9 +1510,9 @@ fn main() {
 }
 ```
 
-### `ch04-b019` — 4.11 Moves parciales
+### `ch04-b019` — 4.11 Movimientos parciales
 
-Source: `04.Ownership.md:366` · mode: `compile_fail`
+Source: `04.Ownership.md:394` · mode: `compile_fail`
 
 ```rust,compile_fail
 struct Ticket {
@@ -1512,9 +1535,9 @@ fn main() {
 }
 ```
 
-### `ch04-b020` — 4.11 Moves parciales
+### `ch04-b020` — 4.11 Movimientos parciales
 
-Source: `04.Ownership.md:389` · mode: `run`
+Source: `04.Ownership.md:417` · mode: `run`
 
 ```rust
 struct Ticket {
@@ -1536,9 +1559,9 @@ fn main() {
 }
 ```
 
-### `ch04-b021` — 4.12 Métodos como contratos de ownership
+### `ch04-b021` — 4.12 Receptores de métodos y propiedad
 
-Source: `04.Ownership.md:415` · mode: `run`
+Source: `04.Ownership.md:445` · mode: `run`
 
 ```rust
 struct Counter {
@@ -1571,9 +1594,9 @@ fn main() {
 }
 ```
 
-### `ch04-b022` — 4.13 Builders que consumen `self`
+### `ch04-b022` — 4.13 Constructores encadenados que consumen `self`
 
-Source: `04.Ownership.md:458` · mode: `run`
+Source: `04.Ownership.md:490` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -1629,9 +1652,9 @@ fn main() {
 }
 ```
 
-### `ch04-b023` — 4.14 Ownership compartido explícito
+### `ch04-b023` — 4.14 Propiedad compartida explícita
 
-Source: `04.Ownership.md:520` · mode: `run`
+Source: `04.Ownership.md:558` · mode: `run`
 
 ```rust
 use std::rc::Rc;
@@ -1653,9 +1676,9 @@ fn main() {
 }
 ```
 
-### `ch04-b024` — 4.15 Ownership como contrato de dominio
+### `ch04-b024` — 4.15 Propiedad y cambios de estado
 
-Source: `04.Ownership.md:550` · mode: `run`
+Source: `04.Ownership.md:598` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -1698,9 +1721,9 @@ fn main() {
 }
 ```
 
-### `ch04-b025` — 4.16 Ownership y closures
+### `ch04-b025` — 4.16 Capturas por valor en closures
 
-Source: `04.Ownership.md:599` · mode: `run`
+Source: `04.Ownership.md:653` · mode: `run`
 
 ```rust
 fn main() {
@@ -1715,9 +1738,9 @@ fn main() {
 }
 ```
 
-### `ch04-b026` — 4.16 Ownership y closures
+### `ch04-b026` — 4.16 Capturas por valor en closures
 
-Source: `04.Ownership.md:616` · mode: `compile_fail`
+Source: `04.Ownership.md:670` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -1730,9 +1753,9 @@ fn main() {
 }
 ```
 
-### `ch04-b027` — Ejercicio 7 — captura `move`
+### `ch04-b027` — Ejercicio 7 — captura `move` en una closure
 
-Source: `04.Ownership.md:708` · mode: `run`
+Source: `04.Ownership.md:766` · mode: `run`
 
 ```rust
 fn main() {
@@ -1747,9 +1770,9 @@ fn main() {
 
 ## 05.Borrowing
 
-### `ch05-b001` — 5.1 Ownership y borrowing responden preguntas distintas
+### `ch05-b001` — 5.1 Propiedad y préstamo responden preguntas distintas
 
-Source: `05.Borrowing.md:13` · mode: `run`
+Source: `05.Borrowing.md:15` · mode: `run`
 
 ```rust
 fn length(text: &str) -> usize {
@@ -1764,19 +1787,19 @@ fn main() {
 }
 ```
 
-### `ch05-b002` — 5.1 Ownership y borrowing responden preguntas distintas
+### `ch05-b002` — 5.1 Propiedad y préstamo responden preguntas distintas
 
-Source: `05.Borrowing.md:30` · mode: `reference`
+Source: `05.Borrowing.md:32` · mode: `reference`
 
 ```text
-T       → poseer; se puede transferir o destruir
-&T      → observar temporalmente
-&mut T  → observar y modificar temporalmente en exclusiva
+T       → recibir la propiedad del valor
+&T      → leerlo temporalmente
+&mut T  → leerlo y modificarlo temporalmente en exclusiva
 ```
 
 ### `ch05-b003` — 5.2 Referencias compartidas: `&T`
 
-Source: `05.Borrowing.md:42` · mode: `run`
+Source: `05.Borrowing.md:44` · mode: `run`
 
 ```rust
 fn initials(first: &str, last: &str) -> String {
@@ -1797,7 +1820,7 @@ fn main() {
 
 ### `ch05-b004` — 5.2 Referencias compartidas: `&T`
 
-Source: `05.Borrowing.md:65` · mode: `compile_fail`
+Source: `05.Borrowing.md:67` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -1813,7 +1836,7 @@ fn main() {
 
 ### `ch05-b005` — 5.3 Referencias mutables: `&mut T`
 
-Source: `05.Borrowing.md:83` · mode: `run`
+Source: `05.Borrowing.md:85` · mode: `run`
 
 ```rust
 fn add_exclamation(text: &mut String) {
@@ -1831,7 +1854,7 @@ fn main() {
 
 ### `ch05-b006` — 5.3 Referencias mutables: `&mut T`
 
-Source: `05.Borrowing.md:99` · mode: `run`
+Source: `05.Borrowing.md:101` · mode: `run`
 
 ```rust
 fn main() {
@@ -1845,7 +1868,7 @@ fn main() {
 
 ### `ch05-b007` — 5.3 Referencias mutables: `&mut T`
 
-Source: `05.Borrowing.md:115` · mode: `compile_fail`
+Source: `05.Borrowing.md:117` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -1859,20 +1882,20 @@ fn main() {
 }
 ```
 
-### `ch05-b008` — 5.4 Aliasing XOR mutability
+### `ch05-b008` — 5.4 Lectura compartida o modificación exclusiva
 
-Source: `05.Borrowing.md:133` · mode: `reference`
+Source: `05.Borrowing.md:135` · mode: `reference`
 
 ```text
-muchos &T             → lectura compartida
+varios &T             → lectura compartida
 un &mut T             → lectura y escritura exclusivas
-&T junto a &mut T     → no, si los préstamos se solapan
-varios &mut T         → no, si alcanzan datos solapados
+&T junto a &mut T     → no, mientras ambos se estén utilizando
+varios &mut T         → no, si apuntan a datos que se solapan
 ```
 
-### `ch05-b009` — 5.5 Los préstamos se aplican a *places*
+### `ch05-b009` — 5.5 Rust comprueba qué parte exacta se presta
 
-Source: `05.Borrowing.md:152` · mode: `run`
+Source: `05.Borrowing.md:156` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -1893,9 +1916,9 @@ fn main() {
 }
 ```
 
-### `ch05-b010` — 5.5 Los préstamos se aplican a *places*
+### `ch05-b010` — 5.5 Rust comprueba qué parte exacta se presta
 
-Source: `05.Borrowing.md:177` · mode: `compile_fail`
+Source: `05.Borrowing.md:181` · mode: `compile_fail`
 
 ```rust,compile_fail
 #[derive(Debug)]
@@ -1915,9 +1938,9 @@ fn main() {
 }
 ```
 
-### `ch05-b011` — 5.6 Non-lexical lifetimes y último uso
+### `ch05-b011` — 5.6 El préstamo termina después de su último uso
 
-Source: `05.Borrowing.md:201` · mode: `run`
+Source: `05.Borrowing.md:205` · mode: `run`
 
 ```rust
 fn main() {
@@ -1933,9 +1956,9 @@ fn main() {
 }
 ```
 
-### `ch05-b012` — 5.6 Non-lexical lifetimes y último uso
+### `ch05-b012` — 5.6 El préstamo termina después de su último uso
 
-Source: `05.Borrowing.md:221` · mode: `compile_fail`
+Source: `05.Borrowing.md:227` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -1949,9 +1972,9 @@ fn main() {
 }
 ```
 
-### `ch05-b013` — 5.6 Non-lexical lifetimes y último uso
+### `ch05-b013` — 5.6 El préstamo termina después de su último uso
 
-Source: `05.Borrowing.md:235` · mode: `run`
+Source: `05.Borrowing.md:241` · mode: `run`
 
 ```rust
 fn main() {
@@ -1967,9 +1990,9 @@ fn main() {
 }
 ```
 
-### `ch05-b014` — 5.7 Elegir vistas: `&str` frente a `&String`
+### `ch05-b014` — 5.7 Elegir la referencia más general: `&str` frente a `&String`
 
-Source: `05.Borrowing.md:255` · mode: `run`
+Source: `05.Borrowing.md:261` · mode: `run`
 
 ```rust
 fn is_blank(text: &str) -> bool {
@@ -1984,9 +2007,9 @@ fn main() {
 }
 ```
 
-### `ch05-b015` — 5.7 Elegir vistas: `&str` frente a `&String`
+### `ch05-b015` — 5.7 Elegir la referencia más general: `&str` frente a `&String`
 
-Source: `05.Borrowing.md:272` · mode: `reference`
+Source: `05.Borrowing.md:278` · mode: `reference`
 
 ```text
 &String   → normalmente &str
@@ -1994,9 +2017,9 @@ Source: `05.Borrowing.md:272` · mode: `reference`
 &PathBuf  → normalmente &Path
 ```
 
-### `ch05-b016` — 5.8 Slices como préstamos de secuencias
+### `ch05-b016` — 5.8 Los *slices* permiten prestar secuencias
 
-Source: `05.Borrowing.md:284` · mode: `run`
+Source: `05.Borrowing.md:290` · mode: `run`
 
 ```rust
 fn contains_name(names: &[String], wanted: &str) -> bool {
@@ -2012,9 +2035,9 @@ fn main() {
 }
 ```
 
-### `ch05-b017` — 5.8 Slices como préstamos de secuencias
+### `ch05-b017` — 5.8 Los *slices* permiten prestar secuencias
 
-Source: `05.Borrowing.md:300` · mode: `run`
+Source: `05.Borrowing.md:306` · mode: `run`
 
 ```rust
 fn zero_all(values: &mut [i32]) {
@@ -2030,9 +2053,9 @@ fn main() {
 }
 ```
 
-### `ch05-b018` — 5.9 Reborrowing: prestar desde otro préstamo
+### `ch05-b018` — 5.9 Volver a prestar una referencia mutable
 
-Source: `05.Borrowing.md:322` · mode: `run`
+Source: `05.Borrowing.md:328` · mode: `run`
 
 ```rust
 fn append_mark(text: &mut String) {
@@ -2051,9 +2074,9 @@ fn main() {
 }
 ```
 
-### `ch05-b019` — 5.9 Reborrowing: prestar desde otro préstamo
+### `ch05-b019` — 5.9 Volver a prestar una referencia mutable
 
-Source: `05.Borrowing.md:345` · mode: `compile_fail`
+Source: `05.Borrowing.md:353` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -2067,9 +2090,9 @@ fn main() {
 }
 ```
 
-### `ch05-b020` — 5.10 Dividir datos para demostrar no solapamiento
+### `ch05-b020` — 5.10 Dividir una secuencia para obtener accesos separados
 
-Source: `05.Borrowing.md:365` · mode: `compile_fail`
+Source: `05.Borrowing.md:373` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -2083,9 +2106,9 @@ fn main() {
 }
 ```
 
-### `ch05-b021` — 5.10 Dividir datos para demostrar no solapamiento
+### `ch05-b021` — 5.10 Dividir una secuencia para obtener accesos separados
 
-Source: `05.Borrowing.md:379` · mode: `run`
+Source: `05.Borrowing.md:387` · mode: `run`
 
 ```rust
 fn increment_neighbors(values: &mut [i32], middle: usize) {
@@ -2102,9 +2125,9 @@ fn main() {
 }
 ```
 
-### `ch05-b022` — 5.11 Two-phase borrows: ergonomía acotada
+### `ch05-b022` — 5.11 Préstamos en dos fases en algunas llamadas a métodos
 
-Source: `05.Borrowing.md:402` · mode: `run`
+Source: `05.Borrowing.md:412` · mode: `run`
 
 ```rust
 fn main() {
@@ -2115,9 +2138,9 @@ fn main() {
 }
 ```
 
-### `ch05-b023` — 5.11 Two-phase borrows: ergonomía acotada
+### `ch05-b023` — 5.11 Préstamos en dos fases en algunas llamadas a métodos
 
-Source: `05.Borrowing.md:417` · mode: `compile_fail`
+Source: `05.Borrowing.md:429` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn push_length(values: &mut Vec<usize>, length: usize) {
@@ -2131,9 +2154,9 @@ fn main() {
 }
 ```
 
-### `ch05-b024` — 5.11 Two-phase borrows: ergonomía acotada
+### `ch05-b024` — 5.11 Préstamos en dos fases en algunas llamadas a métodos
 
-Source: `05.Borrowing.md:431` · mode: `run`
+Source: `05.Borrowing.md:443` · mode: `run`
 
 ```rust
 fn push_length(values: &mut Vec<usize>, length: usize) {
@@ -2149,9 +2172,9 @@ fn main() {
 }
 ```
 
-### `ch05-b025` — 5.12 Una referencia no mantiene vivo su referente
+### `ch05-b025` — 5.12 Una referencia no mantiene vivo el dato
 
-Source: `05.Borrowing.md:453` · mode: `compile_fail`
+Source: `05.Borrowing.md:465` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn bad() -> &'static str {
@@ -2163,9 +2186,9 @@ fn bad() -> &'static str {
 fn main() {}
 ```
 
-### `ch05-b026` — 5.12 Una referencia no mantiene vivo su referente
+### `ch05-b026` — 5.12 Una referencia no mantiene vivo el dato
 
-Source: `05.Borrowing.md:465` · mode: `run`
+Source: `05.Borrowing.md:477` · mode: `run`
 
 ```rust
 fn greeting() -> String {
@@ -2178,9 +2201,9 @@ fn main() {
 }
 ```
 
-### `ch05-b027` — 5.12 Una referencia no mantiene vivo su referente
+### `ch05-b027` — 5.12 Una referencia no mantiene vivo el dato
 
-Source: `05.Borrowing.md:478` · mode: `run`
+Source: `05.Borrowing.md:490` · mode: `run`
 
 ```rust
 fn first_word(text: &str) -> &str {
@@ -2195,9 +2218,9 @@ fn main() {
 }
 ```
 
-### `ch05-b028` — 5.13 Borrowing y closures
+### `ch05-b028` — 5.13 Préstamos capturados por closures
 
-Source: `05.Borrowing.md:497` · mode: `run`
+Source: `05.Borrowing.md:509` · mode: `run`
 
 ```rust
 fn main() {
@@ -2210,9 +2233,9 @@ fn main() {
 }
 ```
 
-### `ch05-b029` — 5.13 Borrowing y closures
+### `ch05-b029` — 5.13 Préstamos capturados por closures
 
-Source: `05.Borrowing.md:510` · mode: `run`
+Source: `05.Borrowing.md:522` · mode: `run`
 
 ```rust
 fn main() {
@@ -2226,9 +2249,9 @@ fn main() {
 }
 ```
 
-### `ch05-b030` — 5.13 Borrowing y closures
+### `ch05-b030` — 5.13 Préstamos capturados por closures
 
-Source: `05.Borrowing.md:526` · mode: `compile_fail`
+Source: `05.Borrowing.md:540` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -2242,9 +2265,9 @@ fn main() {
 }
 ```
 
-### `ch05-b031` — 5.14 Borrowing y pattern matching
+### `ch05-b031` — 5.14 Préstamos al examinar patrones
 
-Source: `05.Borrowing.md:544` · mode: `run`
+Source: `05.Borrowing.md:558` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -2268,9 +2291,9 @@ fn main() {
 }
 ```
 
-### `ch05-b032` — 5.14 Borrowing y pattern matching
+### `ch05-b032` — 5.14 Préstamos al examinar patrones
 
-Source: `05.Borrowing.md:568` · mode: `compile_only`
+Source: `05.Borrowing.md:584` · mode: `compile_only`
 
 ```rust,no_run
 enum Message {
@@ -2295,9 +2318,9 @@ fn main() {
 }
 ```
 
-### `ch05-b033` — 5.15 Interior mutability: una excepción encapsulada, no un atajo
+### `ch05-b033` — 5.15 Mutabilidad interior: reglas específicas para datos compartidos
 
-Source: `05.Borrowing.md:597` · mode: `run`
+Source: `05.Borrowing.md:613` · mode: `run`
 
 ```rust
 use std::cell::Cell;
@@ -2326,9 +2349,9 @@ fn main() {
 }
 ```
 
-### `ch05-b034` — 5.16 Leer una firma como un contrato de capacidades
+### `ch05-b034` — 5.16 Qué nos dice la firma de una función
 
-Source: `05.Borrowing.md:632` · mode: `run`
+Source: `05.Borrowing.md:650` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -2382,7 +2405,7 @@ fn main() {
 
 ### `ch05-b035` — 5.17 Cómo leer un diagnóstico del borrow checker
 
-Source: `05.Borrowing.md:708` · mode: `compile_fail`
+Source: `05.Borrowing.md:726` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -2398,7 +2421,7 @@ fn main() {
 
 ### `ch05-b036` — 5.17 Cómo leer un diagnóstico del borrow checker
 
-Source: `05.Borrowing.md:722` · mode: `run`
+Source: `05.Borrowing.md:742` · mode: `run`
 
 ```rust
 fn main() {
@@ -2416,17 +2439,17 @@ fn main() {
 
 ### `ch06-b001` — 6.1 Tres conceptos que no deben confundirse
 
-Source: `06.Lifetimes.md:13` · mode: `reference`
+Source: `06.Lifetimes.md:15` · mode: `reference`
 
 ```text
-vida del dato       → tramo de ejecución en que el valor existe
-región del préstamo → tramo en que una referencia puede utilizarse
-anotación 'a        → relación genérica exigida entre referencias
+existencia del dato   → desde que se crea el valor hasta que se destruye
+validez del préstamo  → periodo durante el que puede usarse la referencia
+anotación 'a          → nombre que relaciona varias referencias en una firma
 ```
 
-### `ch06-b002` — 6.2 Una salida prestada debe proceder de algún lugar válido
+### `ch06-b002` — 6.2 Una referencia devuelta debe proceder de un dato válido
 
-Source: `06.Lifetimes.md:31` · mode: `run`
+Source: `06.Lifetimes.md:35` · mode: `run`
 
 ```rust
 fn first_word(input: &str) -> &str {
@@ -2442,17 +2465,17 @@ fn main() {
 }
 ```
 
-### `ch06-b003` — 6.2 Una salida prestada debe proceder de algún lugar válido
+### `ch06-b003` — 6.2 Una referencia devuelta debe proceder de un dato válido
 
-Source: `06.Lifetimes.md:47` · mode: `reference`
+Source: `06.Lifetimes.md:53` · mode: `reference`
 
 ```text
 fn first_word<'a>(input: &'a str) -> &'a str
 ```
 
-### `ch06-b004` — 6.3 Dos entradas hacen visible la relación
+### `ch06-b004` — 6.3 El resultado puede depender de cualquiera de dos entradas
 
-Source: `06.Lifetimes.md:57` · mode: `run`
+Source: `06.Lifetimes.md:63` · mode: `run`
 
 ```rust
 fn longest<'a>(first: &'a str, second: &'a str) -> &'a str {
@@ -2471,9 +2494,9 @@ fn main() {
 }
 ```
 
-### `ch06-b005` — 6.4 El contrato limita el resultado aunque conozcamos una rama
+### `ch06-b005` — 6.4 La firma limita cuánto puede usarse el resultado
 
-Source: `06.Lifetimes.md:88` · mode: `compile_fail`
+Source: `06.Lifetimes.md:94` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn longest<'a>(first: &'a str, second: &'a str) -> &'a str {
@@ -2494,9 +2517,9 @@ fn main() {
 }
 ```
 
-### `ch06-b006` — 6.5 Lifetimes independientes expresan contratos más precisos
+### `ch06-b006` — 6.5 Lifetimes independientes permiten una firma más precisa
 
-Source: `06.Lifetimes.md:115` · mode: `run`
+Source: `06.Lifetimes.md:121` · mode: `run`
 
 ```rust
 fn choose_first<'a, 'b>(first: &'a str, _second: &'b str) -> &'a str {
@@ -2518,7 +2541,7 @@ fn main() {
 
 ### `ch06-b007` — 6.6 Una anotación no repara una referencia colgante
 
-Source: `06.Lifetimes.md:147` · mode: `compile_fail`
+Source: `06.Lifetimes.md:153` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn make<'a>() -> &'a str {
@@ -2532,7 +2555,7 @@ fn main() {}
 
 ### `ch06-b008` — 6.6 Una anotación no repara una referencia colgante
 
-Source: `06.Lifetimes.md:161` · mode: `run`
+Source: `06.Lifetimes.md:167` · mode: `run`
 
 ```rust
 fn make() -> String {
@@ -2547,7 +2570,7 @@ fn main() {
 
 ### `ch06-b009` — 6.7 Reglas de elisión
 
-Source: `06.Lifetimes.md:184` · mode: `run`
+Source: `06.Lifetimes.md:190` · mode: `run`
 
 ```rust
 struct User {
@@ -2571,7 +2594,7 @@ fn main() {
 
 ### `ch06-b010` — 6.7 Reglas de elisión
 
-Source: `06.Lifetimes.md:210` · mode: `compile_fail`
+Source: `06.Lifetimes.md:216` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn pick(first: &str, second: &str) -> &str {
@@ -2582,9 +2605,9 @@ fn pick(first: &str, second: &str) -> &str {
 fn main() {}
 ```
 
-### `ch06-b011` — 6.8 Structs que almacenan vistas
+### `ch06-b011` — 6.8 Estructuras que almacenan referencias
 
-Source: `06.Lifetimes.md:223` · mode: `run`
+Source: `06.Lifetimes.md:229` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -2600,9 +2623,9 @@ fn main() {
 }
 ```
 
-### `ch06-b012` — 6.8 Structs que almacenan vistas
+### `ch06-b012` — 6.8 Estructuras que almacenan referencias
 
-Source: `06.Lifetimes.md:243` · mode: `compile_fail`
+Source: `06.Lifetimes.md:249` · mode: `compile_fail`
 
 ```rust,compile_fail
 struct UserView<'a> {
@@ -2618,9 +2641,9 @@ fn local_view<'a>() -> UserView<'a> {
 fn main() {}
 ```
 
-### `ch06-b013` — 6.9 Vista temporal frente a modelo owned
+### `ch06-b013` — 6.9 Vista temporal frente a tipo con datos propios
 
-Source: `06.Lifetimes.md:263` · mode: `run`
+Source: `06.Lifetimes.md:269` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -2646,9 +2669,9 @@ fn main() {
 }
 ```
 
-### `ch06-b014` — 6.9 Vista temporal frente a modelo owned
+### `ch06-b014` — 6.9 Vista temporal frente a tipo con datos propios
 
-Source: `06.Lifetimes.md:289` · mode: `run`
+Source: `06.Lifetimes.md:295` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -2683,9 +2706,9 @@ fn main() {
 }
 ```
 
-### `ch06-b015` — 6.10 `impl` y métodos sobre tipos prestados
+### `ch06-b015` — 6.10 Métodos sobre tipos que almacenan referencias
 
-Source: `06.Lifetimes.md:328` · mode: `run`
+Source: `06.Lifetimes.md:334` · mode: `run`
 
 ```rust
 struct UserView<'a> {
@@ -2697,11 +2720,10 @@ impl<'a> UserView<'a> {
         self.name
     }
 
-    fn choose_label<'b>(&self, fallback: &'b str) -> &'a str {
+    fn choose_label<'b>(&'b self, fallback: &'b str) -> &'b str {
         if self.name.is_empty() {
-            "anonymous"
+            fallback
         } else {
-            let _ = fallback;
             self.name
         }
     }
@@ -2713,12 +2735,16 @@ fn main() {
 
     assert_eq!(view.name(), "Ada");
     assert_eq!(view.choose_label("fallback"), "Ada");
+
+    let empty = UserView { name: "" };
+    let fallback = String::from("Guest");
+    assert_eq!(empty.choose_label(&fallback), "Guest");
 }
 ```
 
-### `ch06-b016` — 6.11 Vistas internas y mutación
+### `ch06-b016` — 6.11 Referencias internas y modificación
 
-Source: `06.Lifetimes.md:365` · mode: `run`
+Source: `06.Lifetimes.md:376` · mode: `run`
 
 ```rust
 fn first_word(text: &str) -> &str {
@@ -2736,9 +2762,9 @@ fn main() {
 }
 ```
 
-### `ch06-b017` — 6.11 Vistas internas y mutación
+### `ch06-b017` — 6.11 Referencias internas y modificación
 
-Source: `06.Lifetimes.md:385` · mode: `compile_fail`
+Source: `06.Lifetimes.md:396` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn first_word(text: &str) -> &str {
@@ -2756,9 +2782,9 @@ fn main() {
 }
 ```
 
-### `ch06-b018` — 6.11 Vistas internas y mutación
+### `ch06-b018` — 6.11 Referencias internas y modificación
 
-Source: `06.Lifetimes.md:403` · mode: `run`
+Source: `06.Lifetimes.md:414` · mode: `run`
 
 ```rust
 fn first_word(text: &str) -> &str {
@@ -2776,7 +2802,7 @@ fn main() {
 
 ### `ch06-b019` — 6.12 Qué significa `'static`
 
-Source: `06.Lifetimes.md:421` · mode: `run`
+Source: `06.Lifetimes.md:432` · mode: `run`
 
 ```rust
 fn banner() -> &'static str {
@@ -2790,7 +2816,7 @@ fn main() {
 
 ### `ch06-b020` — 6.12 Qué significa `'static`
 
-Source: `06.Lifetimes.md:433` · mode: `run`
+Source: `06.Lifetimes.md:444` · mode: `run`
 
 ```rust
 fn parse(input: &str) -> usize {
@@ -2805,7 +2831,7 @@ fn main() {
 
 ### `ch06-b021` — 6.12 Qué significa `'static`
 
-Source: `06.Lifetimes.md:446` · mode: `run`
+Source: `06.Lifetimes.md:459` · mode: `run`
 
 ```rust
 fn require_static<T: 'static>(_value: T) {}
@@ -2816,18 +2842,18 @@ fn main() {
 }
 ```
 
-### `ch06-b022` — 6.13 Bounds entre lifetimes y tipos
+### `ch06-b022` — 6.13 Relaciones entre lifetimes y tipos
 
-Source: `06.Lifetimes.md:461` · mode: `reference`
+Source: `06.Lifetimes.md:474` · mode: `reference`
 
 ```text
-'long: 'short → 'long es válido al menos durante 'short
-T: 'a         → los préstamos contenidos en T permiten usar T durante 'a
+'long: 'short → 'long dura al menos tanto como 'short
+T: 'a         → las referencias contenidas en T son válidas durante 'a
 ```
 
-### `ch06-b023` — 6.13 Bounds entre lifetimes y tipos
+### `ch06-b023` — 6.13 Relaciones entre lifetimes y tipos
 
-Source: `06.Lifetimes.md:468` · mode: `run`
+Source: `06.Lifetimes.md:481` · mode: `run`
 
 ```rust
 fn shorten<'long: 'short, 'short>(value: &'long str) -> &'short str {
@@ -2841,9 +2867,9 @@ fn main() {
 }
 ```
 
-### `ch06-b024` — 6.14 HRTB: aceptar un préstamo fresco en cada llamada
+### `ch06-b024` — 6.14 HRTB: aceptar referencias con cualquier lifetime
 
-Source: `06.Lifetimes.md:486` · mode: `run`
+Source: `06.Lifetimes.md:499` · mode: `run`
 
 ```rust
 fn apply_to_texts<F>(function: F)
@@ -2862,9 +2888,9 @@ fn main() {
 }
 ```
 
-### `ch06-b025` — 6.15 Iteradores que producen vistas
+### `ch06-b025` — 6.15 Iteradores que devuelven referencias
 
-Source: `06.Lifetimes.md:509` · mode: `run`
+Source: `06.Lifetimes.md:524` · mode: `run`
 
 ```rust
 fn non_empty_lines(input: &str) -> impl Iterator<Item = &str> {
@@ -2882,9 +2908,9 @@ fn main() {
 }
 ```
 
-### `ch06-b026` — 6.15 Iteradores que producen vistas
+### `ch06-b026` — 6.15 Iteradores que devuelven referencias
 
-Source: `06.Lifetimes.md:527` · mode: `run`
+Source: `06.Lifetimes.md:544` · mode: `run`
 
 ```rust
 fn normalized_lines(input: &str) -> Vec<String> {
@@ -2906,9 +2932,9 @@ fn main() {
 }
 ```
 
-### `ch06-b027` — 6.16 Diseño de dominio: construir owned y exponer vistas
+### `ch06-b027` — 6.16 Un tipo que posee sus datos y permite consultarlos
 
-Source: `06.Lifetimes.md:553` · mode: `run`
+Source: `06.Lifetimes.md:570` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -2949,7 +2975,7 @@ fn main() {
 
 ### `ch06-b028` — 6.17 Lifetimes y async: adelanto
 
-Source: `06.Lifetimes.md:602` · mode: `run`
+Source: `06.Lifetimes.md:619` · mode: `run`
 
 ```rust
 async fn echo(text: &str) -> &str {
@@ -2967,7 +2993,7 @@ fn main() {
 
 ### `ch06-b029` — 6.17 Lifetimes y async: adelanto
 
-Source: `06.Lifetimes.md:622` · mode: `compile_fail`
+Source: `06.Lifetimes.md:639` · mode: `compile_fail`
 
 ```rust,compile_fail
 async fn echo(text: &str) -> &str {
@@ -2987,13 +3013,13 @@ fn main() {
 
 ## 07.Structs-y-modelado-de-datos
 
-### `ch07-b001` — 7.1 Del grupo de valores al concepto
+### `ch07-b001` — 7.1 Dar nombre a los datos
 
-Source: `07.Structs-y-modelado-de-datos.md:13` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:15` · mode: `run`
 
 ```rust
-fn tuple_area(rectangle: (u32, u32)) -> u32 {
-    rectangle.0 * rectangle.1
+fn tuple_area(rectangle: (u32, u32)) -> u64 {
+    u64::from(rectangle.0) * u64::from(rectangle.1)
 }
 
 #[derive(Debug, PartialEq)]
@@ -3003,8 +3029,8 @@ struct Rectangle {
 }
 
 impl Rectangle {
-    fn area(&self) -> u32 {
-        self.width * self.height
+    fn area(&self) -> u64 {
+        u64::from(self.width) * u64::from(self.height)
     }
 }
 
@@ -3021,7 +3047,7 @@ fn main() {
 
 ### `ch07-b002` — 7.2 Tres formas de struct
 
-Source: `07.Structs-y-modelado-de-datos.md:49` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:53` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3049,9 +3075,9 @@ fn main() {
 }
 ```
 
-### `ch07-b003` — 7.3 Construcción y field init shorthand
+### `ch07-b003` — 7.3 Inicialización abreviada de campos
 
-Source: `07.Structs-y-modelado-de-datos.md:85` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:89` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3080,9 +3106,9 @@ fn main() {
 }
 ```
 
-### `ch07-b004` — 7.4 Mutabilidad del binding y privacidad del tipo
+### `ch07-b004` — 7.4 Mutabilidad del valor y privacidad de los campos
 
-Source: `07.Structs-y-modelado-de-datos.md:120` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:124` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -3104,9 +3130,9 @@ fn main() {
 }
 ```
 
-### `ch07-b005` — 7.5 Struct update syntax mueve lo que no es `Copy`
+### `ch07-b005` — 7.5 La sintaxis `..source` mueve los campos que no son `Copy`
 
-Source: `07.Structs-y-modelado-de-datos.md:148` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:152` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -3134,9 +3160,9 @@ fn main() {
 }
 ```
 
-### `ch07-b006` — 7.5 Struct update syntax mueve lo que no es `Copy`
+### `ch07-b006` — 7.5 La sintaxis `..source` mueve los campos que no son `Copy`
 
-Source: `07.Structs-y-modelado-de-datos.md:178` · mode: `compile_fail`
+Source: `07.Structs-y-modelado-de-datos.md:184` · mode: `compile_fail`
 
 ```rust,compile_fail
 struct User {
@@ -3161,9 +3187,9 @@ fn main() {
 }
 ```
 
-### `ch07-b007` — 7.6 Datos owned y vistas prestadas
+### `ch07-b007` — 7.6 Tipos que poseen sus datos y vistas temporales
 
-Source: `07.Structs-y-modelado-de-datos.md:207` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:213` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3191,7 +3217,7 @@ fn main() {
 
 ### `ch07-b008` — 7.7 Bloques `impl` y receptores
 
-Source: `07.Structs-y-modelado-de-datos.md:237` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:245` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3201,13 +3227,16 @@ struct Rectangle {
 }
 
 impl Rectangle {
-    fn area(&self) -> u32 {
-        self.width * self.height
+    fn area(&self) -> u64 {
+        u64::from(self.width) * u64::from(self.height)
     }
 
-    fn scale(&mut self, factor: u32) {
-        self.width *= factor;
-        self.height *= factor;
+    fn scale(&mut self, factor: u32) -> Option<()> {
+        let width = self.width.checked_mul(factor)?;
+        let height = self.height.checked_mul(factor)?;
+        self.width = width;
+        self.height = height;
+        Some(())
     }
 
     fn into_dimensions(self) -> (u32, u32) {
@@ -3222,14 +3251,21 @@ fn main() {
     };
 
     assert_eq!(rectangle.area(), 12);
-    rectangle.scale(2);
+    assert_eq!(rectangle.scale(2), Some(()));
     assert_eq!(rectangle.into_dimensions(), (6, 8));
+
+    let mut large = Rectangle {
+        width: 1,
+        height: u32::MAX,
+    };
+    assert_eq!(large.scale(2), None);
+    assert_eq!(large.into_dimensions(), (1, u32::MAX));
 }
 ```
 
-### `ch07-b009` — 7.8 Associated functions y constructores
+### `ch07-b009` — 7.8 Funciones asociadas y constructores
 
-Source: `07.Structs-y-modelado-de-datos.md:283` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:303` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3259,9 +3295,9 @@ fn main() {
 }
 ```
 
-### `ch07-b010` — 7.9 Constructores inteligentes protegen invariantes
+### `ch07-b010` — 7.9 Los constructores validados protegen las invariantes
 
-Source: `07.Structs-y-modelado-de-datos.md:317` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:337` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3287,20 +3323,24 @@ impl Rectangle {
         Ok(Self { width, height })
     }
 
-    pub fn area(&self) -> u32 {
-        self.width * self.height
+    pub fn area(&self) -> u64 {
+        u64::from(self.width) * u64::from(self.height)
     }
 }
 
 fn main() {
     assert_eq!(Rectangle::try_new(0, 4), Err(RectangleError::ZeroWidth));
+    assert_eq!(Rectangle::try_new(3, 0), Err(RectangleError::ZeroHeight));
     assert_eq!(Rectangle::try_new(3, 4).unwrap().area(), 12);
+
+    let largest = Rectangle::try_new(u32::MAX, u32::MAX).unwrap();
+    assert_eq!(largest.area(), u64::from(u32::MAX) * u64::from(u32::MAX));
 }
 ```
 
-### `ch07-b011` — 7.11 Newtypes contra la obsesión por primitivos
+### `ch07-b011` — 7.11 Newtypes para representar conceptos distintos
 
-Source: `07.Structs-y-modelado-de-datos.md:376` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:400` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -3330,9 +3370,9 @@ fn main() {
 }
 ```
 
-### `ch07-b012` — 7.13 Getters y nombres que anticipan ownership
+### `ch07-b012` — 7.13 Métodos de acceso y nombres que anticipan su efecto
 
-Source: `07.Structs-y-modelado-de-datos.md:427` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:451` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3375,21 +3415,21 @@ fn main() {
 }
 ```
 
-### `ch07-b013` — 7.13 Getters y nombres que anticipan ownership
+### `ch07-b013` — 7.13 Métodos de acceso y nombres que anticipan su efecto
 
-Source: `07.Structs-y-modelado-de-datos.md:470` · mode: `reference`
+Source: `07.Structs-y-modelado-de-datos.md:494` · mode: `reference`
 
 ```text
-field()       → observa una vista o valor Copy
-field_mut()   → presta acceso mutable directo
-as_*()        → vista barata
+field()       → devuelve una referencia o un valor Copy
+field_mut()   → devuelve acceso mutable directo
+as_*()        → ofrece una vista sin duplicar los datos
 to_*()        → crea una representación nueva
-into_*()      → consume y transfiere
+into_*()      → consume el valor y entrega su contenido
 ```
 
-### `ch07-b014` — 7.14 Derives con criterio semántico
+### `ch07-b014` — 7.14 Elegir qué traits derivar
 
-Source: `07.Structs-y-modelado-de-datos.md:484` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:508` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -3409,9 +3449,9 @@ fn main() {
 }
 ```
 
-### `ch07-b015` — 7.14 Derives con criterio semántico
+### `ch07-b015` — 7.14 Elegir qué traits derivar
 
-Source: `07.Structs-y-modelado-de-datos.md:512` · mode: `compile_fail`
+Source: `07.Structs-y-modelado-de-datos.md:536` · mode: `compile_fail`
 
 ```rust,compile_fail
 #[derive(Clone, Copy)]
@@ -3421,9 +3461,9 @@ struct Email(String);
 fn main() {}
 ```
 
-### `ch07-b016` — 7.15 Tipos secretos y `Debug` redactado
+### `ch07-b016` — 7.15 `Debug` sin mostrar secretos
 
-Source: `07.Structs-y-modelado-de-datos.md:526` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:550` · mode: `run`
 
 ```rust
 use std::fmt;
@@ -3463,7 +3503,7 @@ fn main() {
 
 ### `ch07-b017` — 7.16 Encapsular estado derivado
 
-Source: `07.Structs-y-modelado-de-datos.md:568` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:594` · mode: `run`
 
 ```rust
 #[derive(Default)]
@@ -3485,7 +3525,7 @@ impl Measurements {
             return None;
         }
 
-        let total: i64 = self.values.iter().map(|&value| i64::from(value)).sum();
+        let total: i128 = self.values.iter().map(|&value| i128::from(value)).sum();
         Some(total as f64 / self.values.len() as f64)
     }
 }
@@ -3505,7 +3545,7 @@ fn main() {
 
 ### `ch07-b018` — 7.17 Métodos frente a funciones libres
 
-Source: `07.Structs-y-modelado-de-datos.md:612` · mode: `reference`
+Source: `07.Structs-y-modelado-de-datos.md:640` · mode: `reference`
 
 ```text
 email.as_str()
@@ -3514,9 +3554,9 @@ cart.add_item(item)
 rectangle.area()
 ```
 
-### `ch07-b019` — 7.18 Builder: estado incompleto separado del resultado
+### `ch07-b019` — 7.18 Builder: separar la configuración incompleta del resultado
 
-Source: `07.Structs-y-modelado-de-datos.md:627` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:655` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3587,9 +3627,9 @@ fn main() {
 }
 ```
 
-### `ch07-b020` — 7.19 Typestate con structs distintos
+### `ch07-b020` — 7.19 Typestate mediante estructuras distintas
 
-Source: `07.Structs-y-modelado-de-datos.md:702` · mode: `run`
+Source: `07.Structs-y-modelado-de-datos.md:732` · mode: `run`
 
 ```rust
 struct DraftPost {
@@ -3680,7 +3720,7 @@ fn main() {
 }
 ```
 
-### `ch08-b003` — 8.3 Estados cerrados en vez de strings
+### `ch08-b003` — 8.3 Estados cerrados en vez de texto libre
 
 Source: `08.Enums-y-tipos-algebraicos.md:68` · mode: `run`
 
@@ -3730,7 +3770,7 @@ fn main() {
 }
 ```
 
-### `ch08-b005` — 8.5 Variantes ricas como mini-structs
+### `ch08-b005` — 8.5 Variantes con campos nombrados
 
 Source: `08.Enums-y-tipos-algebraicos.md:124` · mode: `run`
 
@@ -3774,7 +3814,7 @@ fn main() {
 }
 ```
 
-### `ch08-b006` — 8.6 `match` exhaustivo convierte cambios en trabajo visible
+### `ch08-b006` — 8.6 Un `match` exhaustivo señala todo lo que debe cambiar
 
 Source: `08.Enums-y-tipos-algebraicos.md:170` · mode: `run`
 
@@ -3801,7 +3841,7 @@ fn main() {
 }
 ```
 
-### `ch08-b007` — 8.6 `match` exhaustivo convierte cambios en trabajo visible
+### `ch08-b007` — 8.6 Un `match` exhaustivo señala todo lo que debe cambiar
 
 Source: `08.Enums-y-tipos-algebraicos.md:197` · mode: `compile_fail`
 
@@ -3825,7 +3865,7 @@ fn action(status: OrderStatus) -> &'static str {
 fn main() {}
 ```
 
-### `ch08-b008` — 8.7 Matching por valor, referencia o referencia mutable
+### `ch08-b008` — 8.7 Usar `match` por valor, por referencia o por referencia mutable
 
 Source: `08.Enums-y-tipos-algebraicos.md:223` · mode: `run`
 
@@ -3860,7 +3900,7 @@ fn main() {
 
 ### `ch08-b009` — 8.8 `Option<T>` representa presencia o ausencia
 
-Source: `08.Enums-y-tipos-algebraicos.md:258` · mode: `reference`
+Source: `08.Enums-y-tipos-algebraicos.md:260` · mode: `reference`
 
 ```text
 enum Option<T> {
@@ -3871,7 +3911,7 @@ enum Option<T> {
 
 ### `ch08-b010` — 8.8 `Option<T>` representa presencia o ausencia
 
-Source: `08.Enums-y-tipos-algebraicos.md:267` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:269` · mode: `run`
 
 ```rust
 fn parse_positive(input: &str) -> Option<u32> {
@@ -3888,7 +3928,7 @@ fn main() {
 
 ### `ch08-b011` — 8.9 `Option<&T>` devuelve una vista opcional
 
-Source: `08.Enums-y-tipos-algebraicos.md:286` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:288` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -3917,7 +3957,7 @@ fn main() {
 
 ### `ch08-b012` — 8.10 Combinadores de `Option`
 
-Source: `08.Enums-y-tipos-algebraicos.md:317` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:319` · mode: `run`
 
 ```rust
 fn normalized_port(input: Option<&str>) -> Option<u16> {
@@ -3937,31 +3977,34 @@ fn main() {
 
 ### `ch08-b013` — 8.11 `Result<T, E>` conserva éxito o causa de fallo
 
-Source: `08.Enums-y-tipos-algebraicos.md:345` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:347` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
 enum DivisionError {
     DivisionByZero,
+    Overflow,
 }
 
 fn divide(dividend: i32, divisor: i32) -> Result<i32, DivisionError> {
     if divisor == 0 {
         Err(DivisionError::DivisionByZero)
     } else {
-        Ok(dividend / divisor)
+        dividend.checked_div(divisor).ok_or(DivisionError::Overflow)
     }
 }
 
 fn main() {
     assert_eq!(divide(12, 3), Ok(4));
     assert_eq!(divide(12, 0), Err(DivisionError::DivisionByZero));
+    assert_eq!(divide(i32::MIN, -1), Err(DivisionError::Overflow));
+    assert_eq!(divide(i32::MIN, 1), Ok(i32::MIN));
 }
 ```
 
 ### `ch08-b014` — 8.12 Elegir entre `Option`, `Result` y ambos
 
-Source: `08.Enums-y-tipos-algebraicos.md:379` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:386` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -3989,7 +4032,7 @@ fn main() {
 
 ### `ch08-b015` — 8.13 Errores de dominio con datos
 
-Source: `08.Enums-y-tipos-algebraicos.md:409` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:416` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -4011,6 +4054,12 @@ fn validate_username(value: &str) -> Result<(), UsernameError> {
             actual: length,
         });
     }
+    if length > 20 {
+        return Err(UsernameError::TooLong {
+            maximum: 20,
+            actual: length,
+        });
+    }
     if let Some((index, character)) = value
         .char_indices()
         .find(|(_, character)| !character.is_alphanumeric())
@@ -4025,13 +4074,24 @@ fn main() {
         validate_username("a!"),
         Err(UsernameError::TooShort { minimum: 3, actual: 2 })
     );
+    assert_eq!(
+        validate_username("abcdefghijklmnopqrstu"),
+        Err(UsernameError::TooLong {
+            maximum: 20,
+            actual: 21,
+        })
+    );
     assert_eq!(validate_username("ada"), Ok(()));
+    assert_eq!(
+        validate_username("éa!"),
+        Err(UsernameError::InvalidCharacter { index: 3, character: '!' })
+    );
 }
 ```
 
 ### `ch08-b016` — 8.14 Métodos en enums
 
-Source: `08.Enums-y-tipos-algebraicos.md:453` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:479` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy)]
@@ -4059,9 +4119,9 @@ fn main() {
 }
 ```
 
-### `ch08-b017` — 8.15 Transiciones runtime entre variantes
+### `ch08-b017` — 8.15 Comprobar transiciones durante la ejecución
 
-Source: `08.Enums-y-tipos-algebraicos.md:485` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:511` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -4102,9 +4162,9 @@ fn main() {
 }
 ```
 
-### `ch08-b018` — 8.16 Componer enums evita monstruos planos
+### `ch08-b018` — 8.16 Dividir enums grandes mediante composición
 
-Source: `08.Enums-y-tipos-algebraicos.md:530` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:558` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4140,9 +4200,9 @@ fn main() {
 }
 ```
 
-### `ch08-b019` — 8.17 Wildcards y evolución
+### `ch08-b019` — 8.17 El patrón comodín `_` y la evolución del código
 
-Source: `08.Enums-y-tipos-algebraicos.md:570` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:598` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy)]
@@ -4168,7 +4228,7 @@ fn main() {
 
 ### `ch08-b020` — 8.18 `if let`, `let else` y `matches!`
 
-Source: `08.Enums-y-tipos-algebraicos.md:598` · mode: `run`
+Source: `08.Enums-y-tipos-algebraicos.md:626` · mode: `run`
 
 ```rust
 fn require_name(value: Option<String>) -> Result<String, &'static str> {
@@ -4177,7 +4237,11 @@ fn require_name(value: Option<String>) -> Result<String, &'static str> {
     };
 
     if let Some(first) = name.chars().next() {
-        assert!(first.is_alphabetic());
+        if !first.is_alphabetic() {
+            return Err("el nombre debe empezar por una letra");
+        }
+    } else {
+        return Err("nombre vacío");
     }
 
     Ok(name)
@@ -4186,22 +4250,27 @@ fn require_name(value: Option<String>) -> Result<String, &'static str> {
 fn main() {
     assert_eq!(require_name(Some(String::from("Ada"))), Ok(String::from("Ada")));
     assert_eq!(require_name(None), Err("nombre ausente"));
+    assert_eq!(require_name(Some(String::new())), Err("nombre vacío"));
+    assert_eq!(
+        require_name(Some(String::from("1Ada"))),
+        Err("el nombre debe empezar por una letra")
+    );
     assert!(matches!(Some(3), Some(value) if value > 0));
 }
 ```
 
 ## 09.Pattern-matching-profundo
 
-### `ch09-b001` — 9.1 Anatomía de un patrón
+### `ch09-b001` — 9.1 Qué puede contener un patrón
 
 Source: `09.Pattern-matching-profundo.md:13` · mode: `reference`
 
 ```text
-literales · bindings · _ · tuplas · structs · enums
-slices · rangos · or-patterns · guards · bindings @
+literales · variables · _ · tuplas · structs · enums
+slices · rangos · alternativas con | · asociaciones con @
 ```
 
-### `ch09-b002` — 9.1 Anatomía de un patrón
+### `ch09-b002` — 9.1 Qué puede contener un patrón
 
 Source: `09.Pattern-matching-profundo.md:20` · mode: `run`
 
@@ -4234,26 +4303,28 @@ fn main() {
 Source: `09.Pattern-matching-profundo.md:50` · mode: `run`
 
 ```rust
-fn sum_pair((left, right): (i32, i32)) -> i32 {
-    left + right
+fn sum_pair((left, right): (i32, i32)) -> i64 {
+    i64::from(left) + i64::from(right)
 }
 
 fn main() {
     let (x, y) = (10, 20);
-    let add = |(left, right): (i32, i32)| left + right;
+    let add = |(left, right): (i32, i32)| i64::from(left) + i64::from(right);
     let values = ["a", "b"];
     let indexed: Vec<_> = values.iter().enumerate().collect();
 
     assert_eq!((x, y), (10, 20));
     assert_eq!(sum_pair((2, 3)), 5);
     assert_eq!(add((4, 5)), 9);
+    assert_eq!(sum_pair((i32::MAX, i32::MAX)), 4_294_967_294_i64);
+    assert_eq!(add((i32::MIN, i32::MIN)), -4_294_967_296_i64);
     assert_eq!(indexed[1], (1, &"b"));
 }
 ```
 
 ### `ch09-b004` — 9.3 Patrones refutables e irrefutables
 
-Source: `09.Pattern-matching-profundo.md:76` · mode: `compile_fail`
+Source: `09.Pattern-matching-profundo.md:80` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -4267,7 +4338,7 @@ fn main() {
 
 ### `ch09-b005` — 9.3 Patrones refutables e irrefutables
 
-Source: `09.Pattern-matching-profundo.md:88` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:92` · mode: `run`
 
 ```rust
 fn require_value(value: Option<i32>) -> Result<i32, &'static str> {
@@ -4283,9 +4354,9 @@ fn main() {
 }
 ```
 
-### `ch09-b006` — 9.4 Orden de brazos y alcanzabilidad
+### `ch09-b006` — 9.4 Orden de las ramas y casos que nunca se ejecutan
 
-Source: `09.Pattern-matching-profundo.md:108` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:112` · mode: `run`
 
 ```rust
 fn classify(number: i32) -> &'static str {
@@ -4302,9 +4373,9 @@ fn main() {
 }
 ```
 
-### `ch09-b007` — 9.4 Orden de brazos y alcanzabilidad
+### `ch09-b007` — 9.4 Orden de las ramas y casos que nunca se ejecutan
 
-Source: `09.Pattern-matching-profundo.md:127` · mode: `compile_fail`
+Source: `09.Pattern-matching-profundo.md:131` · mode: `compile_fail`
 
 ```rust,compile_fail
 #![deny(unreachable_patterns)]
@@ -4324,7 +4395,7 @@ fn main() {
 
 ### `ch09-b008` — 9.5 Un identificador captura; no compara
 
-Source: `09.Pattern-matching-profundo.md:149` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:153` · mode: `run`
 
 ```rust
 fn main() {
@@ -4342,7 +4413,7 @@ fn main() {
 
 ### `ch09-b009` — 9.5 Un identificador captura; no compara
 
-Source: `09.Pattern-matching-profundo.md:165` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:169` · mode: `run`
 
 ```rust
 fn equals_expected(value: i32, expected: i32) -> bool {
@@ -4362,7 +4433,7 @@ fn main() {
 
 ### `ch09-b010` — 9.6 Literales y rangos
 
-Source: `09.Pattern-matching-profundo.md:187` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:191` · mode: `run`
 
 ```rust
 fn age_group(age: u8) -> &'static str {
@@ -4389,9 +4460,9 @@ fn main() {
 }
 ```
 
-### `ch09-b011` — 9.7 Or-patterns y bindings compatibles
+### `ch09-b011` — 9.7 Alternativas con `|` y variables compatibles
 
-Source: `09.Pattern-matching-profundo.md:218` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:222` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -4414,9 +4485,9 @@ fn main() {
 }
 ```
 
-### `ch09-b012` — 9.7 Or-patterns y bindings compatibles
+### `ch09-b012` — 9.7 Alternativas con `|` y variables compatibles
 
-Source: `09.Pattern-matching-profundo.md:243` · mode: `compile_fail`
+Source: `09.Pattern-matching-profundo.md:247` · mode: `compile_fail`
 
 ```rust,compile_fail
 enum Event {
@@ -4436,7 +4507,7 @@ fn main() {}
 
 ### `ch09-b013` — 9.8 `_` frente a `_name`
 
-Source: `09.Pattern-matching-profundo.md:263` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:267` · mode: `run`
 
 ```rust
 fn main() {
@@ -4452,7 +4523,7 @@ fn main() {
 
 ### `ch09-b014` — 9.8 `_` frente a `_name`
 
-Source: `09.Pattern-matching-profundo.md:279` · mode: `compile_fail`
+Source: `09.Pattern-matching-profundo.md:283` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -4469,7 +4540,7 @@ fn main() {
 
 ### `ch09-b015` — 9.9 `..` ignora el resto
 
-Source: `09.Pattern-matching-profundo.md:298` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:302` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -4498,7 +4569,7 @@ fn main() {
 
 ### `ch09-b016` — 9.10 Desestructuración de structs
 
-Source: `09.Pattern-matching-profundo.md:329` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:333` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4529,7 +4600,7 @@ fn main() {
 
 ### `ch09-b017` — 9.11 Desestructuración de enums
 
-Source: `09.Pattern-matching-profundo.md:362` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:366` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -4556,9 +4627,9 @@ fn main() {
 }
 ```
 
-### `ch09-b018` — 9.12 El scrutinee determina ownership
+### `ch09-b018` — 9.12 El valor examinado determina qué puede hacerse con los datos
 
-Source: `09.Pattern-matching-profundo.md:393` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:397` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4598,7 +4669,7 @@ fn main() {
 
 ### `ch09-b019` — 9.13 `ref`, `ref mut` y patrones sobre referencias
 
-Source: `09.Pattern-matching-profundo.md:435` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:439` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4626,7 +4697,7 @@ fn main() {
 
 ### `ch09-b020` — 9.13 `ref`, `ref mut` y patrones sobre referencias
 
-Source: `09.Pattern-matching-profundo.md:463` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:467` · mode: `run`
 
 ```rust
 fn main() {
@@ -4640,7 +4711,7 @@ fn main() {
 
 ### `ch09-b021` — 9.14 Patrones anidados
 
-Source: `09.Pattern-matching-profundo.md:479` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:483` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -4676,9 +4747,9 @@ fn main() {
 }
 ```
 
-### `ch09-b022` — 9.15 Guards añaden condiciones no estructurales
+### `ch09-b022` — 9.15 Los guards añaden condiciones que no forman parte de la estructura
 
-Source: `09.Pattern-matching-profundo.md:519` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:523` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -4695,7 +4766,7 @@ enum Severity {
 
 fn severity(error: &ServiceError) -> Severity {
     match error {
-        ServiceError::Http { status, .. } if *status >= 500 => Severity::Severe,
+        ServiceError::Http { status, .. } if (500..=599).contains(status) => Severity::Severe,
         ServiceError::Http { .. } | ServiceError::Timeout => Severity::Normal,
     }
 }
@@ -4706,12 +4777,17 @@ fn main() {
         path: String::from("/users"),
     };
     assert_eq!(severity(&error), Severity::Severe);
+    let outside_5xx = ServiceError::Http {
+        status: 600,
+        path: String::from("/users"),
+    };
+    assert_eq!(severity(&outside_5xx), Severity::Normal);
 }
 ```
 
-### `ch09-b023` — 9.16 Bindings `@`: comprobar y conservar
+### `ch09-b023` — 9.16 Asociar con `@`: comprobar una forma y conservar el valor
 
-Source: `09.Pattern-matching-profundo.md:554` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:563` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4733,9 +4809,9 @@ fn main() {
 }
 ```
 
-### `ch09-b024` — 9.17 Slice patterns expresan aridad y resto
+### `ch09-b024` — 9.17 Patrones de slices para distinguir longitudes y conservar el resto
 
-Source: `09.Pattern-matching-profundo.md:580` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:589` · mode: `run`
 
 ```rust
 fn describe(values: &[i32]) -> String {
@@ -4756,9 +4832,9 @@ fn main() {
 }
 ```
 
-### `ch09-b025` — 9.17 Slice patterns expresan aridad y resto
+### `ch09-b025` — 9.17 Patrones de slices para distinguir longitudes y conservar el resto
 
-Source: `09.Pattern-matching-profundo.md:603` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:612` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4768,7 +4844,7 @@ enum Command<'a> {
     Delete { id: &'a str },
 }
 
-fn parse<'a>(args: &'a [&'a str]) -> Result<Command<'a>, &'static str> {
+fn parse<'a>(args: &[&'a str]) -> Result<Command<'a>, &'static str> {
     match args {
         ["help"] => Ok(Command::Help),
         ["user", "create", name] => Ok(Command::Create { name }),
@@ -4782,12 +4858,19 @@ fn main() {
         parse(&["user", "create", "ada"]),
         Ok(Command::Create { name: "ada" })
     );
+
+    let name = String::from("grace");
+    let command = {
+        let args = ["user", "create", name.as_str()];
+        parse(&args).unwrap()
+    };
+    assert_eq!(command, Command::Create { name: "grace" });
 }
 ```
 
 ### `ch09-b026` — 9.18 Elegir la construcción adecuada
 
-Source: `09.Pattern-matching-profundo.md:640` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:658` · mode: `run`
 
 ```rust
 fn drain(mut stack: Vec<i32>) -> Vec<i32> {
@@ -4819,7 +4902,7 @@ fn main() {
 
 ### `ch09-b027` — 9.19 `?` frente a `match`
 
-Source: `09.Pattern-matching-profundo.md:674` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:692` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4848,7 +4931,7 @@ fn main() {
 
 ### `ch09-b028` — 9.20 Caso práctico: comandos de dominio
 
-Source: `09.Pattern-matching-profundo.md:705` · mode: `run`
+Source: `09.Pattern-matching-profundo.md:723` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -4896,15 +4979,15 @@ fn main() {
 
 ## 10.Errores-como-parte-del-dominio
 
-### `ch10-b001` — 10.2 El árbol de decisión mínimo
+### `ch10-b001` — 10.2 Cómo elegir la representación del resultado
 
 Source: `10.Errores-como-parte-del-dominio.md:33` · mode: `reference`
 
 ```text
-T              siempre produce un valor válido
-Option<T>      produce un valor o ausencia normal
-Result<T, E>   produce un valor o un fallo explicado
-panic          denuncia una suposición interna rota
+T              devuelve un valor sin representar un fallo en la firma
+Option<T>      devuelve un valor o indica que no lo hay
+Result<T, E>   devuelve un valor o un error con información
+panic!         interrumpe la ejecución normal ante un fallo no tratado
 ```
 
 ### `ch10-b002` — 10.3 `Option<T>` representa ausencia, no fracaso
@@ -4936,7 +5019,7 @@ fn main() {
 }
 ```
 
-### `ch10-b003` — 10.4 Transformar `Option` sin perder ownership
+### `ch10-b003` — 10.4 Transformar `Option` sin mover su contenido por accidente
 
 Source: `10.Errores-como-parte-del-dominio.md:77` · mode: `run`
 
@@ -4962,7 +5045,7 @@ fn main() {
 }
 ```
 
-### `ch10-b004` — 10.5 `Result<T, E>` hace visible el camino de fallo
+### `ch10-b004` — 10.5 `Result<T, E>` hace visible la posibilidad de fallo
 
 Source: `10.Errores-como-parte-del-dominio.md:111` · mode: `run`
 
@@ -4970,31 +5053,34 @@ Source: `10.Errores-como-parte-del-dominio.md:111` · mode: `run`
 #[derive(Debug, PartialEq)]
 enum DivisionError {
     DivisionByZero,
+    Overflow,
 }
 
 fn divide(dividend: i32, divisor: i32) -> Result<i32, DivisionError> {
     if divisor == 0 {
         Err(DivisionError::DivisionByZero)
     } else {
-        Ok(dividend / divisor)
+        dividend.checked_div(divisor).ok_or(DivisionError::Overflow)
     }
 }
 
 fn main() {
     assert_eq!(divide(12, 3), Ok(4));
     assert_eq!(divide(12, 0), Err(DivisionError::DivisionByZero));
+    assert_eq!(divide(i32::MIN, -1), Err(DivisionError::Overflow));
+    assert_eq!(divide(i32::MIN, 1), Ok(i32::MIN));
 }
 ```
 
 ### `ch10-b005` — 10.6 Errores concretos frente a `String`
 
-Source: `10.Errores-como-parte-del-dominio.md:137` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:142` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
 enum PortError {
     Empty,
-    NotANumber,
+    InvalidNumber,
     Reserved { port: u16 },
 }
 
@@ -5004,7 +5090,7 @@ fn parse_port(input: &str) -> Result<u16, PortError> {
         return Err(PortError::Empty);
     }
 
-    let port = input.parse::<u16>().map_err(|_| PortError::NotANumber)?;
+    let port = input.parse::<u16>().map_err(|_| PortError::InvalidNumber)?;
     if port < 1024 {
         return Err(PortError::Reserved { port });
     }
@@ -5015,12 +5101,16 @@ fn parse_port(input: &str) -> Result<u16, PortError> {
 fn main() {
     assert_eq!(parse_port("8080"), Ok(8080));
     assert_eq!(parse_port("80"), Err(PortError::Reserved { port: 80 }));
+    assert_eq!(parse_port(" "), Err(PortError::Empty));
+    assert_eq!(parse_port("abc"), Err(PortError::InvalidNumber));
+    assert_eq!(parse_port("65536"), Err(PortError::InvalidNumber));
+    assert_eq!(parse_port("1024"), Ok(1024));
 }
 ```
 
-### `ch10-b006` — 10.7 Un value object fallible concentra la invariante
+### `ch10-b006` — 10.7 Un tipo validado concentra sus propias reglas
 
-Source: `10.Errores-como-parte-del-dominio.md:171` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:180` · mode: `run`
 
 ```rust
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -5066,9 +5156,9 @@ fn main() {
 }
 ```
 
-### `ch10-b007` — 10.8 `?` propaga; no decide el modelo
+### `ch10-b007` — 10.8 Propagar errores con `?`
 
-Source: `10.Errores-como-parte-del-dominio.md:223` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:234` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5112,9 +5202,9 @@ fn main() {
 }
 ```
 
-### `ch10-b008` — 10.9 `From` permite conversiones naturales con `?`
+### `ch10-b008` — 10.9 Convertir el error con `From` al usar `?`
 
-Source: `10.Errores-como-parte-del-dominio.md:271` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:282` · mode: `run`
 
 ```rust
 use std::num::ParseIntError;
@@ -5145,9 +5235,9 @@ fn main() {
 }
 ```
 
-### `ch10-b009` — 10.10 `map_err` traduce en el punto exacto
+### `ch10-b009` — 10.10 Añadir información con `map_err`
 
-Source: `10.Errores-como-parte-del-dominio.md:306` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:317` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5185,7 +5275,7 @@ fn main() {
 
 ### `ch10-b010` — 10.12 `TryFrom` expresa conversiones fallibles
 
-Source: `10.Errores-como-parte-del-dominio.md:359` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:370` · mode: `run`
 
 ```rust
 use std::convert::TryFrom;
@@ -5223,7 +5313,7 @@ fn main() {
 
 ### `ch10-b011` — 10.13 `Result<(), E>` modela una acción fallible
 
-Source: `10.Errores-como-parte-del-dominio.md:399` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:410` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5259,7 +5349,7 @@ fn main() {
 
 ### `ch10-b012` — 10.14 `Result<Option<T>, E>` tiene tres resultados
 
-Source: `10.Errores-como-parte-del-dominio.md:437` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:448` · mode: `run`
 
 ```rust
 #[derive(Debug, Clone, PartialEq)]
@@ -5307,7 +5397,7 @@ fn main() {
 
 ### `ch10-b013` — 10.15 `unwrap` y `expect` son afirmaciones
 
-Source: `10.Errores-como-parte-del-dominio.md:487` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:498` · mode: `run`
 
 ```rust
 fn main() {
@@ -5321,11 +5411,11 @@ fn main() {
 
 ### `ch10-b014` — 10.15 `unwrap` y `expect` son afirmaciones
 
-Source: `10.Errores-como-parte-del-dominio.md:499` · mode: `compile_only`
+Source: `10.Errores-como-parte-del-dominio.md:512` · mode: `compile_only`
 
 ```rust,no_run
 fn parse_external_port(input: &str) -> u16 {
-    input.parse::<u16>().unwrap() // panic ante input recuperable
+    input.parse::<u16>().unwrap() // panic ante un dato inválido esperable
 }
 
 fn main() {
@@ -5333,9 +5423,9 @@ fn main() {
 }
 ```
 
-### `ch10-b015` — 10.16 Panic y assertions denuncian bugs
+### `ch10-b015` — 10.16 `panic!` y las aserciones denuncian errores de programación
 
-Source: `10.Errores-como-parte-del-dominio.md:515` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:528` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -5361,7 +5451,7 @@ fn main() {
 
 ### `ch10-b016` — 10.17 `Debug`, `Display` y el trait `Error`
 
-Source: `10.Errores-como-parte-del-dominio.md:547` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:560` · mode: `run`
 
 ```rust
 use std::error::Error;
@@ -5396,9 +5486,9 @@ fn main() {
 }
 ```
 
-### `ch10-b017` — 10.18 `source()` conserva la cadena causal
+### `ch10-b017` — 10.18 Consultar la causa de un error con `source()`
 
-Source: `10.Errores-como-parte-del-dominio.md:586` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:599` · mode: `run`
 
 ```rust
 use std::error::Error;
@@ -5437,9 +5527,9 @@ fn main() {
 }
 ```
 
-### `ch10-b018` — 10.20 Traducir en la frontera sin filtrar detalles
+### `ch10-b018` — 10.20 Preparar una respuesta pública sin exponer detalles internos
 
-Source: `10.Errores-como-parte-del-dominio.md:644` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:657` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -5467,9 +5557,9 @@ fn main() {
 }
 ```
 
-### `ch10-b019` — 10.22 Alias concretos y errores borrados
+### `ch10-b019` — 10.22 Alias y errores sin un tipo concreto en la firma
 
-Source: `10.Errores-como-parte-del-dominio.md:690` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:703` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5490,9 +5580,9 @@ fn main() {
 }
 ```
 
-### `ch10-b020` — 10.22 Alias concretos y errores borrados
+### `ch10-b020` — 10.22 Alias y errores sin un tipo concreto en la firma
 
-Source: `10.Errores-como-parte-del-dominio.md:711` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:724` · mode: `run`
 
 ```rust
 use std::error::Error;
@@ -5509,7 +5599,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### `ch10-b021` — 10.23 `main` también puede devolver `Result`
 
-Source: `10.Errores-como-parte-del-dominio.md:730` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:743` · mode: `run`
 
 ```rust
 use std::error::Error;
@@ -5528,7 +5618,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### `ch10-b022` — 10.24 Combinadores de `Result` y legibilidad
 
-Source: `10.Errores-como-parte-del-dominio.md:751` · mode: `reference`
+Source: `10.Errores-como-parte-del-dominio.md:764` · mode: `reference`
 
 ```text
 map       transforma Ok(T) en Ok(U)
@@ -5539,7 +5629,7 @@ or_else   intenta recuperarse con E -> Result<T, F>
 
 ### `ch10-b023` — 10.24 Combinadores de `Result` y legibilidad
 
-Source: `10.Errores-como-parte-del-dominio.md:760` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:773` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5567,9 +5657,9 @@ fn main() {
 }
 ```
 
-### `ch10-b024` — 10.25 Construcción perezosa del error
+### `ch10-b024` — 10.25 Crear el error solo cuando haga falta
 
-Source: `10.Errores-como-parte-del-dominio.md:792` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:805` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5596,7 +5686,7 @@ fn main() {
 
 ### `ch10-b025` — 10.26 Probar el contrato, no solo el mensaje
 
-Source: `10.Errores-como-parte-del-dominio.md:821` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:834` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5617,6 +5707,7 @@ fn signup(age: u8) -> Result<(), SignupError> {
 }
 
 fn main() {
+    assert_eq!(signup(18), Ok(()));
     assert_eq!(
         signup(16),
         Err(SignupError::TooYoung {
@@ -5630,7 +5721,7 @@ fn main() {
 
 ### `ch10-b026` — 10.27 Eliminar un error mediante typestate
 
-Source: `10.Errores-como-parte-del-dominio.md:857` · mode: `run`
+Source: `10.Errores-como-parte-del-dominio.md:871` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -5697,8 +5788,8 @@ fn main() {
 Source: `10A.Anexo-errores-enum-vs-dyn-trait.md:45` · mode: `reference`
 
 ```text
-enum EmailError        conjunto cerrado; el caller conoce los casos
-Box<dyn DomainError>   conjunto abierto; el caller conoce capacidades
+enum EmailError        conjunto cerrado; se conocen todos los casos
+Box<dyn DomainError>   conjunto abierto; se conocen las operaciones disponibles
 ```
 
 ### `ch10a-b003` — A.2 Un conjunto abierto completo
@@ -5823,7 +5914,7 @@ fn main() {
 }
 ```
 
-### `ch10a-b007` — A.6 Downcasting es una salida de emergencia
+### `ch10a-b007` — A.6 Recuperar el tipo concreto es una salida de emergencia
 
 Source: `10A.Anexo-errores-enum-vs-dyn-trait.md:192` · mode: `run`
 
@@ -5879,7 +5970,7 @@ fn main() {
 }
 ```
 
-### `ch10a-b010` — A.9 Genéricos conservan el tipo sin boxing
+### `ch10a-b010` — A.9 Los genéricos conservan el tipo sin utilizar `Box<dyn Trait>`
 
 Source: `10A.Anexo-errores-enum-vs-dyn-trait.md:260` · mode: `run`
 
@@ -5947,7 +6038,7 @@ fn main() {
 }
 ```
 
-### `ch10a-b013` — A.11 Structs concretos dentro de un enum wrapper
+### `ch10a-b013` — A.11 Estructuras concretas dentro de un enum
 
 Source: `10A.Anexo-errores-enum-vs-dyn-trait.md:330` · mode: `run`
 
@@ -6052,7 +6143,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
-### `ch10a-b016` — A.14 `thiserror` reduce boilerplate, no cambia el contrato
+### `ch10a-b016` — A.14 `thiserror` reduce código repetitivo, pero no cambia el contrato
 
 Source: `10A.Anexo-errores-enum-vs-dyn-trait.md:441` · mode: `run`
 
@@ -6082,7 +6173,7 @@ fn main() {
 
 ### `ch11-b001` — 11.1 Sintaxis y valor de retorno
 
-Source: `11.Closures.md:13` · mode: `run`
+Source: `11.Closures.md:15` · mode: `run`
 
 ```rust
 fn main() {
@@ -6103,7 +6194,7 @@ fn main() {
 
 ### `ch11-b002` — 11.2 Cada closure tiene un tipo único
 
-Source: `11.Closures.md:36` · mode: `run`
+Source: `11.Closures.md:38` · mode: `run`
 
 ```rust
 fn apply<F>(value: i32, operation: F) -> i32
@@ -6124,7 +6215,7 @@ fn main() {
 
 ### `ch11-b003` — 11.3 La inferencia fija una closure concreta
 
-Source: `11.Closures.md:61` · mode: `compile_fail`
+Source: `11.Closures.md:63` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -6139,7 +6230,7 @@ fn main() {
 
 ### `ch11-b004` — 11.3 La inferencia fija una closure concreta
 
-Source: `11.Closures.md:74` · mode: `run`
+Source: `11.Closures.md:76` · mode: `run`
 
 ```rust
 fn identity<T>(value: T) -> T {
@@ -6154,7 +6245,7 @@ fn main() {
 
 ### `ch11-b005` — 11.4 Captura mínima del entorno
 
-Source: `11.Closures.md:89` · mode: `run`
+Source: `11.Closures.md:91` · mode: `run`
 
 ```rust
 fn main() {
@@ -6168,7 +6259,7 @@ fn main() {
 
 ### `ch11-b006` — 11.5 Lectura: captura compartida y `Fn`
 
-Source: `11.Closures.md:105` · mode: `run`
+Source: `11.Closures.md:109` · mode: `run`
 
 ```rust
 fn call_twice<F>(operation: F) -> (usize, usize)
@@ -6189,7 +6280,7 @@ fn main() {
 
 ### `ch11-b007` — 11.6 Mutación: captura exclusiva y `FnMut`
 
-Source: `11.Closures.md:128` · mode: `run`
+Source: `11.Closures.md:132` · mode: `run`
 
 ```rust
 fn repeat<F>(times: usize, mut operation: F)
@@ -6210,7 +6301,7 @@ fn main() {
 
 ### `ch11-b008` — 11.6 Mutación: captura exclusiva y `FnMut`
 
-Source: `11.Closures.md:149` · mode: `run`
+Source: `11.Closures.md:153` · mode: `run`
 
 ```rust
 fn main() {
@@ -6226,7 +6317,7 @@ fn main() {
 
 ### `ch11-b009` — 11.7 Consumo: mover fuera y `FnOnce`
 
-Source: `11.Closures.md:165` · mode: `run`
+Source: `11.Closures.md:169` · mode: `run`
 
 ```rust
 fn call_once<F, T>(operation: F) -> T
@@ -6246,7 +6337,7 @@ fn main() {
 
 ### `ch11-b010` — 11.7 Consumo: mover fuera y `FnOnce`
 
-Source: `11.Closures.md:185` · mode: `compile_fail`
+Source: `11.Closures.md:189` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn main() {
@@ -6263,7 +6354,7 @@ fn main() {
 
 ### `ch11-b011` — 11.8 `move` decide la captura, no el número de llamadas
 
-Source: `11.Closures.md:202` · mode: `run`
+Source: `11.Closures.md:206` · mode: `run`
 
 ```rust
 fn call_twice<F>(operation: F)
@@ -6282,9 +6373,9 @@ fn main() {
 }
 ```
 
-### `ch11-b012` — 11.10 El receptor de la API determina el bound
+### `ch11-b012` — 11.10 La forma de invocar la closure determina el trait necesario
 
-Source: `11.Closures.md:241` · mode: `run`
+Source: `11.Closures.md:247` · mode: `run`
 
 ```rust
 fn once<F>(operation: F)
@@ -6323,9 +6414,9 @@ fn main() {
 }
 ```
 
-### `ch11-b013` — 11.11 Fallback perezoso y `FnOnce`
+### `ch11-b013` — 11.11 Calcular un valor alternativo solo cuando haga falta
 
-Source: `11.Closures.md:284` · mode: `run`
+Source: `11.Closures.md:290` · mode: `run`
 
 ```rust
 fn unwrap_or_else<T, F>(value: Option<T>, fallback: F) -> T
@@ -6347,7 +6438,7 @@ fn main() {
 
 ### `ch11-b014` — 11.12 Callbacks repetidos y estado
 
-Source: `11.Closures.md:308` · mode: `run`
+Source: `11.Closures.md:314` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -6370,13 +6461,13 @@ fn main() {
     });
 
     assert_eq!(rectangles[0].width, 3);
-    assert!(calls >= rectangles.len());
+    let _calls_observed_in_this_run = calls;
 }
 ```
 
-### `ch11-b015` — 11.13 Closures `move` y threads
+### `ch11-b015` — 11.13 Closures `move` e hilos
 
-Source: `11.Closures.md:339` · mode: `run`
+Source: `11.Closures.md:345` · mode: `run`
 
 ```rust
 use std::thread;
@@ -6389,9 +6480,9 @@ fn main() {
 }
 ```
 
-### `ch11-b016` — 11.14 Función nombrada, function item y puntero a función
+### `ch11-b016` — 11.14 Función con nombre, *function item* y puntero a función
 
-Source: `11.Closures.md:356` · mode: `run`
+Source: `11.Closures.md:362` · mode: `run`
 
 ```rust
 fn normalize(input: &str) -> String {
@@ -6413,9 +6504,9 @@ fn main() {
 }
 ```
 
-### `ch11-b017` — 11.15 Pasar closures con el bound mínimo
+### `ch11-b017` — 11.15 Pedir a una closure solo la capacidad necesaria
 
-Source: `11.Closures.md:382` · mode: `run`
+Source: `11.Closures.md:388` · mode: `run`
 
 ```rust
 fn transform<T, U, F>(value: T, operation: F) -> U
@@ -6437,7 +6528,7 @@ fn main() {
 
 ### `ch11-b018` — 11.16 Devolver una closure con `impl Fn`
 
-Source: `11.Closures.md:406` · mode: `run`
+Source: `11.Closures.md:412` · mode: `run`
 
 ```rust
 fn make_adder(amount: i32) -> impl Fn(i32) -> i32 {
@@ -6451,9 +6542,9 @@ fn main() {
 }
 ```
 
-### `ch11-b019` — 11.17 Elegir entre closures en runtime
+### `ch11-b019` — 11.17 Elegir una closure durante la ejecución
 
-Source: `11.Closures.md:424` · mode: `run`
+Source: `11.Closures.md:430` · mode: `run`
 
 ```rust
 fn make_operation(kind: &str) -> Box<dyn Fn(i32) -> i32> {
@@ -6469,9 +6560,9 @@ fn main() {
 }
 ```
 
-### `ch11-b020` — 11.18 Closures almacenadas en structs
+### `ch11-b020` — 11.18 Closures almacenadas en estructuras
 
-Source: `11.Closures.md:444` · mode: `run`
+Source: `11.Closures.md:450` · mode: `run`
 
 ```rust
 struct Validator<F> {
@@ -6499,7 +6590,7 @@ fn main() {
 
 ### `ch11-b021` — 11.19 Lifetimes de closures prestadas
 
-Source: `11.Closures.md:474` · mode: `run`
+Source: `11.Closures.md:480` · mode: `run`
 
 ```rust
 fn main() {
@@ -6513,7 +6604,7 @@ fn main() {
 
 ### `ch11-b022` — 11.20 Fábricas: poseer la configuración
 
-Source: `11.Closures.md:492` · mode: `compile_fail`
+Source: `11.Closures.md:498` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn bad_filter() -> impl Fn(&str) -> bool {
@@ -6527,7 +6618,7 @@ fn main() {}
 
 ### `ch11-b023` — 11.20 Fábricas: poseer la configuración
 
-Source: `11.Closures.md:504` · mode: `run`
+Source: `11.Closures.md:510` · mode: `run`
 
 ```rust
 fn prefix_filter(prefix: impl Into<String>) -> impl Fn(&str) -> bool {
@@ -6544,7 +6635,7 @@ fn main() {
 
 ### `ch11-b024` — 11.21 Closures e iteradores
 
-Source: `11.Closures.md:523` · mode: `run`
+Source: `11.Closures.md:529` · mode: `run`
 
 ```rust
 fn normalized_names(names: &[String]) -> Vec<String> {
@@ -6562,9 +6653,9 @@ fn main() {
 }
 ```
 
-### `ch11-b025` — 11.22 Salidas prestadas y owned
+### `ch11-b025` — 11.22 Devolver referencias o valores independientes
 
-Source: `11.Closures.md:545` · mode: `run`
+Source: `11.Closures.md:551` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -6601,7 +6692,7 @@ fn main() {
 
 ### `ch11-b026` — 11.23 Devolver iteradores que contienen closures
 
-Source: `11.Closures.md:584` · mode: `run`
+Source: `11.Closures.md:590` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -6630,7 +6721,7 @@ fn main() {
 
 ### `ch11-b027` — 11.24 Caso práctico: reintentos
 
-Source: `11.Closures.md:615` · mode: `compile_only`
+Source: `11.Closures.md:621` · mode: `compile_only`
 
 ```rust,no_run
 use std::num::NonZeroUsize;
@@ -6663,7 +6754,7 @@ fn main() {
 
 ### `ch11-b028` — 11.25 Closure frente a trait de dominio
 
-Source: `11.Closures.md:650` · mode: `run`
+Source: `11.Closures.md:656` · mode: `run`
 
 ```rust
 #[derive(Debug, Clone, Copy)]
@@ -6685,14 +6776,16 @@ where
 }
 
 fn main() {
-    let reduced = apply_discount(Cents(1_000), |amount| Cents(amount.0 - 100));
+    let discount = |amount: Cents| Cents(amount.0.saturating_sub(100));
+    let reduced = apply_discount(Cents(1_000), discount);
     assert_eq!(reduced.0, 900);
+    assert_eq!(apply_discount(Cents(50), discount).0, 0);
 }
 ```
 
 ### `ch11-b029` — 11.26 Async closures: adelanto
 
-Source: `11.Closures.md:681` · mode: `run`
+Source: `11.Closures.md:689` · mode: `run`
 
 ```rust
 fn main() {
@@ -6704,7 +6797,7 @@ fn main() {
 
 ## 12.Iteradores
 
-### `ch12-b001` — 12.1 `Iterator` es una máquina de `next`
+### `ch12-b001` — 12.1 `Iterator`: pedir el siguiente elemento con `next`
 
 Source: `12.Iteradores.md:13` · mode: `run`
 
@@ -6716,7 +6809,7 @@ pub trait Iterator {
 }
 ```
 
-### `ch12-b002` — 12.1 `Iterator` es una máquina de `next`
+### `ch12-b002` — 12.1 `Iterator`: pedir el siguiente elemento con `next`
 
 Source: `12.Iteradores.md:28` · mode: `run`
 
@@ -6732,7 +6825,7 @@ fn main() {
 }
 ```
 
-### `ch12-b003` — 12.2 Elegir la entrada define ownership
+### `ch12-b003` — 12.2 La forma de recorrer una colección define qué ocurre con sus elementos
 
 Source: `12.Iteradores.md:46` · mode: `run`
 
@@ -6751,7 +6844,7 @@ fn main() {
 }
 ```
 
-### `ch12-b004` — 12.2 Elegir la entrada define ownership
+### `ch12-b004` — 12.2 La forma de recorrer una colección define qué ocurre con sus elementos
 
 Source: `12.Iteradores.md:61` · mode: `reference`
 
@@ -6782,7 +6875,7 @@ fn main() {
 }
 ```
 
-### `ch12-b006` — 12.4 Adaptadores lazy y consumidores
+### `ch12-b006` — 12.4 Adaptadores perezosos y consumidores
 
 Source: `12.Iteradores.md:96` · mode: `run`
 
@@ -6808,11 +6901,11 @@ fn main() {
 Source: `12.Iteradores.md:121` · mode: `reference`
 
 ```text
-values.iter()                         Item = &i32
-      .copied()                       Item = i32
-      .filter(|value| value % 2 == 0) Item = i32
-      .map(|value| value * 2)         Item = i32
-      .collect::<Vec<_>>()            Vec<i32>
+values.iter()                            Item = &i32
+      .copied()                          Item = i32
+      .filter(|value| value % 2 == 0)    Item = i32
+      .map(|value| i64::from(value) * 2) Item = i64
+      .collect::<Vec<_>>()               Vec<i64>
 ```
 
 ### `ch12-b008` — 12.6 `map`, `filter` y `copied`
@@ -6820,23 +6913,24 @@ values.iter()                         Item = &i32
 Source: `12.Iteradores.md:135` · mode: `run`
 
 ```rust
-fn doubled_evens(values: &[i32]) -> Vec<i32> {
+fn doubled_evens(values: &[i32]) -> Vec<i64> {
     values
         .iter()
         .copied()
         .filter(|value| value % 2 == 0)
-        .map(|value| value * 2)
+        .map(|value| i64::from(value) * 2)
         .collect()
 }
 
 fn main() {
     assert_eq!(doubled_evens(&[1, 2, 3, 4]), [4, 8]);
+    assert_eq!(doubled_evens(&[i32::MIN]), [i64::from(i32::MIN) * 2]);
 }
 ```
 
-### `ch12-b009` — 12.7 `filter_map`: descartar debe ser política explícita
+### `ch12-b009` — 12.7 `filter_map`: transformar y descartar de forma explícita
 
-Source: `12.Iteradores.md:160` · mode: `run`
+Source: `12.Iteradores.md:161` · mode: `run`
 
 ```rust
 fn parse_valid_numbers(inputs: &[&str]) -> Vec<u32> {
@@ -6853,7 +6947,7 @@ fn main() {
 
 ### `ch12-b010` — 12.8 `flat_map` y `flatten`: uno a muchos
 
-Source: `12.Iteradores.md:179` · mode: `run`
+Source: `12.Iteradores.md:180` · mode: `run`
 
 ```rust
 fn main() {
@@ -6869,7 +6963,7 @@ fn main() {
 
 ### `ch12-b011` — 12.8 `flat_map` y `flatten`: uno a muchos
 
-Source: `12.Iteradores.md:193` · mode: `run`
+Source: `12.Iteradores.md:194` · mode: `run`
 
 ```rust
 fn main() {
@@ -6883,7 +6977,7 @@ fn main() {
 
 ### `ch12-b012` — 12.9 Adaptadores estructurales
 
-Source: `12.Iteradores.md:209` · mode: `run`
+Source: `12.Iteradores.md:210` · mode: `run`
 
 ```rust
 fn main() {
@@ -6909,7 +7003,7 @@ fn main() {
 
 ### `ch12-b013` — 12.10 Consumidores con cortocircuito
 
-Source: `12.Iteradores.md:237` · mode: `run`
+Source: `12.Iteradores.md:238` · mode: `run`
 
 ```rust
 fn first_even(values: &[i32]) -> Option<i32> {
@@ -6924,9 +7018,9 @@ fn main() {
 }
 ```
 
-### `ch12-b014` — 12.11 `collect` está dirigido por el tipo destino
+### `ch12-b014` — 12.11 `collect` construye el tipo que se le pide
 
-Source: `12.Iteradores.md:256` · mode: `run`
+Source: `12.Iteradores.md:257` · mode: `run`
 
 ```rust
 use std::collections::HashMap;
@@ -6944,9 +7038,9 @@ fn main() {
 }
 ```
 
-### `ch12-b015` — 12.12 `collect` sobre `Result` falla rápido
+### `ch12-b015` — 12.12 `collect` sobre `Result` se detiene ante el primer error
 
-Source: `12.Iteradores.md:278` · mode: `run`
+Source: `12.Iteradores.md:279` · mode: `run`
 
 ```rust
 use std::num::ParseIntError;
@@ -6966,13 +7060,13 @@ fn main() {
 
 ### `ch12-b016` — 12.13 Agregar con `sum`, `fold` y `reduce`
 
-Source: `12.Iteradores.md:300` · mode: `run`
+Source: `12.Iteradores.md:301` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
 struct Stats {
     count: usize,
-    sum: i64,
+    sum: i128,
 }
 
 fn stats(values: &[i64]) -> Stats {
@@ -6980,13 +7074,14 @@ fn stats(values: &[i64]) -> Stats {
         Stats { count: 0, sum: 0 },
         |stats, value| Stats {
             count: stats.count + 1,
-            sum: stats.sum + value,
+            sum: stats.sum + i128::from(value),
         },
     )
 }
 
 fn main() {
     assert_eq!(stats(&[2, 3, 5]), Stats { count: 3, sum: 10 });
+    assert_eq!(stats(&[i64::MAX, i64::MAX]).sum, i128::from(i64::MAX) * 2);
     assert_eq!([2, 3, 5].into_iter().sum::<i32>(), 10);
     assert_eq!([2, 3, 5].into_iter().reduce(i32::max), Some(5));
     assert_eq!([].into_iter().reduce(i32::max), None);
@@ -6995,7 +7090,7 @@ fn main() {
 
 ### `ch12-b017` — 12.14 `try_fold` combina acumulación y fallo
 
-Source: `12.Iteradores.md:331` · mode: `run`
+Source: `12.Iteradores.md:333` · mode: `run`
 
 ```rust
 fn checked_sum(values: impl IntoIterator<Item = i64>) -> Option<i64> {
@@ -7010,7 +7105,7 @@ fn main() {
 
 ### `ch12-b018` — 12.14 `try_fold` combina acumulación y fallo
 
-Source: `12.Iteradores.md:344` · mode: `run`
+Source: `12.Iteradores.md:346` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -7036,12 +7131,16 @@ fn main() {
         parse_and_sum(&["10", "x"]),
         Err(SumError::InvalidNumber { index: 1 })
     );
+    assert_eq!(
+        parse_and_sum(&["4294967295", "1"]),
+        Err(SumError::Overflow { index: 1 })
+    );
 }
 ```
 
-### `ch12-b019` — 12.15 Efectos: `inspect`, `for_each` o `for`
+### `ch12-b019` — 12.15 Elegir entre `inspect`, `for_each` y `for`
 
-Source: `12.Iteradores.md:377` · mode: `run`
+Source: `12.Iteradores.md:383` · mode: `run`
 
 ```rust
 fn main() {
@@ -7057,9 +7156,9 @@ fn main() {
 }
 ```
 
-### `ch12-b020` — 12.16 `copied` frente a `cloned`: copiar tarde
+### `ch12-b020` — 12.16 `copied` frente a `cloned`: copiar solo lo necesario
 
-Source: `12.Iteradores.md:397` · mode: `run`
+Source: `12.Iteradores.md:403` · mode: `run`
 
 ```rust
 fn selected_owned(names: &[String]) -> Vec<String> {
@@ -7077,9 +7176,9 @@ fn main() {
 }
 ```
 
-### `ch12-b021` — 12.17 Iteradores que prestan de una entrada
+### `ch12-b021` — 12.17 Iteradores que devuelven referencias a la entrada
 
-Source: `12.Iteradores.md:419` · mode: `run`
+Source: `12.Iteradores.md:425` · mode: `run`
 
 ```rust
 fn non_empty_lines(input: &str) -> impl Iterator<Item = &str> {
@@ -7095,9 +7194,9 @@ fn main() {
 }
 ```
 
-### `ch12-b022` — 12.18 Iteradores owned devueltos
+### `ch12-b022` — 12.18 Iteradores que poseen su fuente
 
-Source: `12.Iteradores.md:439` · mode: `run`
+Source: `12.Iteradores.md:445` · mode: `run`
 
 ```rust
 fn default_names() -> impl Iterator<Item = String> {
@@ -7110,9 +7209,9 @@ fn main() {
 }
 ```
 
-### `ch12-b023` — 12.19 No se pueden prestar datos locales
+### `ch12-b023` — 12.19 No devolver referencias a datos locales que se van a destruir
 
-Source: `12.Iteradores.md:456` · mode: `compile_fail`
+Source: `12.Iteradores.md:462` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn words() -> impl Iterator<Item = &'static str> {
@@ -7124,9 +7223,9 @@ fn words() -> impl Iterator<Item = &'static str> {
 fn main() {}
 ```
 
-### `ch12-b024` — 12.19 No se pueden prestar datos locales
+### `ch12-b024` — 12.19 No devolver referencias a datos locales que se van a destruir
 
-Source: `12.Iteradores.md:468` · mode: `run`
+Source: `12.Iteradores.md:474` · mode: `run`
 
 ```rust
 fn words(input: &str) -> impl Iterator<Item = &str> {
@@ -7152,26 +7251,27 @@ fn main() {
 
 ### `ch12-b025` — 12.20 Aceptar `IntoIterator`
 
-Source: `12.Iteradores.md:496` · mode: `run`
+Source: `12.Iteradores.md:502` · mode: `run`
 
 ```rust
-fn total<I>(items: I) -> i64
+fn total<I>(items: I) -> Option<i64>
 where
     I: IntoIterator<Item = i64>,
 {
-    items.into_iter().sum()
+    items.into_iter().try_fold(0_i64, i64::checked_add)
 }
 
 fn main() {
-    assert_eq!(total([1, 2, 3]), 6);
-    assert_eq!(total(vec![4, 5]), 9);
-    assert_eq!(total((1..=4).map(i64::from)), 10);
+    assert_eq!(total([1, 2, 3]), Some(6));
+    assert_eq!(total(vec![4, 5]), Some(9));
+    assert_eq!(total((1..=4).map(i64::from)), Some(10));
+    assert_eq!(total([i64::MAX, 1]), None);
 }
 ```
 
 ### `ch12-b026` — 12.21 Devolver `impl Iterator`
 
-Source: `12.Iteradores.md:517` · mode: `run`
+Source: `12.Iteradores.md:524` · mode: `run`
 
 ```rust
 fn even_numbers_up_to(limit: u32) -> impl Iterator<Item = u32> {
@@ -7185,24 +7285,24 @@ fn main() {
 
 ### `ch12-b027` — 12.22 Implementar un iterador propio
 
-Source: `12.Iteradores.md:533` · mode: `run`
+Source: `12.Iteradores.md:540` · mode: `run`
 
 ```rust
 use std::iter::FusedIterator;
 
 #[derive(Debug)]
 struct Countdown {
-    next: u32,
+    next: usize,
 }
 
 impl Countdown {
-    fn new(start: u32) -> Self {
+    fn new(start: usize) -> Self {
         Self { next: start }
     }
 }
 
 impl Iterator for Countdown {
-    type Item = u32;
+    type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.next == 0 {
@@ -7214,7 +7314,7 @@ impl Iterator for Countdown {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = self.next as usize;
+        let remaining = self.next;
         (remaining, Some(remaining))
     }
 }
@@ -7230,9 +7330,9 @@ fn main() {
 }
 ```
 
-### `ch12-b028` — 12.24 Caso práctico: consultas prestadas y owned
+### `ch12-b028` — 12.24 Caso práctico: resultados prestados e independientes
 
-Source: `12.Iteradores.md:586` · mode: `run`
+Source: `12.Iteradores.md:595` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -7267,9 +7367,9 @@ fn main() {
 }
 ```
 
-### `ch12-b029` — 12.25 Validación masiva con contexto
+### `ch12-b029` — 12.25 Validar varias entradas sin perder el contexto
 
-Source: `12.Iteradores.md:625` · mode: `run`
+Source: `12.Iteradores.md:634` · mode: `run`
 
 ```rust
 use std::num::ParseIntError;
@@ -7301,7 +7401,7 @@ fn main() {
 
 ### `ch12-b030` — 12.27 Cuándo un `for` comunica mejor
 
-Source: `12.Iteradores.md:672` · mode: `run`
+Source: `12.Iteradores.md:681` · mode: `run`
 
 ```rust
 fn partition_parse(inputs: &[&str]) -> (Vec<u32>, Vec<usize>) {
@@ -7325,7 +7425,7 @@ fn main() {
 
 ## 13.Composición-declarativa
 
-### `ch13-b001` — 13.1 Declarativo describe intención
+### `ch13-b001` — 13.1 Expresar la intención de cada paso
 
 Source: `13.Composición-declarativa.md:13` · mode: `run`
 
@@ -7358,7 +7458,7 @@ fn main() {
 Source: `13.Composición-declarativa.md:43` · mode: `reference`
 
 ```text
-fuente → selección/validación → transformación → agregación/frontera
+datos de entrada → seleccionar o validar → transformar → obtener el resultado
 ```
 
 ### `ch13-b003` — 13.2 Una etapa, una intención
@@ -7382,12 +7482,12 @@ fn is_billable(order: &Order) -> bool {
     matches!(order.status, Status::Ready) && order.total_cents > 0
 }
 
-fn billable_total(orders: &[Order]) -> u64 {
+fn billable_total(orders: &[Order]) -> Option<u64> {
     orders
         .iter()
         .filter(|order| is_billable(order))
         .map(|order| order.total_cents)
-        .sum()
+        .try_fold(0_u64, u64::checked_add)
 }
 
 fn main() {
@@ -7395,7 +7495,7 @@ fn main() {
         Order { status: Status::Ready, total_cents: 500 },
         Order { status: Status::Draft, total_cents: 900 },
     ];
-    assert_eq!(billable_total(&orders), 500);
+    assert_eq!(billable_total(&orders), Some(500));
 }
 ```
 
@@ -7410,22 +7510,23 @@ struct OrderLine {
     unit_cents: u64,
 }
 
-fn total_imperative(lines: &[OrderLine]) -> u64 {
-    let mut total = 0;
+fn total_imperative(lines: &[OrderLine]) -> Option<u64> {
+    let mut total = 0_u64;
     for line in lines {
         if line.quantity > 0 {
-            total += u64::from(line.quantity) * line.unit_cents;
+            let amount = u64::from(line.quantity).checked_mul(line.unit_cents)?;
+            total = total.checked_add(amount)?;
         }
     }
-    total
+    Some(total)
 }
 
-fn total_declarative(lines: &[OrderLine]) -> u64 {
+fn total_declarative(lines: &[OrderLine]) -> Option<u64> {
     lines
         .iter()
         .filter(|line| line.quantity > 0)
-        .map(|line| u64::from(line.quantity) * line.unit_cents)
-        .sum()
+        .map(|line| u64::from(line.quantity).checked_mul(line.unit_cents))
+        .try_fold(0_u64, |total, amount| total.checked_add(amount?))
 }
 
 fn main() {
@@ -7433,14 +7534,23 @@ fn main() {
         OrderLine { quantity: 2, unit_cents: 150 },
         OrderLine { quantity: 0, unit_cents: 999 },
     ];
-    assert_eq!(total_imperative(&lines), 300);
-    assert_eq!(total_declarative(&lines), 300);
+    assert_eq!(total_imperative(&lines), Some(300));
+    assert_eq!(total_declarative(&lines), Some(300));
+    let too_large = [OrderLine { quantity: 2, unit_cents: u64::MAX }];
+    assert_eq!(total_imperative(&too_large), None);
+    assert_eq!(total_declarative(&too_large), None);
+    let too_many = [
+        OrderLine { quantity: 1, unit_cents: u64::MAX },
+        OrderLine { quantity: 1, unit_cents: 1 },
+    ];
+    assert_eq!(total_imperative(&too_many), None);
+    assert_eq!(total_declarative(&too_many), None);
 }
 ```
 
-### `ch13-b005` — 13.4 `map` conserva la forma exterior
+### `ch13-b005` — 13.4 `map` transforma los valores sin eliminar `Option` o `Result`
 
-Source: `13.Composición-declarativa.md:130` · mode: `run`
+Source: `13.Composición-declarativa.md:140` · mode: `run`
 
 ```rust
 fn main() {
@@ -7457,19 +7567,19 @@ fn main() {
 }
 ```
 
-### `ch13-b006` — 13.4 `map` conserva la forma exterior
+### `ch13-b006` — 13.4 `map` transforma los valores sin eliminar `Option` o `Result`
 
-Source: `13.Composición-declarativa.md:145` · mode: `reference`
+Source: `13.Composición-declarativa.md:155` · mode: `reference`
 
 ```text
 Option<T>      --map--> Option<U>
 Result<T, E>   --map--> Result<U, E>
-Iterator<T>    --map--> Iterator<U>
+Iterator<Item = T> --map--> Iterator<Item = U>
 ```
 
-### `ch13-b007` — 13.5 `and_then` evita contextos anidados
+### `ch13-b007` — 13.5 `and_then` evita anidar `Option` o `Result`
 
-Source: `13.Composición-declarativa.md:157` · mode: `run`
+Source: `13.Composición-declarativa.md:167` · mode: `run`
 
 ```rust
 fn parse_non_zero(input: &str) -> Option<u16> {
@@ -7486,9 +7596,9 @@ fn main() {
 }
 ```
 
-### `ch13-b008` — 13.6 Puentes entre `Option` y `Result`
+### `ch13-b008` — 13.6 Pasar de `Option` a `Result` y combinar ambos
 
-Source: `13.Composición-declarativa.md:178` · mode: `run`
+Source: `13.Composición-declarativa.md:188` · mode: `run`
 
 ```rust
 use std::num::ParseIntError;
@@ -7520,7 +7630,7 @@ fn main() {
 
 ### `ch13-b009` — 13.7 Separar efecto externo y transformación pura
 
-Source: `13.Composición-declarativa.md:212` · mode: `run`
+Source: `13.Composición-declarativa.md:222` · mode: `run`
 
 ```rust
 use std::num::ParseIntError;
@@ -7530,16 +7640,16 @@ fn parse_optional_port(raw: Option<&str>) -> Result<Option<u16>, ParseIntError> 
 }
 
 fn main() {
-    // La frontera real haría: std::env::var("PORT").ok()
+    // Simulamos aquí el texto obtenido por la parte que lee la configuración.
     let raw = Some(String::from("8080"));
     let parsed = parse_optional_port(raw.as_deref());
     assert_eq!(parsed, Ok(Some(8080)));
 }
 ```
 
-### `ch13-b010` — 13.8 `collect` sobre `Result`: política fail-fast
+### `ch13-b010` — 13.8 `collect` sobre `Result`: detenerse en el primer error
 
-Source: `13.Composición-declarativa.md:231` · mode: `run`
+Source: `13.Composición-declarativa.md:241` · mode: `run`
 
 ```rust
 use std::num::ParseIntError;
@@ -7559,7 +7669,7 @@ fn main() {
 
 ### `ch13-b011` — 13.9 Acumular todos los rechazos es otra API
 
-Source: `13.Composición-declarativa.md:253` · mode: `run`
+Source: `13.Composición-declarativa.md:263` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -7612,7 +7722,7 @@ fn main() {
 
 ### `ch13-b012` — 13.11 `partition`, `unzip` y colecciones dirigidas por tipo
 
-Source: `13.Composición-declarativa.md:322` · mode: `run`
+Source: `13.Composición-declarativa.md:334` · mode: `run`
 
 ```rust
 use std::collections::HashMap;
@@ -7635,28 +7745,29 @@ fn main() {
 }
 ```
 
-### `ch13-b013` — 13.12 Materializar una sola vez
+### `ch13-b013` — 13.12 Construir la colección una sola vez
 
-Source: `13.Composición-declarativa.md:349` · mode: `run`
+Source: `13.Composición-declarativa.md:361` · mode: `run`
 
 ```rust
-fn total_selected(values: &[u64]) -> u64 {
+fn total_selected(values: &[u64]) -> u128 {
     values
         .iter()
         .copied()
-        .map(|value| value * 2)
+        .map(|value| u128::from(value) * 2)
         .filter(|value| value % 3 == 0)
         .sum()
 }
 
 fn main() {
     assert_eq!(total_selected(&[1, 2, 3, 4, 6]), 18);
+    assert_eq!(total_selected(&[u64::MAX]), u128::from(u64::MAX) * 2);
 }
 ```
 
 ### `ch13-b014` — 13.13 Filtrar antes de copiar
 
-Source: `13.Composición-declarativa.md:370` · mode: `run`
+Source: `13.Composición-declarativa.md:383` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -7681,9 +7792,9 @@ fn main() {
 }
 ```
 
-### `ch13-b015` — 13.14 Fronteras prestadas y owned
+### `ch13-b015` — 13.14 Elegir entre referencias y valores independientes
 
-Source: `13.Composición-declarativa.md:397` · mode: `run`
+Source: `13.Composición-declarativa.md:410` · mode: `run`
 
 ```rust
 fn normalized(input: &[String]) -> impl Iterator<Item = &str> {
@@ -7705,9 +7816,9 @@ fn main() {
 }
 ```
 
-### `ch13-b016` — 13.15 La máquina devuelta también puede prestar
+### `ch13-b016` — 13.15 El iterador devuelto también puede contener referencias
 
-Source: `13.Composición-declarativa.md:425` · mode: `compile_fail`
+Source: `13.Composición-declarativa.md:438` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn normalized_words() -> impl Iterator<Item = String> {
@@ -7719,9 +7830,9 @@ fn normalized_words() -> impl Iterator<Item = String> {
 fn main() {}
 ```
 
-### `ch13-b017` — 13.15 La máquina devuelta también puede prestar
+### `ch13-b017` — 13.15 El iterador devuelto también puede contener referencias
 
-Source: `13.Composición-declarativa.md:437` · mode: `run`
+Source: `13.Composición-declarativa.md:450` · mode: `run`
 
 ```rust
 fn normalized_words() -> impl Iterator<Item = String> {
@@ -7740,26 +7851,27 @@ fn main() {
 
 ### `ch13-b018` — 13.16 APIs genéricas sobre secuencias
 
-Source: `13.Composición-declarativa.md:456` · mode: `run`
+Source: `13.Composición-declarativa.md:469` · mode: `run`
 
 ```rust
-fn total<I>(prices: I) -> u64
+fn total<I>(prices: I) -> Option<u64>
 where
     I: IntoIterator<Item = u64>,
 {
-    prices.into_iter().sum()
+    prices.into_iter().try_fold(0_u64, u64::checked_add)
 }
 
 fn main() {
-    assert_eq!(total([100, 200]), 300);
-    assert_eq!(total(vec![300, 400]), 700);
-    assert_eq!(total((1..=3).map(|value| value * 10)), 60);
+    assert_eq!(total([100, 200]), Some(300));
+    assert_eq!(total(vec![300, 400]), Some(700));
+    assert_eq!(total((1..=3).map(|value| value * 10)), Some(60));
+    assert_eq!(total([u64::MAX, 1]), None);
 }
 ```
 
-### `ch13-b019` — 13.17 Extension traits como vocabulario local
+### `ch13-b019` — 13.17 Traits de extensión como vocabulario local
 
-Source: `13.Composición-declarativa.md:477` · mode: `run`
+Source: `13.Composición-declarativa.md:491` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
@@ -7789,16 +7901,16 @@ fn main() {
 }
 ```
 
-### `ch13-b020` — 13.19 Cuando un `for` es la forma declarativa más clara
+### `ch13-b020` — 13.19 Cuando un `for` explica mejor la operación
 
-Source: `13.Composición-declarativa.md:521` · mode: `run`
+Source: `13.Composición-declarativa.md:535` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq)]
 struct ReviewReport {
     accepted: Vec<u64>,
     rejected: Vec<u64>,
-    total_cents: u64,
+    total_cents: u128,
 }
 
 fn review(requests: &[(u64, u64)]) -> ReviewReport {
@@ -7814,7 +7926,7 @@ fn review(requests: &[(u64, u64)]) -> ReviewReport {
             continue;
         }
         report.accepted.push(id);
-        report.total_cents += amount;
+        report.total_cents += u128::from(amount);
     }
     report
 }
@@ -7829,7 +7941,7 @@ fn main() {
 
 ## 14.Programación-orientada-a-tipos
 
-### `ch14-b001` — 14.1 Un tipo puede ser una frontera ejecutable
+### `ch14-b001` — 14.1 Un tipo puede hacer cumplir una regla
 
 Source: `14.Programación-orientada-a-tipos.md:13` · mode: `run`
 
@@ -7915,7 +8027,7 @@ fn main() {
 }
 ```
 
-### `ch14-b004` — 14.3 La privacidad sostiene la invariante
+### `ch14-b004` — 14.3 La privacidad conserva la garantía
 
 Source: `14.Programación-orientada-a-tipos.md:103` · mode: `run`
 
@@ -7937,10 +8049,11 @@ impl Username {
         if value.is_empty() {
             return Err(UsernameError::Empty);
         }
-        if value.chars().count() > Self::MAX_LEN {
+        let length = value.chars().count();
+        if length > Self::MAX_LEN {
             return Err(UsernameError::TooLong {
                 max: Self::MAX_LEN,
-                actual: value.chars().count(),
+                actual: length,
             });
         }
         Ok(Self(value.to_owned()))
@@ -7964,7 +8077,7 @@ fn main() {
 
 ### `ch14-b005` — 14.4 «Coste cero» no significa «ABI garantizada»
 
-Source: `14.Programación-orientada-a-tipos.md:152` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:153` · mode: `run`
 
 ```rust
 use std::mem::{align_of, size_of};
@@ -7978,9 +8091,9 @@ fn main() {
 }
 ```
 
-### `ch14-b006` — 14.5 Parsear, validar y normalizar son decisiones distintas
+### `ch14-b006` — 14.5 Interpretar, validar y normalizar son decisiones distintas
 
-Source: `14.Programación-orientada-a-tipos.md:175` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:176` · mode: `run`
 
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -8020,9 +8133,9 @@ fn main() {
 }
 ```
 
-### `ch14-b007` — 14.6 Conversiones que dicen la verdad
+### `ch14-b007` — 14.6 Elegir `From` o `TryFrom` según pueda fallar la conversión
 
-Source: `14.Programación-orientada-a-tipos.md:219` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:220` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -8056,9 +8169,9 @@ fn main() {
 }
 ```
 
-### `ch14-b008` — 14.8 El comportamiento debe respetar unidades y overflow
+### `ch14-b008` — 14.8 El comportamiento debe respetar las unidades y el desbordamiento
 
-Source: `14.Programación-orientada-a-tipos.md:272` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:273` · mode: `run`
 
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -8095,9 +8208,9 @@ fn main() {
 }
 ```
 
-### `ch14-b009` — 14.9 Un enum reemplaza combinaciones inválidas de flags
+### `ch14-b009` — 14.9 Un enum reemplaza combinaciones inválidas de booleanos
 
-Source: `14.Programación-orientada-a-tipos.md:313` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:314` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -8124,7 +8237,7 @@ fn main() {
 
 ### `ch14-b010` — 14.10 Reutiliza invariantes de la biblioteca estándar
 
-Source: `14.Programación-orientada-a-tipos.md:342` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:343` · mode: `run`
 
 ```rust
 use std::num::NonZeroU32;
@@ -8150,7 +8263,7 @@ fn main() {
 
 ### `ch14-b011` — 14.11 Estados como tipos distintos
 
-Source: `14.Programación-orientada-a-tipos.md:370` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:371` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -8185,7 +8298,7 @@ fn main() {
 
 ### `ch14-b012` — 14.12 Typestate genérico: representación común, API distinta
 
-Source: `14.Programación-orientada-a-tipos.md:407` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:408` · mode: `run`
 
 ```rust
 use std::marker::PhantomData;
@@ -8232,9 +8345,9 @@ fn main() {
 }
 ```
 
-### `ch14-b013` — 14.13 La máquina de estados queda en las firmas
+### `ch14-b013` — 14.13 Las firmas indican qué transiciones se permiten
 
-Source: `14.Programación-orientada-a-tipos.md:462` · mode: `compile_fail`
+Source: `14.Programación-orientada-a-tipos.md:465` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::marker::PhantomData;
@@ -8259,7 +8372,7 @@ fn main() {
 
 ### `ch14-b014` — 14.15 Una transición fallible debe decidir quién conserva el valor
 
-Source: `14.Programación-orientada-a-tipos.md:493` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:496` · mode: `run`
 
 ```rust
 use std::marker::PhantomData;
@@ -8308,7 +8421,7 @@ fn main() {
 
 ### `ch14-b015` — 14.17 Caso completo: factura con typestate
 
-Source: `14.Programación-orientada-a-tipos.md:550` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:555` · mode: `run`
 
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -8357,12 +8470,19 @@ fn main() {
     assert_eq!(issued.number, 41);
     assert_eq!(issued.lines.len(), 2);
     assert_eq!(issued.total, Cents(500));
+
+    let draft = DraftInvoice {
+        lines: vec![Cents(u64::MAX), Cents(1)],
+    };
+    let (draft, error) = draft.issue(42).unwrap_err();
+    assert_eq!(error, IssueError::Overflow);
+    assert_eq!(draft.lines.len(), 2);
 }
 ```
 
 ### `ch14-b016` — 14.18 El mismo caso con enum
 
-Source: `14.Programación-orientada-a-tipos.md:604` · mode: `compile_only`
+Source: `14.Programación-orientada-a-tipos.md:616` · mode: `compile_only`
 
 ```rust,no_run
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -8377,6 +8497,7 @@ enum Invoice {
 #[derive(Debug, PartialEq, Eq)]
 enum IssueError {
     Empty,
+    Overflow,
     AlreadyIssued,
 }
 
@@ -8385,7 +8506,11 @@ impl Invoice {
         match self {
             Self::Draft { lines } if lines.is_empty() => Err(IssueError::Empty),
             Self::Draft { lines } => {
-                let total = Cents(lines.iter().map(|line| line.0).sum());
+                let total = lines
+                    .iter()
+                    .try_fold(0_u64, |sum, line| sum.checked_add(line.0))
+                    .map(Cents)
+                    .ok_or(IssueError::Overflow)?;
                 let lines = std::mem::take(lines);
                 *self = Self::Issued { number, lines, total };
                 Ok(())
@@ -8405,12 +8530,18 @@ fn main() {
         }
         Invoice::Draft { .. } => panic!("la transición debía completarse"),
     }
+
+    let mut overflowing = Invoice::Draft {
+        lines: vec![Cents(u64::MAX), Cents(1)],
+    };
+    assert_eq!(overflowing.issue(9), Err(IssueError::Overflow));
+    assert!(matches!(overflowing, Invoice::Draft { .. }));
 }
 ```
 
-### `ch14-b017` — 14.21 DTOs permisivos, dominio estricto
+### `ch14-b017` — 14.21 Validar los datos recibidos antes de construir el tipo del dominio
 
-Source: `14.Programación-orientada-a-tipos.md:673` · mode: `run`
+Source: `14.Programación-orientada-a-tipos.md:696` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -8511,7 +8642,7 @@ fn main() {
 }
 ```
 
-### `ch15-b002` — 15.3 Superficie mínima: requerido frente a derivable
+### `ch15-b002` — 15.3 Exigir lo imprescindible y ofrecer métodos por defecto
 
 Source: `15.Traits-bounds-coherence-y-orphan-rules.md:59` · mode: `run`
 
@@ -8556,7 +8687,7 @@ fn main() {
 }
 ```
 
-### `ch15-b003` — 15.4 El receiver declara el tipo de efecto
+### `ch15-b003` — 15.4 La forma de recibir `self` declara qué puede hacer el método
 
 Source: `15.Traits-bounds-coherence-y-orphan-rules.md:111` · mode: `run`
 
@@ -8586,7 +8717,7 @@ fn main() {
 }
 ```
 
-### `ch15-b004` — 15.5 Un bound concede exactamente unas operaciones
+### `ch15-b004` — 15.5 Cada restricción concede unas operaciones concretas
 
 Source: `15.Traits-bounds-coherence-y-orphan-rules.md:141` · mode: `run`
 
@@ -8606,7 +8737,7 @@ fn main() {
 }
 ```
 
-### `ch15-b005` — 15.6 `where` permite hablar de items asociados
+### `ch15-b005` — 15.6 `where` permite restringir tipos asociados
 
 Source: `15.Traits-bounds-coherence-y-orphan-rules.md:163` · mode: `run`
 
@@ -8627,7 +8758,7 @@ fn main() {
 }
 ```
 
-### `ch15-b006` — 15.7 Coloca el bound donde se usa
+### `ch15-b006` — 15.7 Coloca cada restricción donde se utiliza
 
 Source: `15.Traits-bounds-coherence-y-orphan-rules.md:186` · mode: `run`
 
@@ -8645,14 +8776,19 @@ impl<T> Pair<T> {
 }
 
 impl<T: PartialOrd> Pair<T> {
-    fn larger(&self) -> &T {
-        if self.left >= self.right { &self.left } else { &self.right }
+    fn larger(&self) -> Option<&T> {
+        use std::cmp::Ordering;
+        match self.left.partial_cmp(&self.right)? {
+            Ordering::Less => Some(&self.right),
+            Ordering::Equal | Ordering::Greater => Some(&self.left),
+        }
     }
 }
 
 fn main() {
     let numbers = Pair::new(10, 30);
-    assert_eq!(numbers.larger(), &30);
+    assert_eq!(numbers.larger(), Some(&30));
+    assert_eq!(Pair::new(f64::NAN, 1.0).larger(), None);
 
     struct Token;
     let tokens = Pair::new(Token, Token);
@@ -8660,9 +8796,9 @@ fn main() {
 }
 ```
 
-### `ch15-b007` — 15.8 Supertraits: un contrato compuesto
+### `ch15-b007` — 15.8 Supertraits: exigir otros traits
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:221` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:228` · mode: `run`
 
 ```rust
 use std::error::Error;
@@ -8695,9 +8831,9 @@ fn main() {
 }
 ```
 
-### `ch15-b008` — 15.9 Un blanket impl compromete evolución
+### `ch15-b008` — 15.9 Una implementación genérica condiciona la evolución
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:260` · mode: `compile_fail`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:267` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::fmt::Display;
@@ -8717,9 +8853,9 @@ impl Label for u32 {
 fn main() {}
 ```
 
-### `ch15-b009` — 15.10 Coherence garantiza un solo significado
+### `ch15-b009` — 15.10 Coherencia: evitar implementaciones que se solapen
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:284` · mode: `compile_fail`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:291` · mode: `compile_fail`
 
 ```rust,compile_fail
 trait Category {
@@ -8739,7 +8875,7 @@ fn main() {}
 
 ### `ch15-b010` — 15.13 El newtype es la salida explícita
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:332` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:341` · mode: `run`
 
 ```rust
 use std::fmt;
@@ -8766,7 +8902,7 @@ fn main() {
 
 ### `ch15-b011` — 15.14 Traits de extensión para añadir sintaxis local
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:361` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:370` · mode: `run`
 
 ```rust
 trait StrExt {
@@ -8786,9 +8922,9 @@ fn main() {
 }
 ```
 
-### `ch15-b012` — 15.15 `derive` genera un impl con bounds
+### `ch15-b012` — 15.15 `derive` puede generar restricciones adicionales
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:387` · mode: `compile_fail`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:396` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::rc::Rc;
@@ -8807,9 +8943,9 @@ fn main() {
 }
 ```
 
-### `ch15-b013` — 15.15 `derive` genera un impl con bounds
+### `ch15-b013` — 15.15 `derive` puede generar restricciones adicionales
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:406` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:415` · mode: `run`
 
 ```rust
 use std::rc::Rc;
@@ -8833,9 +8969,9 @@ fn main() {
 }
 ```
 
-### `ch15-b014` — 15.17 `Self: Sized` separa métodos estáticos de métodos dyn
+### `ch15-b014` — 15.17 `Self: Sized` separa los métodos concretos de los disponibles mediante `dyn`
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:440` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:449` · mode: `run`
 
 ```rust
 trait Job {
@@ -8868,9 +9004,9 @@ fn main() {
 }
 ```
 
-### `ch15-b015` — 15.19 Dobles de prueba sin frameworks
+### `ch15-b015` — 15.19 Implementaciones de prueba sin bibliotecas externas
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:483` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:492` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -8880,32 +9016,35 @@ struct User {
 }
 
 trait IdGenerator {
-    fn next_id(&mut self) -> u64;
+    fn next_id(&mut self) -> Option<u64>;
 }
 
 struct Sequential(u64);
 
 impl IdGenerator for Sequential {
-    fn next_id(&mut self) -> u64 {
-        self.0 += 1;
-        self.0
+    fn next_id(&mut self) -> Option<u64> {
+        self.0 = self.0.checked_add(1)?;
+        Some(self.0)
     }
 }
 
-fn register(ids: &mut impl IdGenerator, name: &str) -> User {
-    User { id: ids.next_id(), name: name.to_owned() }
+fn register(ids: &mut impl IdGenerator, name: &str) -> Option<User> {
+    Some(User { id: ids.next_id()?, name: name.to_owned() })
 }
 
 fn main() {
     let mut ids = Sequential(40);
-    assert_eq!(register(&mut ids, "Ada").id, 41);
-    assert_eq!(register(&mut ids, "Grace").id, 42);
+    assert_eq!(register(&mut ids, "Ada").unwrap().id, 41);
+    assert_eq!(register(&mut ids, "Grace").unwrap().id, 42);
+    let mut exhausted = Sequential(u64::MAX);
+    assert_eq!(register(&mut exhausted, "Linus"), None);
+    assert_eq!(exhausted.0, u64::MAX);
 }
 ```
 
 ### `ch15-b016` — 15.20 Pruebas de contrato reutilizables
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:520` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:532` · mode: `run`
 
 ```rust
 use std::collections::HashMap;
@@ -8948,7 +9087,7 @@ fn main() {
 
 ### `ch15-b017` — 15.22 Sellar un trait controla quién puede implementarlo
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:575` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:587` · mode: `run`
 
 ```rust
 mod tokens {
@@ -8980,7 +9119,7 @@ fn main() {
 
 ### `ch15-b018` — 15.24 Resolución de métodos y sintaxis cualificada
 
-Source: `15.Traits-bounds-coherence-y-orphan-rules.md:622` · mode: `run`
+Source: `15.Traits-bounds-coherence-y-orphan-rules.md:634` · mode: `run`
 
 ```rust
 struct Report;
@@ -9007,7 +9146,7 @@ fn main() {
 
 ## 16.Genéricos-y-monomorfización
 
-### `ch16-b001` — 16.1 El caller elige `T`
+### `ch16-b001` — 16.1 Quien llama elige `T`
 
 Source: `16.Genéricos-y-monomorfización.md:11` · mode: `run`
 
@@ -9035,7 +9174,7 @@ fn main() {
 }
 ```
 
-### `ch16-b002` — 16.2 Sin bounds, el cuerpo debe ser universal
+### `ch16-b002` — 16.2 Sin restricciones, el cuerpo debe servir para cualquier `T`
 
 Source: `16.Genéricos-y-monomorfización.md:43` · mode: `compile_fail`
 
@@ -9053,12 +9192,12 @@ fn largest<T>(values: &[T]) -> Option<&T> {
 fn main() {}
 ```
 
-### `ch16-b003` — 16.2 Sin bounds, el cuerpo debe ser universal
+### `ch16-b003` — 16.2 Sin restricciones, el cuerpo debe servir para cualquier `T`
 
 Source: `16.Genéricos-y-monomorfización.md:59` · mode: `run`
 
 ```rust
-fn largest<T: PartialOrd>(values: &[T]) -> Option<&T> {
+fn largest<T: Ord>(values: &[T]) -> Option<&T> {
     let mut largest = values.first()?;
     for value in &values[1..] {
         if value > largest {
@@ -9135,8 +9274,12 @@ impl<T> Pair<T> {
 }
 
 impl<T: PartialOrd> Pair<T> {
-    fn larger(&self) -> &T {
-        if self.left >= self.right { &self.left } else { &self.right }
+    fn larger(&self) -> Option<&T> {
+        use std::cmp::Ordering;
+        match self.left.partial_cmp(&self.right)? {
+            Ordering::Less => Some(&self.right),
+            Ordering::Equal | Ordering::Greater => Some(&self.left),
+        }
     }
 }
 
@@ -9148,7 +9291,8 @@ impl Pair<f64> {
 
 fn main() {
     let point = Pair::new(3.0_f64, 4.0);
-    assert_eq!(point.larger(), &4.0);
+    assert_eq!(point.larger(), Some(&4.0));
+    assert_eq!(Pair::new(f64::NAN, 4.0).larger(), None);
     assert_eq!(point.distance_from_origin(), 5.0);
 
     struct Token;
@@ -9156,9 +9300,9 @@ fn main() {
 }
 ```
 
-### `ch16-b007` — 16.6 Bounds sobre el tipo frente a bounds sobre la operación
+### `ch16-b007` — 16.6 Restricciones sobre el tipo o sobre una operación concreta
 
-Source: `16.Genéricos-y-monomorfización.md:168` · mode: `run`
+Source: `16.Genéricos-y-monomorfización.md:173` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -9191,7 +9335,7 @@ fn main() {
 
 ### `ch16-b008` — 16.7 Contenedores genéricos de dominio
 
-Source: `16.Genéricos-y-monomorfización.md:203` · mode: `run`
+Source: `16.Genéricos-y-monomorfización.md:208` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -9215,9 +9359,9 @@ fn main() {
 }
 ```
 
-### `ch16-b009` — 16.8 Const generics: el valor forma parte del tipo
+### `ch16-b009` — 16.8 Genéricos constantes: el valor forma parte del tipo
 
-Source: `16.Genéricos-y-monomorfización.md:229` · mode: `run`
+Source: `16.Genéricos-y-monomorfización.md:234` · mode: `run`
 
 ```rust
 #[derive(Debug, PartialEq, Eq)]
@@ -9242,9 +9386,9 @@ fn main() {
 }
 ```
 
-### `ch16-b010` — 16.8 Const generics: el valor forma parte del tipo
+### `ch16-b010` — 16.8 Genéricos constantes: el valor forma parte del tipo
 
-Source: `16.Genéricos-y-monomorfización.md:256` · mode: `compile_fail`
+Source: `16.Genéricos-y-monomorfización.md:261` · mode: `compile_fail`
 
 ```rust,compile_fail
 struct Samples<const N: usize>([f32; N]);
@@ -9261,7 +9405,7 @@ fn main() {
 
 ### `ch16-b011` — 16.10 Monomorfización: una definición, instancias concretas
 
-Source: `16.Genéricos-y-monomorfización.md:281` · mode: `run`
+Source: `16.Genéricos-y-monomorfización.md:286` · mode: `run`
 
 ```rust
 fn twice<T>(value: T) -> T
@@ -9277,9 +9421,9 @@ fn main() {
 }
 ```
 
-### `ch16-b012` — 16.12 Reducir bloat con una envoltura genérica pequeña
+### `ch16-b012` — 16.12 Reducir el código duplicado con una envoltura genérica pequeña
 
-Source: `16.Genéricos-y-monomorfización.md:315` · mode: `run`
+Source: `16.Genéricos-y-monomorfización.md:322` · mode: `run`
 
 ```rust
 use std::path::Path;
@@ -9300,7 +9444,7 @@ fn main() {
 
 ### `ch16-b013` — 16.13 `Sized` implícito y `?Sized`
 
-Source: `16.Genéricos-y-monomorfización.md:338` · mode: `run`
+Source: `16.Genéricos-y-monomorfización.md:345` · mode: `run`
 
 ```rust
 use std::fmt::Display;
@@ -9322,7 +9466,7 @@ fn main() {
 
 ### `ch16-b014` — 16.14 Inferencia, anotaciones y turbofish
 
-Source: `16.Genéricos-y-monomorfización.md:360` · mode: `run`
+Source: `16.Genéricos-y-monomorfización.md:367` · mode: `run`
 
 ```rust
 fn parse_pair<T>(left: &str, right: &str) -> Result<(T, T), T::Err>
@@ -9342,7 +9486,7 @@ fn main() {
 
 ## 17.Associated-types-y-GATs
 
-### `ch17-b001` — 17.1 Los associated items pertenecen a una implementación
+### `ch17-b001` — 17.1 Los elementos asociados forman parte de una implementación
 
 Source: `17.Associated-types-y-GATs.md:13` · mode: `run`
 
@@ -9441,7 +9585,7 @@ where
 }
 ```
 
-### `ch17-b004` — 17.4 Parámetro genérico: el caller puede elegir varias veces
+### `ch17-b004` — 17.4 Con un parámetro genérico, quien llama puede elegir varias veces
 
 Source: `17.Associated-types-y-GATs.md:114` · mode: `run`
 
@@ -9473,7 +9617,7 @@ fn main() {
 }
 ```
 
-### `ch17-b005` — 17.4 Parámetro genérico: el caller puede elegir varias veces
+### `ch17-b005` — 17.4 Con un parámetro genérico, quien llama puede elegir varias veces
 
 Source: `17.Associated-types-y-GATs.md:146` · mode: `compile_fail`
 
@@ -9498,7 +9642,7 @@ impl Parse for Flexible {
 fn main() {}
 ```
 
-### `ch17-b006` — 17.5 `Iterator::Item` es la asociación cotidiana
+### `ch17-b006` — 17.5 Un ejemplo conocido: `Iterator::Item`
 
 Source: `17.Associated-types-y-GATs.md:173` · mode: `run`
 
@@ -9530,7 +9674,7 @@ fn main() {
 }
 ```
 
-### `ch17-b007` — 17.6 Bounds e igualdades sobre proyecciones
+### `ch17-b007` — 17.6 Restricciones e igualdades sobre tipos proyectados
 
 Source: `17.Associated-types-y-GATs.md:205` · mode: `run`
 
@@ -9545,22 +9689,23 @@ where
     items.into_iter().map(|item| item.to_string()).collect()
 }
 
-fn sum_exact<I>(items: I) -> u64
+fn sum_exact<I>(items: I) -> Option<u64>
 where
     I: IntoIterator<Item = u64>,
 {
-    items.into_iter().sum()
+    items.into_iter().try_fold(0_u64, u64::checked_add)
 }
 
 fn main() {
     assert_eq!(render_items([10, 20]), ["10", "20"]);
-    assert_eq!(sum_exact([10, 20]), 30);
+    assert_eq!(sum_exact([10, 20]), Some(30));
+    assert_eq!(sum_exact([u64::MAX, 1]), None);
 }
 ```
 
 ### `ch17-b008` — 17.7 Sintaxis completamente cualificada
 
-Source: `17.Associated-types-y-GATs.md:235` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:236` · mode: `run`
 
 ```rust
 trait Left {
@@ -9594,9 +9739,9 @@ fn main() {
 }
 ```
 
-### `ch17-b009` — 17.8 Un GAT es una familia asociada
+### `ch17-b009` — 17.8 Un GAT representa una familia de tipos
 
-Source: `17.Associated-types-y-GATs.md:273` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:274` · mode: `run`
 
 ```rust
 trait ViewStore {
@@ -9625,7 +9770,7 @@ fn main() {
 
 ### `ch17-b010` — 17.9 Por qué aparece `where Self: 'a`
 
-Source: `17.Associated-types-y-GATs.md:304` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:305` · mode: `run`
 
 ```rust
 trait Lend {
@@ -9651,9 +9796,9 @@ fn main() {
 }
 ```
 
-### `ch17-b011` — 17.10 Lending iterator: el item depende de cada préstamo
+### `ch17-b011` — 17.10 Un *lending iterator*: el elemento depende de cada préstamo
 
-Source: `17.Associated-types-y-GATs.md:334` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:335` · mode: `run`
 
 ```rust
 trait LendingIterator {
@@ -9667,7 +9812,7 @@ trait LendingIterator {
 
 ### `ch17-b012` — 17.11 Ventanas mutables y solapadas, pero no simultáneas
 
-Source: `17.Associated-types-y-GATs.md:350` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:351` · mode: `run`
 
 ```rust
 trait LendingIterator {
@@ -9713,9 +9858,9 @@ fn main() {
 }
 ```
 
-### `ch17-b013` — 17.12 El compilador impide dos items coexistentes
+### `ch17-b013` — 17.12 El compilador impide que coexistan dos elementos prestados
 
-Source: `17.Associated-types-y-GATs.md:400` · mode: `compile_fail`
+Source: `17.Associated-types-y-GATs.md:401` · mode: `compile_fail`
 
 ```rust,compile_fail
 trait LendingIterator {
@@ -9743,9 +9888,9 @@ fn main() {
 }
 ```
 
-### `ch17-b014` — 17.14 GATs con parámetros de tipo y const
+### `ch17-b014` — 17.14 GAT con parámetros de tipo y constantes
 
-Source: `17.Associated-types-y-GATs.md:443` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:444` · mode: `run`
 
 ```rust
 trait ContainerFamily {
@@ -9764,9 +9909,9 @@ fn main() {
 }
 ```
 
-### `ch17-b015` — 17.15 Associated type con bounds propios
+### `ch17-b015` — 17.15 Un tipo asociado con sus propias restricciones
 
-Source: `17.Associated-types-y-GATs.md:464` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:465` · mode: `run`
 
 ```rust
 use std::fmt::Display;
@@ -9794,7 +9939,7 @@ fn main() {
 
 ### `ch17-b016` — 17.16 Combinar entrada genérica y salida asociada
 
-Source: `17.Associated-types-y-GATs.md:492` · mode: `run`
+Source: `17.Associated-types-y-GATs.md:493` · mode: `run`
 
 ```rust
 trait Convert<Input> {
@@ -9820,9 +9965,9 @@ fn main() {
 }
 ```
 
-### `ch17-b017` — 17.17 GATs y dyn compatibility
+### `ch17-b017` — 17.17 GAT y compatibilidad con `dyn`
 
-Source: `17.Associated-types-y-GATs.md:524` · mode: `compile_fail`
+Source: `17.Associated-types-y-GATs.md:525` · mode: `compile_fail`
 
 ```rust,compile_fail
 trait ViewStore {
@@ -9880,7 +10025,7 @@ fn main() {
 }
 ```
 
-### `ch18-b003` — 18.3 RPIT oculta exactamente un tipo concreto
+### `ch18-b003` — 18.3 RPIT debe devolver el mismo tipo en todas las ramas
 
 Source: `18.Impl-Trait-RPIT-y-RPITIT.md:66` · mode: `compile_fail`
 
@@ -9898,7 +10043,7 @@ fn main() {
 }
 ```
 
-### `ch18-b004` — 18.4 Cada RPIT tiene identidad opaca propia
+### `ch18-b004` — 18.4 Dos funciones con RPIT no comparten el tipo de retorno
 
 Source: `18.Impl-Trait-RPIT-y-RPITIT.md:88` · mode: `compile_fail`
 
@@ -9918,7 +10063,7 @@ fn main() {
 }
 ```
 
-### `ch18-b005` — 18.5 Iteradores y closures sin nombre escribible
+### `ch18-b005` — 18.5 Devolver iteradores y closures sin escribir su tipo
 
 Source: `18.Impl-Trait-RPIT-y-RPITIT.md:110` · mode: `run`
 
@@ -9933,13 +10078,13 @@ fn main() {
 }
 ```
 
-### `ch18-b006` — 18.5 Iteradores y closures sin nombre escribible
+### `ch18-b006` — 18.5 Devolver iteradores y closures sin escribir su tipo
 
 Source: `18.Impl-Trait-RPIT-y-RPITIT.md:125` · mode: `run`
 
 ```rust
-fn multiplier(factor: i64) -> impl Fn(i64) -> i64 {
-    move |value| value * factor
+fn multiplier(factor: i64) -> impl Fn(i64) -> i128 {
+    move |value| i128::from(value) * i128::from(factor)
 }
 
 fn main() {
@@ -9947,12 +10092,13 @@ fn main() {
     let triple = multiplier(3);
     assert_eq!(double(21), 42);
     assert_eq!(triple(14), 42);
+    assert_eq!(double(i64::MAX), i128::from(i64::MAX) * 2);
 }
 ```
 
-### `ch18-b007` — 18.6 Tres reparaciones para ramas distintas
+### `ch18-b007` — 18.6 Tres formas de unificar ramas distintas
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:144` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:145` · mode: `run`
 
 ```rust
 #[derive(Clone, Debug)]
@@ -9998,24 +10144,25 @@ fn main() {
 }
 ```
 
-### `ch18-b008` — 18.6 Tres reparaciones para ramas distintas
+### `ch18-b008` — 18.6 Tres formas de unificar ramas distintas
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:194` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:195` · mode: `run`
 
 ```rust
-fn scaled(factor: i32) -> impl Iterator<Item = i32> {
-    (0..3).map(move |value| value * factor)
+fn scaled(factor: i32) -> impl Iterator<Item = i64> {
+    (0_i64..3).map(move |value| value * i64::from(factor))
 }
 
 fn main() {
     assert_eq!(scaled(2).collect::<Vec<_>>(), [0, 2, 4]);
     assert_eq!(scaled(-1).collect::<Vec<_>>(), [0, -1, -2]);
+    assert_eq!(scaled(i32::MAX).last(), Some(i64::from(i32::MAX) * 2));
 }
 ```
 
 ### `ch18-b009` — 18.8 Captura automática en Rust 2024
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:224` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:226` · mode: `run`
 
 ```rust
 use std::fmt::Debug;
@@ -10036,7 +10183,7 @@ fn main() {
 
 ### `ch18-b010` — 18.8 Captura automática en Rust 2024
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:245` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:247` · mode: `run`
 
 ```rust
 fn tag<'a, T, const N: usize>(_value: &'a T) -> impl Copy + use<T, N> {
@@ -10049,9 +10196,9 @@ fn main() {
 }
 ```
 
-### `ch18-b011` — 18.10 RPITIT: el tipo opaco pertenece al impl
+### `ch18-b011` — 18.10 RPITIT: cada implementación fija el tipo devuelto
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:272` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:276` · mode: `run`
 
 ```rust
 trait Catalog {
@@ -10076,9 +10223,9 @@ fn main() {
 }
 ```
 
-### `ch18-b012` — 18.11 El caller conoce bounds, no métodos accidentales
+### `ch18-b012` — 18.11 Quien recibe el valor solo conoce las capacidades publicadas
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:301` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:305` · mode: `run`
 
 ```rust
 fn countdown() -> impl DoubleEndedIterator<Item = u8> + ExactSizeIterator {
@@ -10092,9 +10239,9 @@ fn main() {
 }
 ```
 
-### `ch18-b013` — 18.11 El caller conoce bounds, no métodos accidentales
+### `ch18-b013` — 18.11 Quien recibe el valor solo conoce las capacidades publicadas
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:317` · mode: `compile_fail`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:321` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn values() -> impl Iterator<Item = u8> {
@@ -10108,7 +10255,7 @@ fn main() {
 
 ### `ch18-b014` — 18.12 La excepción de `Send` y otros auto traits
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:333` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:337` · mode: `run`
 
 ```rust
 fn jobs() -> impl Iterator<Item = u8> {
@@ -10124,7 +10271,7 @@ fn main() {
 
 ### `ch18-b015` — 18.12 La excepción de `Send` y otros auto traits
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:349` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:353` · mode: `run`
 
 ```rust
 trait Jobs {
@@ -10141,15 +10288,19 @@ impl Jobs for Queue {
 
 fn require_send<T: Send>(_value: T) {}
 
+fn check_jobs<J: Jobs>(jobs: &J) {
+    require_send(jobs.pending());
+}
+
 fn main() {
     let queue = Queue(vec![10, 20]);
-    require_send(queue.pending());
+    check_jobs(&queue);
 }
 ```
 
-### `ch18-b016` — 18.13 RPITIT no es dyn compatible
+### `ch18-b016` — 18.13 Un método RPITIT no se puede invocar mediante `dyn`
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:378` · mode: `compile_fail`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:386` · mode: `compile_fail`
 
 ```rust,compile_fail
 trait Catalog {
@@ -10161,9 +10312,9 @@ fn print_dynamic(_catalog: &dyn Catalog) {}
 fn main() {}
 ```
 
-### `ch18-b017` — 18.13 RPITIT no es dyn compatible
+### `ch18-b017` — 18.13 Un método RPITIT no se puede invocar mediante `dyn`
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:390` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:398` · mode: `run`
 
 ```rust
 trait Catalog {
@@ -10190,20 +10341,20 @@ fn main() {
 
 ### `ch18-b018` — 18.14 `async fn` también produce un tipo opaco
 
-Source: `18.Impl-Trait-RPIT-y-RPITIT.md:419` · mode: `run`
+Source: `18.Impl-Trait-RPIT-y-RPITIT.md:427` · mode: `run`
 
 ```rust
 use std::future::Future;
 
-async fn compute(input: u32) -> u32 {
-    input * 2
+async fn compute(input: u32) -> u64 {
+    u64::from(input) * 2
 }
 
-fn compute_desugared(input: u32) -> impl Future<Output = u32> {
-    async move { input * 2 }
+fn compute_desugared(input: u32) -> impl Future<Output = u64> {
+    async move { u64::from(input) * 2 }
 }
 
-fn accepts_future(_future: impl Future<Output = u32>) {}
+fn accepts_future(_future: impl Future<Output = u64>) {}
 
 fn main() {
     accepts_future(compute(21));
@@ -10213,9 +10364,9 @@ fn main() {
 
 ## 19.Trait-objects-y-dispatch-dinámico
 
-### `ch19-b001` — 19.1 Borrar el tipo permite heterogeneidad
+### `ch19-b001` — 19.1 Guardar tipos distintos en la misma colección
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:11` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:13` · mode: `run`
 
 ```rust
 trait Renderer {
@@ -10252,7 +10403,7 @@ fn main() {
 
 ### `ch19-b002` — 19.4 La coerción construye el trait object
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:74` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:76` · mode: `run`
 
 ```rust
 trait Renderer {
@@ -10284,9 +10435,9 @@ fn main() {
 }
 ```
 
-### `ch19-b003` — 19.5 Caso completo: pipeline elegido en runtime
+### `ch19-b003` — 19.5 Caso completo: una cadena elegida durante la ejecución
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:108` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:110` · mode: `run`
 
 ```rust
 #[derive(Clone, Copy)]
@@ -10354,12 +10505,25 @@ fn main() {
 
     assert_eq!(basic.dispatch(event).records, ["all:login"]);
     assert_eq!(audited.dispatch(event).records, ["all:login", "audit:login"]);
+
+    struct FailingSink;
+    impl Sink for FailingSink {
+        fn write(&mut self, _event: Event) -> Result<Option<String>, &'static str> {
+            Err("sink unavailable")
+        }
+    }
+    let mut partial = Pipeline {
+        sinks: vec![Box::new(FailingSink), Box::new(AllEvents), Box::new(AuditOnly)],
+    };
+    let report = partial.dispatch(Event { kind: "debug", payload: "trace" });
+    assert_eq!(report.records, ["all:trace"]);
+    assert_eq!(report.failures, 1);
 }
 ```
 
-### `ch19-b004` — 19.6 Qué significa dyn compatibility
+### `ch19-b004` — 19.6 Qué significa ser compatible con `dyn`
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:192` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:212` · mode: `run`
 
 ```rust
 trait Command {
@@ -10393,7 +10557,7 @@ fn main() {
 
 ### `ch19-b005` — 19.7 Por qué un método genérico no cabe en la vtable
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:228` · mode: `compile_fail`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:248` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::fmt::Display;
@@ -10409,7 +10573,7 @@ fn main() {}
 
 ### `ch19-b006` — 19.7 Por qué un método genérico no cabe en la vtable
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:242` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:262` · mode: `run`
 
 ```rust
 trait Encode {
@@ -10453,24 +10617,30 @@ fn main() {
 }
 ```
 
-### `ch19-b007` — 19.8 Associated types: hay que fijar la proyección
+### `ch19-b007` — 19.8 Indicar el tipo asociado del objeto
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:290` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:310` · mode: `run`
 
 ```rust
-fn sum(iterator: &mut dyn Iterator<Item = i32>) -> i32 {
-    iterator.sum()
+fn sum(iterator: &mut dyn Iterator<Item = i32>) -> Option<i32> {
+    let mut total = 0_i32;
+    for value in iterator {
+        total = total.checked_add(value)?;
+    }
+    Some(total)
 }
 
 fn main() {
     let mut values = vec![2, 3, 5].into_iter();
-    assert_eq!(sum(&mut values), 10);
+    assert_eq!(sum(&mut values), Some(10));
+    assert_eq!(sum(&mut [i32::MAX, 1].into_iter()), None);
+    assert_eq!(sum(&mut std::iter::empty()), Some(0));
 }
 ```
 
-### `ch19-b008` — 19.8 Associated types: hay que fijar la proyección
+### `ch19-b008` — 19.8 Indicar el tipo asociado del objeto
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:305` · mode: `compile_fail`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:331` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn consume(_iterator: &mut dyn Iterator) {}
@@ -10478,9 +10648,9 @@ fn consume(_iterator: &mut dyn Iterator) {}
 fn main() {}
 ```
 
-### `ch19-b009` — 19.9 El lifetime del objeto pertenece a sus datos
+### `ch19-b009` — 19.9 El tiempo de vida del objeto pertenece a sus datos
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:319` · mode: `compile_fail`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:345` · mode: `compile_fail`
 
 ```rust,compile_fail
 trait Renderer {
@@ -10502,9 +10672,9 @@ fn boxed_view(text: &str) -> Box<dyn Renderer> {
 fn main() {}
 ```
 
-### `ch19-b010` — 19.9 El lifetime del objeto pertenece a sus datos
+### `ch19-b010` — 19.9 El tiempo de vida del objeto pertenece a sus datos
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:341` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:367` · mode: `run`
 
 ```rust
 trait Renderer {
@@ -10532,7 +10702,7 @@ fn main() {
 
 ### `ch19-b011` — 19.10 Auto traits también forman parte del objeto
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:371` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:397` · mode: `run`
 
 ```rust
 trait Task {
@@ -10558,7 +10728,7 @@ fn main() {
 
 ### `ch19-b012` — 19.11 Servicio genérico frente a servicio dinámico
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:397` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:425` · mode: `run`
 
 ```rust
 trait Repository {
@@ -10601,9 +10771,9 @@ fn main() {
 }
 ```
 
-### `ch19-b013` — 19.14 Downcasting suele revelar un contrato incompleto
+### `ch19-b013` — 19.14 Recuperar continuamente el tipo concreto suele indicar un contrato incompleto
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:469` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:497` · mode: `run`
 
 ```rust
 trait Describe {
@@ -10637,7 +10807,7 @@ fn main() {
 
 ### `ch19-b014` — 19.15 Decoradores: composición sin conocer el tipo interno
 
-Source: `19.Trait-objects-y-dispatch-dinámico.md:505` · mode: `run`
+Source: `19.Trait-objects-y-dispatch-dinámico.md:533` · mode: `run`
 
 ```rust
 trait Sink {
@@ -10683,7 +10853,7 @@ fn main() {
 
 ## 20.Subtyping-variance-y-HRTB
 
-### `ch20-b001` — 20.1 El subtyping de Rust es deliberadamente estrecho
+### `ch20-b001` — 20.1 El subtipado de Rust es deliberadamente limitado
 
 Source: `20.Subtyping-variance-y-HRTB.md:13` · mode: `run`
 
@@ -10704,7 +10874,7 @@ fn main() {
 }
 ```
 
-### `ch20-b002` — 20.1 El subtyping de Rust es deliberadamente estrecho
+### `ch20-b002` — 20.1 El subtipado de Rust es deliberadamente limitado
 
 Source: `20.Subtyping-variance-y-HRTB.md:34` · mode: `compile_fail`
 
@@ -10718,7 +10888,7 @@ fn main() {}
 
 ### `ch20-b003` — 20.4 Por qué `&mut T` es invariante en `T`
 
-Source: `20.Subtyping-variance-y-HRTB.md:71` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:73` · mode: `run`
 
 ```rust
 fn assign<'a>(slot: &mut &'a str, value: &'a str) {
@@ -10736,7 +10906,7 @@ fn main() {
 
 ### `ch20-b004` — 20.4 Por qué `&mut T` es invariante en `T`
 
-Source: `20.Subtyping-variance-y-HRTB.md:89` · mode: `compile_fail`
+Source: `20.Subtyping-variance-y-HRTB.md:91` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn assign<'a>(slot: &mut &'a str, value: &'a str) {
@@ -10753,9 +10923,9 @@ fn main() {
 }
 ```
 
-### `ch20-b005` — 20.5 Interior mutability exige la misma cautela
+### `ch20-b005` — 20.5 La mutabilidad interior exige la misma cautela
 
-Source: `20.Subtyping-variance-y-HRTB.md:110` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:114` · mode: `run`
 
 ```rust
 use std::cell::Cell;
@@ -10773,9 +10943,9 @@ fn main() {
 }
 ```
 
-### `ch20-b006` — 20.6 Tus structs heredan la variance de sus campos
+### `ch20-b006` — 20.6 Las estructuras heredan la varianza de sus campos
 
-Source: `20.Subtyping-variance-y-HRTB.md:130` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:134` · mode: `run`
 
 ```rust
 use std::cell::Cell;
@@ -10804,9 +10974,9 @@ fn main() {
 }
 ```
 
-### `ch20-b007` — 20.6 Tus structs heredan la variance de sus campos
+### `ch20-b007` — 20.6 Las estructuras heredan la varianza de sus campos
 
-Source: `20.Subtyping-variance-y-HRTB.md:161` · mode: `compile_fail`
+Source: `20.Subtyping-variance-y-HRTB.md:165` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::cell::Cell;
@@ -10824,22 +10994,30 @@ fn main() {}
 
 ### `ch20-b008` — 20.7 Las entradas de función son contravariantes
 
-Source: `20.Subtyping-variance-y-HRTB.md:181` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:185` · mode: `run`
 
 ```rust
 fn accepts_any(text: &str) -> usize {
     text.len()
 }
 
+fn narrow_inputs<'short, 'long: 'short>(
+    callback: fn(&'short str) -> usize,
+) -> fn(&'long str) -> usize {
+    callback
+}
+
 fn main() {
     let only_receives_static: fn(&'static str) -> usize = accepts_any;
     assert_eq!(only_receives_static("Rust"), 4);
+    let narrower = narrow_inputs(accepts_any);
+    assert_eq!(narrower("Cargo"), 5);
 }
 ```
 
 ### `ch20-b009` — 20.7 Las entradas de función son contravariantes
 
-Source: `20.Subtyping-variance-y-HRTB.md:196` · mode: `compile_fail`
+Source: `20.Subtyping-variance-y-HRTB.md:210` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn only_static(text: &'static str) -> usize {
@@ -10853,9 +11031,9 @@ fn main() {
 }
 ```
 
-### `ch20-b010` — 20.8 HRTB significa «para todo lifetime»
+### `ch20-b010` — 20.8 HRTB significa «para todo tiempo de vida»
 
-Source: `20.Subtyping-variance-y-HRTB.md:214` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:228` · mode: `run`
 
 ```rust
 fn with_local<F>(callback: F) -> usize
@@ -10878,7 +11056,7 @@ fn main() {
 
 ### `ch20-b011` — 20.9 La sintaxis corta suele esconder el `for<'a>`
 
-Source: `20.Subtyping-variance-y-HRTB.md:243` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:257` · mode: `run`
 
 ```rust
 fn identity(value: &str) -> &str {
@@ -10898,9 +11076,9 @@ fn main() {
 }
 ```
 
-### `ch20-b012` — 20.10 Cuando un callback no es suficientemente general
+### `ch20-b012` — 20.10 Cuando una función recibida no es suficientemente general
 
-Source: `20.Subtyping-variance-y-HRTB.md:269` · mode: `compile_fail`
+Source: `20.Subtyping-variance-y-HRTB.md:283` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn require_identity<F>(_callback: F)
@@ -10916,9 +11094,9 @@ fn main() {
 }
 ```
 
-### `ch20-b013` — 20.10 Cuando un callback no es suficientemente general
+### `ch20-b013` — 20.10 Cuando una función recibida no es suficientemente general
 
-Source: `20.Subtyping-variance-y-HRTB.md:285` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:299` · mode: `run`
 
 ```rust
 fn require_identity<F>(callback: F) -> String
@@ -10933,14 +11111,19 @@ fn identity(value: &str) -> &str {
     value
 }
 
+fn constant(_value: &str) -> &str {
+    "fallback"
+}
+
 fn main() {
     assert_eq!(require_identity(identity), "local");
+    assert_eq!(require_identity(constant), "fallback");
 }
 ```
 
-### `ch20-b014` — 20.11 `PhantomData` declara una relación lógica
+### `ch20-b014` — 20.11 `PhantomData`: relacionar un tipo sin guardar un valor
 
-Source: `20.Subtyping-variance-y-HRTB.md:309` · mode: `run`
+Source: `20.Subtyping-variance-y-HRTB.md:330` · mode: `run`
 
 ```rust
 use std::marker::PhantomData;
@@ -11023,20 +11206,22 @@ enum List<T> {
     Cons(T, Box<List<T>>),
 }
 
-fn sum(list: &List<i32>) -> i32 {
+fn sum(list: &List<i32>) -> Option<i32> {
     match list {
-        List::Nil => 0,
-        List::Cons(value, rest) => value + sum(rest),
+        List::Nil => Some(0),
+        List::Cons(value, rest) => value.checked_add(sum(rest)?),
     }
 }
 
 let list = List::Cons(1, Box::new(List::Cons(2, Box::new(List::Nil))));
-assert_eq!(sum(&list), 3);
+assert_eq!(sum(&list), Some(3));
+let overflowing = List::Cons(i32::MAX, Box::new(List::Cons(1, Box::new(List::Nil))));
+assert_eq!(sum(&overflowing), None);
 ```
 
 ### `ch21-b006` — 21.4 `Box<dyn Trait>`
 
-Source: `21.Box-Rc-y-Arc.md:97` · mode: `run`
+Source: `21.Box-Rc-y-Arc.md:101` · mode: `run`
 
 ```rust
 trait Job { fn run(&self); }
@@ -11048,7 +11233,7 @@ fn queue(job: impl Job + 'static) -> Box<dyn Job> {
 
 ### `ch21-b007` — 21.5 `Rc<T>`
 
-Source: `21.Box-Rc-y-Arc.md:111` · mode: `run`
+Source: `21.Box-Rc-y-Arc.md:115` · mode: `run`
 
 ```rust
 use std::rc::Rc;
@@ -11058,9 +11243,9 @@ let another_owner = Rc::clone(&config);
 assert_eq!(Rc::strong_count(&config), 2);
 ```
 
-### `ch21-b008` — 21.6 Recuperar unicidad y copy-on-write
+### `ch21-b008` — 21.6 Recuperar la exclusividad y copiar al escribir
 
-Source: `21.Box-Rc-y-Arc.md:125` · mode: `run`
+Source: `21.Box-Rc-y-Arc.md:129` · mode: `run`
 
 ```rust
 use std::rc::Rc;
@@ -11078,7 +11263,7 @@ assert_eq!(&*current, &[1, 2, 3]);
 
 ### `ch21-b009` — 21.7 `Weak<T>` y ciclos
 
-Source: `21.Box-Rc-y-Arc.md:145` · mode: `contextual`
+Source: `21.Box-Rc-y-Arc.md:151` · mode: `contextual`
 
 ```rust,ignore
 let weak = Rc::downgrade(&config);
@@ -11089,7 +11274,7 @@ assert!(weak.upgrade().is_none());
 
 ### `ch21-b010` — 21.7 `Weak<T>` y ciclos
 
-Source: `21.Box-Rc-y-Arc.md:156` · mode: `run`
+Source: `21.Box-Rc-y-Arc.md:162` · mode: `run`
 
 ```rust
 use std::cell::RefCell;
@@ -11121,7 +11306,7 @@ assert_eq!(parent_name.as_deref(), Some("root"));
 
 ### `ch21-b011` — 21.10 `Arc<T>`
 
-Source: `21.Box-Rc-y-Arc.md:212` · mode: `run`
+Source: `21.Box-Rc-y-Arc.md:220` · mode: `run`
 
 ```rust
 use std::sync::Arc;
@@ -11154,7 +11339,7 @@ for handle in handles {
 
 ### `ch21-b012` — 21.12 `Deref` y coerciones
 
-Source: `21.Box-Rc-y-Arc.md:265` · mode: `run`
+Source: `21.Box-Rc-y-Arc.md:273` · mode: `run`
 
 ```rust
 use std::sync::Arc;
@@ -11166,9 +11351,9 @@ let view: &str = &shared;      // Arc<String> -> &String -> &str, dos pasos de c
 assert_eq!(view, "rust");
 ```
 
-### `ch21-b013` — 21.13 Elegir por el grafo de ownership
+### `ch21-b013` — 21.13 Elegir según el grafo de propiedad
 
-Source: `21.Box-Rc-y-Arc.md:287` · mode: `contextual`
+Source: `21.Box-Rc-y-Arc.md:295` · mode: `contextual`
 
 ```rust,ignore
 struct Order {
@@ -11192,7 +11377,7 @@ struct Metrics {
 
 impl Metrics {
     fn record(&self) {
-        self.hits.set(self.hits.get() + 1);
+        self.hits.set(self.hits.get().saturating_add(1));
     }
 }
 ```
@@ -11240,9 +11425,9 @@ let writer = names.borrow_mut(); // panic: already borrowed: BorrowMutError
 println!("{}", reader.len());
 ```
 
-### `ch22-b005` — 22.7 El scope de los guards
+### `ch22-b005` — 22.7 El ámbito de las guardas
 
-Source: `22.Cell-y-RefCell.md:115` · mode: `contextual`
+Source: `22.Cell-y-RefCell.md:117` · mode: `contextual`
 
 ```rust,ignore
 let first_borrow = names.borrow();
@@ -11252,9 +11437,9 @@ drop(first_borrow);
 names.borrow_mut().clear();
 ```
 
-### `ch22-b006` — 22.8 Guards escondidos: `match` e `if let`
+### `ch22-b006` — 22.8 Guardas ocultas: `match` e `if let`
 
-Source: `22.Cell-y-RefCell.md:129` · mode: `should_panic`
+Source: `22.Cell-y-RefCell.md:131` · mode: `should_panic`
 
 ```rust,should_panic
 use std::cell::RefCell;
@@ -11265,16 +11450,16 @@ let cache = RefCell::new(HashMap::<String, u64>::new());
 let value = match cache.borrow().get("clave") {
     Some(value) => *value,
     None => {
-        // El guard de `borrow()` sigue vivo durante todo el match:
+        // La guarda de `borrow()` sigue viva durante todo el match:
         cache.borrow_mut().insert(String::from("clave"), 42); // panic
         42
     }
 };
 ```
 
-### `ch22-b007` — 22.8 Guards escondidos: `match` e `if let`
+### `ch22-b007` — 22.8 Guardas ocultas: `match` e `if let`
 
-Source: `22.Cell-y-RefCell.md:147` · mode: `run`
+Source: `22.Cell-y-RefCell.md:149` · mode: `run`
 
 ```rust
 use std::cell::RefCell;
@@ -11285,7 +11470,7 @@ let cache = RefCell::new(HashMap::<String, u64>::new());
 let value = if let Some(value) = cache.borrow().get("clave") {
     *value
 } else {
-    // Edición 2024: el guard ya se liberó al entrar aquí.
+    // Edición 2024: la guarda ya se ha destruido al entrar aquí.
     cache.borrow_mut().insert(String::from("clave"), 42);
     42
 };
@@ -11293,12 +11478,12 @@ let value = if let Some(value) = cache.borrow().get("clave") {
 assert_eq!(value, 42);
 ```
 
-### `ch22-b008` — 22.8 Guards escondidos: `match` e `if let`
+### `ch22-b008` — 22.8 Guardas ocultas: `match` e `if let`
 
-Source: `22.Cell-y-RefCell.md:168` · mode: `contextual`
+Source: `22.Cell-y-RefCell.md:170` · mode: `contextual`
 
 ```rust,ignore
-let cached = cache.borrow().get("clave").copied(); // el guard muere aquí
+let cached = cache.borrow().get("clave").copied(); // la guarda se destruye aquí
 
 let value = match cached {
     Some(value) => value,
@@ -11309,9 +11494,9 @@ let value = match cached {
 };
 ```
 
-### `ch22-b009` — 22.9 Evitar panics con `try_borrow`
+### `ch22-b009` — 22.9 Convertir el conflicto en un `Result`
 
-Source: `22.Cell-y-RefCell.md:184` · mode: `contextual`
+Source: `22.Cell-y-RefCell.md:186` · mode: `contextual`
 
 ```rust,ignore
 match names.try_borrow_mut() {
@@ -11322,7 +11507,7 @@ match names.try_borrow_mut() {
 
 ### `ch22-b010` — 22.10 `Rc<RefCell<T>>`
 
-Source: `22.Cell-y-RefCell.md:197` · mode: `run`
+Source: `22.Cell-y-RefCell.md:199` · mode: `run`
 
 ```rust
 use std::{cell::RefCell, rc::Rc};
@@ -11338,7 +11523,8 @@ impl EventLog {
     }
 
     fn record(&self, event: impl Into<String>) {
-        self.events.borrow_mut().push(event.into());
+        let event = event.into();
+        self.events.borrow_mut().push(event);
     }
 
     fn snapshot(&self) -> Vec<String> {
@@ -11349,7 +11535,7 @@ impl EventLog {
 
 ### `ch22-b011` — 22.10 `Rc<RefCell<T>>`
 
-Source: `22.Cell-y-RefCell.md:222` · mode: `contextual`
+Source: `22.Cell-y-RefCell.md:225` · mode: `contextual`
 
 ```rust,ignore
 let log = EventLog::new();
@@ -11363,9 +11549,9 @@ log.record("shutdown");
 assert_eq!(log.snapshot(), vec!["click".to_string(), "shutdown".to_string()]);
 ```
 
-### `ch22-b012` — 22.11 Reentrancia: liberar antes de llamar hacia fuera
+### `ch22-b012` — 22.11 Reentrancia: liberar antes de llamar a código externo
 
-Source: `22.Cell-y-RefCell.md:242` · mode: `run`
+Source: `22.Cell-y-RefCell.md:245` · mode: `run`
 
 ```rust
 use std::cell::RefCell;
@@ -11379,7 +11565,7 @@ impl Dispatcher {
         {
             let mut events = self.events.borrow_mut();
             events.push("emit");
-        } // RefMut destruido antes de la callback
+        } // RefMut se destruye antes de ejecutar la closure
 
         callback(self);
     }
@@ -11393,9 +11579,9 @@ let dispatcher = Dispatcher { events: RefCell::new(Vec::new()) };
 dispatcher.emit(|same| assert_eq!(same.count(), 1));
 ```
 
-### `ch22-b013` — 22.12 Caches y lazy initialization
+### `ch22-b013` — 22.12 Cachés e inicialización diferida
 
-Source: `22.Cell-y-RefCell.md:274` · mode: `run`
+Source: `22.Cell-y-RefCell.md:277` · mode: `run`
 
 ```rust
 use std::cell::OnceCell;
@@ -11412,9 +11598,9 @@ impl Settings {
 }
 ```
 
-### `ch22-b014` — 22.12 Caches y lazy initialization
+### `ch22-b014` — 22.12 Cachés e inicialización diferida
 
-Source: `22.Cell-y-RefCell.md:289` · mode: `contextual`
+Source: `22.Cell-y-RefCell.md:292` · mode: `contextual`
 
 ```rust,ignore
 let settings = Settings {
@@ -11442,9 +11628,9 @@ let balance = Mutex::new(100_u64);
 }
 ```
 
-### `ch23-b002` — 23.3 Compartir entre threads
+### `ch23-b002` — 23.3 Compartir entre hilos
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:42` · mode: `run`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:44` · mode: `run`
 
 ```rust
 use std::{sync::{Arc, Mutex}, thread};
@@ -11464,9 +11650,9 @@ for handle in handles {
 assert_eq!(*counter.lock().unwrap(), 4);
 ```
 
-### `ch23-b003` — 23.4 Región crítica pequeña
+### `ch23-b003` — 23.4 Mantener pequeña la región crítica
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:66` · mode: `contextual`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:68` · mode: `contextual`
 
 ```rust,ignore
 let snapshot = {
@@ -11477,9 +11663,9 @@ let snapshot = {
 write_report(snapshot)?;
 ```
 
-### `ch23-b004` — 23.5 La API expone transiciones, no guards
+### `ch23-b004` — 23.5 La API expone transiciones, no guardas
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:81` · mode: `run`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:83` · mode: `run`
 
 ```rust
 use std::sync::Mutex;
@@ -11520,24 +11706,24 @@ assert!(inventory.reserve(4));
 assert_eq!(inventory.snapshot(), (10, 4));
 ```
 
-### `ch23-b005` — 23.6 Poisoning
+### `ch23-b005` — 23.6 Envenenamiento
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:126` · mode: `contextual`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:128` · mode: `contextual`
 
 ```rust,ignore
-let mut value = match balance.lock() {
-    Ok(guard) => guard,
-    Err(poisoned) => {
-        // Decisión consciente: sabemos verificar/restaurar la invariante.
-        poisoned.into_inner()
-    }
-};
-*value = 0;
+let mut value = metrics.lock().unwrap_or_else(|mut poisoned| {
+    // En este contador de métricas, empezar de nuevo es aceptable.
+    **poisoned.get_mut() = 0;
+    metrics.clear_poison();
+    poisoned.into_inner()
+});
+
+*value = value.saturating_add(1);
 ```
 
 ### `ch23-b006` — 23.7 `RwLock<T>`
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:143` · mode: `contextual`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:145` · mode: `contextual`
 
 ```rust,ignore
 use std::sync::RwLock;
@@ -11547,18 +11733,18 @@ let port = config.read().unwrap().port;
 config.write().unwrap().reload()?;
 ```
 
-### `ch23-b007` — 23.8 Deadlocks
+### `ch23-b007` — 23.8 Interbloqueos
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:159` · mode: `reference`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:161` · mode: `reference`
 
 ```text
-thread A: lock users -> lock orders
-thread B: lock orders -> lock users
+hilo A: bloquea users -> bloquea orders
+hilo B: bloquea orders -> bloquea users
 ```
 
-### `ch23-b008` — 23.8 Deadlocks
+### `ch23-b008` — 23.8 Interbloqueos
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:174` · mode: `run`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:176` · mode: `run`
 
 ```rust
 use std::sync::Mutex;
@@ -11572,12 +11758,13 @@ struct Account {
 enum TransferError {
     SameAccount,
     Insufficient,
+    BalanceOverflow,
 }
 
 fn transfer(from: &Account, to: &Account, amount: u64) -> Result<(), TransferError> {
     if from.id == to.id {
-        // Sin esta guarda, la doble adquisición del mismo mutex
-        // bloquearía para siempre: el Mutex de std no es reentrante.
+        // Volver a bloquear el mismo mutex no está definido como reentrante:
+        // la segunda llamada puede bloquearse o hacer panic.
         return Err(TransferError::SameAccount);
     }
 
@@ -11595,54 +11782,70 @@ fn transfer(from: &Account, to: &Account, amount: u64) -> Result<(), TransferErr
     if *from_balance < amount {
         return Err(TransferError::Insufficient);
     }
+    let destination_after = to_balance
+        .checked_add(amount)
+        .ok_or(TransferError::BalanceOverflow)?;
     *from_balance -= amount;
-    *to_balance += amount;
+    *to_balance = destination_after;
     Ok(())
 }
+
+let source = Account { id: 1, balance: Mutex::new(10) };
+let destination = Account { id: 2, balance: Mutex::new(u64::MAX) };
+assert_eq!(transfer(&source, &destination, 1), Err(TransferError::BalanceOverflow));
+assert_eq!(*source.balance.lock().unwrap(), 10);
+assert_eq!(*destination.balance.lock().unwrap(), u64::MAX);
 ```
 
 ### `ch23-b009` — 23.9 Esperar una condición: `Condvar`
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:221` · mode: `compile_only`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:235` · mode: `compile_only`
 
 ```rust,no_run
+use std::collections::VecDeque;
 use std::sync::{Condvar, Mutex};
 
 struct Queue {
-    items: Mutex<Vec<u64>>,
+    items: Mutex<VecDeque<u64>>,
     ready: Condvar,
 }
 
 impl Queue {
     fn push(&self, item: u64) {
-        self.items.lock().unwrap().push(item);
+        self.items.lock().unwrap().push_back(item);
         self.ready.notify_one();
     }
 
     fn pop_blocking(&self) -> u64 {
         let mut items = self.items.lock().unwrap();
         loop {
-            if let Some(item) = items.pop() {
+            if let Some(item) = items.pop_front() {
                 return item;
             }
             items = self.ready.wait(items).unwrap();
         }
     }
 }
+
+let queue = Queue { items: Mutex::new(VecDeque::new()), ready: Condvar::new() };
+queue.push(10);
+queue.push(20);
+assert_eq!(queue.pop_blocking(), 10);
+assert_eq!(queue.pop_blocking(), 20);
 ```
 
 ### `ch23-b010` — 23.10 Granularidad e invariantes
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:258` · mode: `contextual`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:281` · mode: `contextual`
 
 ```rust,ignore
-// Dos locks: la invariante "reserved <= total" puede observarse rota.
+// Dos mutex: hay que coordinar ambos accesos para mantener reserved <= total.
 struct Inventory {
     total: Mutex<u32>,
     reserved: Mutex<u32>,
 }
 
-// Un lock: la invariante cambia atómicamente o no cambia.
+// Un mutex: ninguna otra guarda puede observar una actualización a medias.
 struct InventoryAtomic {
     counts: Mutex<Counts>,
 }
@@ -11655,11 +11858,11 @@ struct Counts {
 
 ### `ch23-b011` — 23.11 Estado compartido frente a mensajes
 
-Source: `23.Mutex-RwLock-y-estado-compartido.md:280` · mode: `reference`
+Source: `23.Mutex-RwLock-y-estado-compartido.md:303` · mode: `reference`
 
 ```text
 productor A ──┐
-productor B ──┼── Sender<Command> ──> [thread dueño del State] ──> eventos/respuestas
+productor B ──┼── Sender<Command> ──> [hilo propietario de State] ──> eventos/respuestas
 productor C ──┘
 ```
 
@@ -11667,12 +11870,12 @@ productor C ──┘
 
 ### `ch24-b001` — 24.1 Mover no es mutar
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:11` · mode: `contextual`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:13` · mode: `contextual`
 
 ```rust,ignore
 async fn example() {
     let data = [0_u8; 64];
-    let view = &data[..4]; // referencia a datos que viven EN el future
+    let view = &data[..4]; // referencia a datos almacenados dentro del future
     pause().await;
     println!("{view:?}");
 }
@@ -11680,17 +11883,17 @@ async fn example() {
 
 ### `ch24-b002` — 24.1 Mover no es mutar
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:22` · mode: `reference`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:24` · mode: `reference`
 
 ```text
-ExampleFuture (estado tras el primer poll)
+ExampleFuture (mientras está suspendido en .await)
 ├── data: [u8; 64]          bytes propios del future
 └── view: puntero ────────> ...hacia data, DENTRO del mismo future
 ```
 
 ### `ch24-b003` — 24.2 Qué garantiza `Pin<P>`
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:36` · mode: `contextual`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:38` · mode: `contextual`
 
 ```rust,ignore
 let pinned: std::pin::Pin<Box<MyFuture>> = Box::pin(make_future());
@@ -11698,7 +11901,7 @@ let pinned: std::pin::Pin<Box<MyFuture>> = Box::pin(make_future());
 
 ### `ch24-b004` — 24.2 Qué garantiza `Pin<P>`
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:42` · mode: `compile_fail`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:44` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::pin::pin;
@@ -11708,9 +11911,9 @@ let inner = future.get_mut();
 // error[E0277]: `{async block}` cannot be unpinned
 ```
 
-### `ch24-b005` — 24.3 Se mueve el puntero, no el pointee
+### `ch24-b005` — 24.3 Se mueve el puntero, no el valor apuntado
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:60` · mode: `run`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:62` · mode: `run`
 
 ```rust
 use std::marker::PhantomPinned;
@@ -11726,16 +11929,16 @@ let pinned = Box::pin(Stable {
 });
 let before = pinned.as_ref().get_ref() as *const Stable;
 
-let moved_handle = pinned; // se mueve Pin<Box<_>>, no Stable
-let after = moved_handle.as_ref().get_ref() as *const Stable;
+let moved_pointer = pinned; // se mueve Pin<Box<_>>, no Stable
+let after = moved_pointer.as_ref().get_ref() as *const Stable;
 
 assert_eq!(before, after);
-assert_eq!(moved_handle.as_ref().get_ref().name.as_str(), "rust");
+assert_eq!(moved_pointer.as_ref().get_ref().name.as_str(), "rust");
 ```
 
 ### `ch24-b006` — 24.4 `Unpin`
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:87` · mode: `run`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:91` · mode: `run`
 
 ```rust
 use std::pin::Pin;
@@ -11749,7 +11952,7 @@ assert_eq!(number, 43);
 
 ### `ch24-b007` — 24.4 `Unpin`
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:101` · mode: `run`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:105` · mode: `run`
 
 ```rust
 use std::marker::PhantomPinned;
@@ -11760,9 +11963,9 @@ struct AddressSensitive {
 }
 ```
 
-### `ch24-b008` — 24.5 Construcción pinneada
+### `ch24-b008` — 24.5 Cómo fijar un valor
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:116` · mode: `run`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:120` · mode: `run`
 
 ```rust
 use std::pin::pin;
@@ -11773,7 +11976,7 @@ let mut pinned = pin!(future);
 
 ### `ch24-b009` — 24.7 Proyección de campos
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:144` · mode: `run`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:152` · mode: `run`
 
 ```rust
 use std::{
@@ -11783,16 +11986,16 @@ use std::{
 };
 
 struct Counted<F> {
-    future: F,     // estructuralmente pinneado: es la máquina async
-    polls: u32,    // no pinneado: un u32 puede moverse sin riesgo
+    future: F,     // estructuralmente fijado
+    polls: u32,    // no fijado: un u32 puede moverse sin riesgo
 }
 
 impl<F> Counted<F> {
     fn project(self: Pin<&mut Self>) -> (Pin<&mut F>, &mut u32) {
         // SAFETY: `future` nunca se mueve fuera de `self` ni se
-        // reemplaza: solo se re-pinnea. Entregar `polls` como &mut
-        // no permite mover `future`, y `Counted` no implementa
-        // `Unpin` a la carta ni un Drop que mueva campos.
+        // reemplaza: solo se proyecta como Pin. Entregar `polls` como &mut
+        // no permite mover `future`, y `Counted` no tiene una
+        // implementación incondicional de `Unpin` ni un Drop que mueva campos.
         unsafe {
             let this = self.get_unchecked_mut();
             (Pin::new_unchecked(&mut this.future), &mut this.polls)
@@ -11805,7 +12008,7 @@ impl<F: Future> Future for Counted<F> {
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<F::Output> {
         let (future, polls) = self.project();
-        *polls += 1;
+        *polls = polls.saturating_add(1);
         future.poll(cx)
     }
 }
@@ -11813,7 +12016,7 @@ impl<F: Future> Future for Counted<F> {
 
 ### `ch24-b010` — 24.9 Relación con `Future::poll`
 
-Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:192` · mode: `run`
+Source: `24.Pin-Unpin-y-tipos-autorreferenciales.md:204` · mode: `run`
 
 ```rust
 trait Future {
@@ -11827,7 +12030,7 @@ trait Future {
 
 ## 25.Módulos-paths-y-privacidad
 
-### `ch25-b001` — 25.2 Crate roots
+### `ch25-b001` — 25.2 Raíces de una crate
 
 Source: `25.Módulos-paths-y-privacidad.md:25` · mode: `illustrative`
 
@@ -11859,7 +12062,7 @@ pub mod order;
 pub mod user;
 ```
 
-### `ch25-b004` — 25.4 Paths
+### `ch25-b004` — 25.4 Rutas
 
 Source: `25.Módulos-paths-y-privacidad.md:62` · mode: `run`
 
@@ -11882,11 +12085,11 @@ pub mod domain {
 }
 
 pub fn report(order: &domain::order::Order) -> String {
-    format!("pedido {}", order.id)
+    format!("order {}", order.id)
 }
 ```
 
-### `ch25-b005` — 25.5 `pub` es visibilidad, no alcanzabilidad automática
+### `ch25-b005` — 25.5 `pub` no basta si la ruta es inaccesible
 
 Source: `25.Módulos-paths-y-privacidad.md:91` · mode: `run`
 
@@ -11895,7 +12098,7 @@ mod internal {
     pub struct Engine;
 }
 
-pub use internal::Engine; // crea la ruta pública estable crate::Engine
+pub use internal::Engine; // crea una ruta pública estable para Engine
 ```
 
 ### `ch25-b006` — 25.6 `use` no cambia privacidad
@@ -11913,45 +12116,45 @@ Source: `25.Módulos-paths-y-privacidad.md:115` · mode: `contextual`
 ```rust,ignore
 use std::collections::HashMap;            // tipos: importados directamente
 use std::fmt::{self, Display, Formatter}; // `self` trae también el módulo
-use crate::domain::order as orders;       // renombrar rutas largas o en conflicto
-
-fn describe(map: &HashMap<String, u64>) -> fmt::Result {
-    // funciones ajenas suelen llamarse cualificadas: fmt::format, cmp::min...
-    Ok(())
-}
+use std::cmp as comparison;              // un nombre alternativo para el módulo
 ```
 
 ### `ch25-b008` — 25.7 Visibilidad graduada
 
-Source: `25.Módulos-paths-y-privacidad.md:130` · mode: `contextual`
+Source: `25.Módulos-paths-y-privacidad.md:127` · mode: `contextual`
 
 ```rust,ignore
-pub struct Api;
-pub(crate) struct CrateInternal;
-pub(super) fn parent_only() {}
-pub(in crate::domain) fn domain_only() {}
+pub mod domain {
+    pub struct Api;
+    pub(crate) struct CrateInternal;
+
+    mod validation {
+        pub(super) fn parent_visible() {}
+        pub(in crate::domain) fn domain_visible() {}
+    }
+}
 ```
 
 ### `ch25-b009` — 25.7 Visibilidad graduada
 
-Source: `25.Módulos-paths-y-privacidad.md:139` · mode: `compile_fail`
+Source: `25.Módulos-paths-y-privacidad.md:141` · mode: `compile_fail`
 
 ```rust,compile_fail
-mod auth {
-    fn hash_password(input: &str) -> String {
-        format!("hash:{input}")
+mod formatting {
+    fn normalize_label(input: &str) -> String {
+        input.trim().to_lowercase()
     }
 }
 
 fn main() {
-    auth::hash_password("secreto");
-    // error[E0603]: function `hash_password` is private
+    formatting::normalize_label("  Rust  ");
+    // error[E0603]: function `normalize_label` is private
 }
 ```
 
-### `ch25-b010` — 25.8 Facade mediante reexports
+### `ch25-b010` — 25.8 Fachada mediante reexportaciones
 
-Source: `25.Módulos-paths-y-privacidad.md:158` · mode: `illustrative`
+Source: `25.Módulos-paths-y-privacidad.md:160` · mode: `illustrative`
 
 ```rust,ignore
 mod order;
@@ -11963,7 +12166,7 @@ pub use user::{User, UserId};
 
 ### `ch25-b011` — 25.9 Privacidad y construcción
 
-Source: `25.Módulos-paths-y-privacidad.md:172` · mode: `run`
+Source: `25.Módulos-paths-y-privacidad.md:174` · mode: `run`
 
 ```rust
 pub struct Percentage(u8);
@@ -11977,16 +12180,22 @@ impl Percentage {
 
 ### `ch25-b012` — 25.9 Privacidad y construcción
 
-Source: `25.Módulos-paths-y-privacidad.md:184` · mode: `compile_fail`
+Source: `25.Módulos-paths-y-privacidad.md:186` · mode: `compile_fail`
 
 ```rust,compile_fail
-let p = other_crate::Percentage(150);
+mod percentages {
+    pub struct Percentage(u8);
+}
+
+fn main() {
+    let p = percentages::Percentage(150);
+}
 // error[E0603]: cannot initialize a tuple struct which contains private fields
 ```
 
 ### `ch25-b013` — 25.9 Privacidad y construcción
 
-Source: `25.Módulos-paths-y-privacidad.md:193` · mode: `run`
+Source: `25.Módulos-paths-y-privacidad.md:201` · mode: `run`
 
 ```rust
 #[cfg(test)]
@@ -12003,16 +12212,16 @@ mod tests {
 
 ### `ch25-b014` — 25.11 API pública accidental
 
-Source: `25.Módulos-paths-y-privacidad.md:216` · mode: `contextual`
+Source: `25.Módulos-paths-y-privacidad.md:224` · mode: `contextual`
 
 ```rust,ignore
-// Aunque `Config` sea tuyo, esta firma promete `toml` para siempre:
+// Aunque Config sea propio, quien llama también depende del error de toml.
 pub fn parse(input: &str) -> Result<Config, toml::de::Error>
 ```
 
 ### `ch25-b015` — 25.12 Diseñar espacio para evolucionar
 
-Source: `25.Módulos-paths-y-privacidad.md:227` · mode: `run`
+Source: `25.Módulos-paths-y-privacidad.md:235` · mode: `run`
 
 ```rust
 #[non_exhaustive]
@@ -12026,7 +12235,7 @@ pub enum LoadError {
 
 ### `ch26-b001` — 26.3 Workspace
 
-Source: `26.Crates-workspaces-y-capas.md:36` · mode: `parse`
+Source: `26.Crates-workspaces-y-capas.md:38` · mode: `parse`
 
 ```toml
 [workspace]
@@ -12041,12 +12250,13 @@ members = [
 
 ### `ch26-b002` — 26.4 Dependencias heredadas
 
-Source: `26.Crates-workspaces-y-capas.md:53` · mode: `parse`
+Source: `26.Crates-workspaces-y-capas.md:57` · mode: `parse`
 
 ```toml
 [workspace.package]
 edition = "2024"
-license = "MIT OR Apache-2.0"
+rust-version = "1.85"
+license = "MIT"
 
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
@@ -12054,11 +12264,15 @@ serde = { version = "1", features = ["derive"] }
 
 ### `ch26-b003` — 26.4 Dependencias heredadas
 
-Source: `26.Crates-workspaces-y-capas.md:64` · mode: `parse`
+Source: `26.Crates-workspaces-y-capas.md:69` · mode: `parse`
 
 ```toml
 [package]
+name = "application"
+version = "0.1.0"
 edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
 
 [dependencies]
 serde.workspace = true
@@ -12066,7 +12280,7 @@ serde.workspace = true
 
 ### `ch26-b004` — 26.5 Dirección de dependencias
 
-Source: `26.Crates-workspaces-y-capas.md:78` · mode: `reference`
+Source: `26.Crates-workspaces-y-capas.md:87` · mode: `reference`
 
 ```text
 server/desktop ──> adapters ──> application ──> domain
@@ -12075,7 +12289,7 @@ server/desktop ──> adapters ──> application ──> domain
 
 ### `ch26-b005` — 26.5 Dirección de dependencias
 
-Source: `26.Crates-workspaces-y-capas.md:91` · mode: `toml_composite`
+Source: `26.Crates-workspaces-y-capas.md:100` · mode: `toml_composite`
 
 ```toml
 # crates/application/Cargo.toml
@@ -12089,9 +12303,9 @@ application = { path = "../application" }
 sqlx = "0.8"   # la infraestructura pesada vive aquí, no en el núcleo
 ```
 
-### `ch26-b006` — 26.6 Dónde vive el trait
+### `ch26-b006` — 26.6 Dónde vive el *trait*
 
-Source: `26.Crates-workspaces-y-capas.md:109` · mode: `contextual`
+Source: `26.Crates-workspaces-y-capas.md:118` · mode: `contextual`
 
 ```rust,ignore
 // crates/application/src/lib.rs
@@ -12121,9 +12335,9 @@ impl<R: OrderRepository> PlaceOrder<R> {
 }
 ```
 
-### `ch26-b007` — 26.7 Library crate más binarios finos
+### `ch26-b007` — 26.7 Crate de biblioteca y binarios pequeños
 
-Source: `26.Crates-workspaces-y-capas.md:145` · mode: `contextual`
+Source: `26.Crates-workspaces-y-capas.md:156` · mode: `contextual`
 
 ```rust,ignore
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -12135,7 +12349,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### `ch26-b008` — 26.8 Tipos de frontera
 
-Source: `26.Crates-workspaces-y-capas.md:159` · mode: `reference`
+Source: `26.Crates-workspaces-y-capas.md:170` · mode: `reference`
 
 ```text
 JSON/SQL/IPC DTO <-> comando o respuesta de aplicación <-> tipos de dominio
@@ -12143,7 +12357,7 @@ JSON/SQL/IPC DTO <-> comando o respuesta de aplicación <-> tipos de dominio
 
 ### `ch26-b009` — 26.8 Tipos de frontera
 
-Source: `26.Crates-workspaces-y-capas.md:165` · mode: `contextual`
+Source: `26.Crates-workspaces-y-capas.md:176` · mode: `contextual`
 
 ```rust,ignore
 // crates/adapters/src/http.rs
@@ -12162,19 +12376,19 @@ impl TryFrom<CreateOrderRequest> for application::PlaceOrderCommand {
 }
 ```
 
-### `ch26-b010` — 26.11 Tests en un workspace
+### `ch26-b010` — 26.11 Pruebas en un workspace
 
-Source: `26.Crates-workspaces-y-capas.md:209` · mode: `parse`
+Source: `26.Crates-workspaces-y-capas.md:221` · mode: `parse`
 
 ```toml
-# crates/application/Cargo.toml
+# apps/server/Cargo.toml
 [dev-dependencies]
-test-support = { path = "../test-support" }
+test-support = { path = "../../crates/test-support" }
 ```
 
 ## 27.Cargo-features-targets-y-profiles
 
-### `ch27-b001` — 27.1 El manifest es parte del diseño
+### `ch27-b001` — 27.1 El manifiesto es parte del diseño
 
 Source: `27.Cargo-features-targets-y-profiles.md:9` · mode: `parse`
 
@@ -12188,7 +12402,7 @@ rust-version = "1.85"
 
 ### `ch27-b002` — 27.2 Dependencias y SemVer
 
-Source: `27.Cargo-features-targets-y-profiles.md:21` · mode: `parse`
+Source: `27.Cargo-features-targets-y-profiles.md:23` · mode: `parse`
 
 ```toml
 [dependencies]
@@ -12197,7 +12411,7 @@ serde = { version = "1", features = ["derive"] }
 
 ### `ch27-b003` — 27.2 Dependencias y SemVer
 
-Source: `27.Cargo-features-targets-y-profiles.md:28` · mode: `reference`
+Source: `27.Cargo-features-targets-y-profiles.md:30` · mode: `reference`
 
 ```text
 "1"     == "^1"     -> >=1.0.0, <2.0.0
@@ -12209,7 +12423,7 @@ Source: `27.Cargo-features-targets-y-profiles.md:28` · mode: `reference`
 
 ### `ch27-b004` — 27.3 Dependencias por contexto
 
-Source: `27.Cargo-features-targets-y-profiles.md:50` · mode: `parse`
+Source: `27.Cargo-features-targets-y-profiles.md:52` · mode: `parse`
 
 ```toml
 [dependencies]
@@ -12224,30 +12438,30 @@ cc = "1"
 
 ### `ch27-b005` — 27.3 Dependencias por contexto
 
-Source: `27.Cargo-features-targets-y-profiles.md:63` · mode: `run`
+Source: `27.Cargo-features-targets-y-profiles.md:65` · mode: `run`
 
 ```rust
 // build.rs
 fn main() {
-    // Solo reejecutar si cambia el schema, no en cada build:
+    // Vigilar este archivo como entrada del script:
     println!("cargo::rerun-if-changed=schema/catalog.proto");
-    // Exponer un valor calculado al código:
+    // Hacer que esta constante esté disponible al compilar la crate:
     println!("cargo::rustc-env=CATALOG_SCHEMA_VERSION=3");
 }
 ```
 
 ### `ch27-b006` — 27.3 Dependencias por contexto
 
-Source: `27.Cargo-features-targets-y-profiles.md:73` · mode: `illustrative`
+Source: `27.Cargo-features-targets-y-profiles.md:75` · mode: `illustrative`
 
 ```rust,ignore
 // En el código de la crate:
 const SCHEMA_VERSION: &str = env!("CATALOG_SCHEMA_VERSION");
 ```
 
-### `ch27-b007` — 27.4 Features son aditivas
+### `ch27-b007` — 27.4 Las *features* son aditivas
 
-Source: `27.Cargo-features-targets-y-profiles.md:82` · mode: `parse`
+Source: `27.Cargo-features-targets-y-profiles.md:86` · mode: `parse`
 
 ```toml
 [features]
@@ -12255,24 +12469,24 @@ default = []
 json = ["dep:serde", "dep:serde_json"]
 
 [dependencies]
-serde = { version = "1", optional = true }
+serde = { version = "1", optional = true, features = ["derive"] }
 serde_json = { version = "1", optional = true }
 ```
 
-### `ch27-b008` — 27.4 Features son aditivas
+### `ch27-b008` — 27.4 Las *features* son aditivas
 
-Source: `27.Cargo-features-targets-y-profiles.md:94` · mode: `parse`
+Source: `27.Cargo-features-targets-y-profiles.md:100` · mode: `parse`
 
 ```toml
-# MAL DISEÑO: dos features que eligen backend
+# Problemático si el código impide compilar ambas implementaciones juntas.
 [features]
 backend-postgres = []
 backend-sqlite = []
 ```
 
-### `ch27-b009` — 27.4 Features son aditivas
+### `ch27-b009` — 27.4 Las *features* son aditivas
 
-Source: `27.Cargo-features-targets-y-profiles.md:105` · mode: `reference`
+Source: `27.Cargo-features-targets-y-profiles.md:113` · mode: `reference`
 
 ```text
 cargo check --no-default-features
@@ -12280,25 +12494,27 @@ cargo check --no-default-features --features json
 cargo check --all-features
 ```
 
-### `ch27-b010` — 27.5 Features por capacidad
+### `ch27-b010` — 27.5 *Features* organizadas por capacidad
 
-Source: `27.Cargo-features-targets-y-profiles.md:117` · mode: `run`
+Source: `27.Cargo-features-targets-y-profiles.md:125` · mode: `run`
 
 ```rust
-#[cfg(feature = "json")]
-pub mod json;
+#[cfg_attr(feature = "json", derive(serde::Serialize))]
+pub struct Order {
+    pub id: u64,
+}
 
 #[cfg(feature = "json")]
 impl Order {
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(self).expect("Order siempre serializa")
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
     }
 }
 ```
 
-### `ch27-b011` — 27.6 Targets
+### `ch27-b011` — 27.6 Objetivos de compilación
 
-Source: `27.Cargo-features-targets-y-profiles.md:144` · mode: `parse`
+Source: `27.Cargo-features-targets-y-profiles.md:158` · mode: `parse`
 
 ```toml
 [[bin]]
@@ -12306,9 +12522,9 @@ name = "debug-inspector"
 required-features = ["inspector"]
 ```
 
-### `ch27-b012` — 27.7 Profiles
+### `ch27-b012` — 27.7 Perfiles de compilación
 
-Source: `27.Cargo-features-targets-y-profiles.md:152` · mode: `parse`
+Source: `27.Cargo-features-targets-y-profiles.md:168` · mode: `parse`
 
 ```toml
 [profile.release]
@@ -12318,9 +12534,9 @@ panic = "abort"
 strip = "symbols"
 ```
 
-### `ch27-b013` — 27.7 Profiles
+### `ch27-b013` — 27.7 Perfiles de compilación
 
-Source: `27.Cargo-features-targets-y-profiles.md:169` · mode: `parse`
+Source: `27.Cargo-features-targets-y-profiles.md:187` · mode: `parse`
 
 ```toml
 [profile.dev.package."*"]
@@ -12329,10 +12545,10 @@ opt-level = 2
 
 ### `ch27-b014` — 27.8 Inspeccionar la resolución
 
-Source: `27.Cargo-features-targets-y-profiles.md:184` · mode: `reference`
+Source: `27.Cargo-features-targets-y-profiles.md:202` · mode: `reference`
 
 ```text
-cargo metadata
+cargo metadata --format-version 1
 cargo tree
 cargo tree -e features
 cargo update -p crate_name
@@ -12353,7 +12569,7 @@ fn percentage_rejects_values_above_one_hundred() {
 }
 ```
 
-### `ch28-b002` — 28.2 Unit tests
+### `ch28-b002` — 28.2 Pruebas unitarias
 
 Source: `28.Testing-doctests-y-property-testing.md:22` · mode: `run`
 
@@ -12369,7 +12585,7 @@ mod tests {
 }
 ```
 
-### `ch28-b003` — 28.3 Integration tests
+### `ch28-b003` — 28.3 Pruebas de integración
 
 Source: `28.Testing-doctests-y-property-testing.md:40` · mode: `contextual`
 
@@ -12382,19 +12598,19 @@ fn public_constructor_is_usable() {
 }
 ```
 
-### `ch28-b004` — 28.3 Integration tests
+### `ch28-b004` — 28.3 Pruebas de integración
 
 Source: `28.Testing-doctests-y-property-testing.md:51` · mode: `reference`
 
 ```text
 tests/
-├── api.rs          # cada archivo .rs es una crate de test
+├── api.rs          # cada archivo .rs es una crate de prueba
 ├── workflows.rs
 └── common/
-    └── mod.rs      # compartido: NO se ejecuta como test propio
+    └── mod.rs      # compartido: NO se ejecuta como prueba propia
 ```
 
-### `ch28-b005` — 28.3 Integration tests
+### `ch28-b005` — 28.3 Pruebas de integración
 
 Source: `28.Testing-doctests-y-property-testing.md:59` · mode: `illustrative`
 
@@ -12409,9 +12625,9 @@ fn creates_order_through_public_api() {
 }
 ```
 
-### `ch28-b006` — 28.4 Tests que devuelven `Result`
+### `ch28-b006` — 28.4 Pruebas que devuelven `Result`
 
-Source: `28.Testing-doctests-y-property-testing.md:74` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:76` · mode: `run`
 
 ```rust
 #[test]
@@ -12423,36 +12639,58 @@ fn round_trip() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### `ch28-b007` — 28.4 Tests que devuelven `Result`
+### `ch28-b007` — 28.4 Pruebas que devuelven `Result`
 
-Source: `28.Testing-doctests-y-property-testing.md:86` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:90` · mode: `run`
 
 ```rust
 #[test]
 fn rejects_missing_at() {
-    let error = Email::parse("sin-arroba").unwrap_err();
+    let error = Email::parse("missing-at").unwrap_err();
     assert_eq!(error, EmailError::MissingAt);
 }
 ```
 
-### `ch28-b008` — 28.4 Tests que devuelven `Result`
+### `ch28-b008` — 28.4 Pruebas que devuelven `Result`
 
-Source: `28.Testing-doctests-y-property-testing.md:96` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:100` · mode: `run`
 
 ```rust
+use std::io::{self, Read};
+
+#[derive(Debug)]
+enum LoadConfigError {
+    Io(io::Error),
+}
+
+fn load_config_from(mut reader: impl Read) -> Result<String, LoadConfigError> {
+    let mut text = String::new();
+    reader.read_to_string(&mut text).map_err(LoadConfigError::Io)?;
+    Ok(text)
+}
+
+struct DeniedReader;
+
+impl Read for DeniedReader {
+    fn read(&mut self, _buffer: &mut [u8]) -> io::Result<usize> {
+        Err(io::Error::new(io::ErrorKind::PermissionDenied, "read denied"))
+    }
+}
+
 #[test]
-fn io_failure_is_preserved_as_source() {
-    let error = load_config("/ruta/inexistente").unwrap_err();
-    assert!(matches!(error, LoadConfigError::Io(_)));
+fn io_failure_preserves_the_error_kind() {
+    let error = load_config_from(DeniedReader).unwrap_err();
+    assert!(matches!(error, LoadConfigError::Io(source)
+        if source.kind() == io::ErrorKind::PermissionDenied));
 }
 ```
 
-### `ch28-b009` — 28.5 Doctests
+### `ch28-b009` — 28.5 Pruebas de documentación
 
-Source: `28.Testing-doctests-y-property-testing.md:110` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:136` · mode: `run`
 
 ```rust
-/// Suma dos cantidades comprobando overflow.
+/// Suma las cantidades y devuelve None si la suma desborda u64.
 ///
 /// ```
 /// # use catalog::checked_total;
@@ -12463,12 +12701,17 @@ pub fn checked_total(values: impl IntoIterator<Item = u64>) -> Option<u64> {
 }
 ```
 
-### `ch28-b010` — 28.6 Fakes antes que mocks universales
+### `ch28-b010` — 28.6 Dobles en memoria antes que *mocks* universales
 
-Source: `28.Testing-doctests-y-property-testing.md:130` · mode: `contextual`
+Source: `28.Testing-doctests-y-property-testing.md:158` · mode: `contextual`
 
 ```rust,ignore
 use std::collections::HashMap;
+
+struct User {
+    id: u64,
+    name: String,
+}
 
 #[derive(Debug, PartialEq)]
 enum RepoError {
@@ -12478,6 +12721,15 @@ enum RepoError {
 trait UserRepository {
     fn add(&mut self, user: User) -> Result<(), RepoError>;
     fn find(&self, id: u64) -> Option<&User>;
+}
+
+#[derive(Debug)]
+enum RegisterError {
+    Repository(RepoError),
+}
+
+fn register(repo: &mut impl UserRepository, user: User) -> Result<(), RegisterError> {
+    repo.add(user).map_err(RegisterError::Repository)
 }
 
 #[derive(Default)]
@@ -12497,9 +12749,9 @@ impl UserRepository for InMemoryUsers {
 }
 ```
 
-### `ch28-b011` — 28.6 Fakes antes que mocks universales
+### `ch28-b011` — 28.6 Dobles en memoria antes que *mocks* universales
 
-Source: `28.Testing-doctests-y-property-testing.md:160` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:204` · mode: `run`
 
 ```rust
 #[test]
@@ -12510,9 +12762,9 @@ fn registration_stores_the_user() {
 }
 ```
 
-### `ch28-b012` — 28.6 Fakes antes que mocks universales
+### `ch28-b012` — 28.6 Dobles en memoria antes que *mocks* universales
 
-Source: `28.Testing-doctests-y-property-testing.md:171` · mode: `contextual`
+Source: `28.Testing-doctests-y-property-testing.md:215` · mode: `contextual`
 
 ```rust,ignore
 struct UnavailableUsers;
@@ -12537,11 +12789,11 @@ fn registration_reports_backend_failure() {
 
 ### `ch28-b013` — 28.7 Determinismo
 
-Source: `28.Testing-doctests-y-property-testing.md:198` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:242` · mode: `run`
 
 ```rust
 trait Clock {
-    fn now(&self) -> u64; // epoch millis, o un tipo Timestamp propio
+    fn now(&self) -> u64; // milisegundos desde la época Unix, o un tipo Timestamp propio
 }
 
 struct FixedClock(u64);
@@ -12553,48 +12805,68 @@ impl Clock for FixedClock {
 }
 ```
 
-### `ch28-b014` — 28.8 Property testing
+### `ch28-b014` — 28.8 Pruebas basadas en propiedades
 
-Source: `28.Testing-doctests-y-property-testing.md:220` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:264` · mode: `run`
 
 ```rust
 use proptest::prelude::*;
 
+fn encode_numbers(values: &[i32]) -> String {
+    values.iter().map(i32::to_string).collect::<Vec<_>>().join(",")
+}
+
+fn decode_numbers(input: &str) -> Result<Vec<i32>, std::num::ParseIntError> {
+    if input.is_empty() {
+        return Ok(Vec::new());
+    }
+    input.split(',').map(str::parse).collect()
+}
+
 proptest::proptest! {
     #[test]
-    fn reversing_twice_restores_input(values in proptest::collection::vec(any::<i32>(), 0..100)) {
-        let reversed_twice: Vec<_> = values.iter().rev().rev().copied().collect();
-        prop_assert_eq!(reversed_twice, values);
+    fn number_encoding_round_trips(values in proptest::collection::vec(any::<i32>(), 0..100)) {
+        let decoded = decode_numbers(&encode_numbers(&values)).unwrap();
+        prop_assert_eq!(decoded, values);
     }
 }
 ```
 
-### `ch28-b015` — 28.8 Property testing
+### `ch28-b015` — 28.8 Pruebas basadas en propiedades
 
-Source: `28.Testing-doctests-y-property-testing.md:234` · mode: `run`
+Source: `28.Testing-doctests-y-property-testing.md:289` · mode: `run`
 
 ```rust
 use proptest::prelude::*;
 
+fn parse_key_value(input: &str) -> Result<(&str, &str), &'static str> {
+    let (key, value) = input.split_once('=').ok_or("missing =")?;
+    if key.is_empty() {
+        return Err("empty key");
+    }
+    Ok((key, value))
+}
+
 proptest::proptest! {
+    #![proptest_config(ProptestConfig::with_cases(1_000))]
     #[test]
     fn parse_never_panics(input in any::<String>()) {
-        let _ = CountryCode::parse(&input);
+        let _ = parse_key_value(&input);
     }
 }
 ```
 
 ### `ch28-b016` — 28.9 La línea de comandos
 
-Source: `28.Testing-doctests-y-property-testing.md:253` · mode: `reference`
+Source: `28.Testing-doctests-y-property-testing.md:317` · mode: `reference`
 
 ```text
-cargo test                      # todos los targets de test
+cargo test                      # pruebas predeterminadas del paquete
 cargo test parse                # filtra por nombre parcial
-cargo test -- --nocapture       # muestra stdout/stderr de tests que pasan
+cargo test -- --nocapture       # no captura stdout/stderr de las pruebas
 cargo test -- --test-threads=1  # serializa (diagnóstico de interferencias)
-cargo test --doc                # solo doctests
-cargo test -p application       # un package del workspace
+cargo test --doc                # solo pruebas de documentación
+cargo test -p application       # un paquete del workspace
 ```
 
 ## 29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs
@@ -12611,12 +12883,12 @@ Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:9` · mode: `run`
 pub struct OrderId(u64);
 ```
 
-### `ch29-b002` — 29.2 Estructura de un item
+### `ch29-b002` — 29.2 Estructura de un elemento documentado
 
 Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:32` · mode: `contextual`
 
 ```rust,ignore
-/// Reserva stock para todas las líneas del pedido.
+/// Reserva las unidades de todas las líneas del pedido.
 ///
 /// La reserva es atómica: o se reservan todas las líneas o ninguna.
 ///
@@ -12633,8 +12905,9 @@ Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:32` · mode: `contextual
 ///
 /// # Errors
 ///
-/// Devuelve [`ReserveError::Insufficient`] si alguna línea supera el stock
-/// disponible. En ese caso ninguna línea queda reservada.
+/// Devuelve [`ReserveError::Insufficient`] si la cantidad total solicitada de
+/// algún producto supera las unidades disponibles, sumando las líneas repetidas.
+/// En ese caso ninguna línea queda reservada.
 pub fn reserve(&mut self, order: &Order) -> Result<(), ReserveError> {
     /* ... */
 }
@@ -12642,7 +12915,7 @@ pub fn reserve(&mut self, order: &Order) -> Result<(), ReserveError> {
 
 ### `ch29-b003` — 29.3 Enlaces intra-doc
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:61` · mode: `illustrative`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:64` · mode: `illustrative`
 
 ```rust,ignore
 /// Construye un [`Order`] asociado a [`CustomerId`].
@@ -12650,9 +12923,9 @@ Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:61` · mode: `illustrati
 /// Véase también [`Order::cancel`].
 ```
 
-### `ch29-b004` — 29.4 Doctests que enseñan
+### `ch29-b004` — 29.4 Pruebas de documentación que enseñan
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:73` · mode: `reference`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:76` · mode: `reference`
 
 ```text
 cargo doc --no-deps --open
@@ -12661,7 +12934,7 @@ cargo test --doc
 
 ### `ch29-b005` — 29.5 `#[must_use]`
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:82` · mode: `run`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:85` · mode: `run`
 
 ```rust
 #[must_use = "el plan no se ejecuta hasta llamar a run"]
@@ -12670,9 +12943,13 @@ pub struct Plan { /* ... */ }
 
 ### `ch29-b006` — 29.5 `#[must_use]`
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:89` · mode: `contextual`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:92` · mode: `contextual`
 
 ```rust,ignore
+struct ClientBuilder {
+    retries: u32,
+}
+
 impl ClientBuilder {
     #[must_use]
     pub fn with_retries(mut self, count: u32) -> Self {
@@ -12680,11 +12957,17 @@ impl ClientBuilder {
         self
     }
 }
+
+fn main() {
+    let builder = ClientBuilder { retries: 0 };
+    let builder = builder.with_retries(3);
+    assert_eq!(builder.retries, 3);
+}
 ```
 
 ### `ch29-b007` — 29.6 Evolución de enums y structs
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:105` · mode: `run`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:120` · mode: `run`
 
 ```rust
 #[non_exhaustive]
@@ -12696,7 +12979,7 @@ pub enum ProtocolError {
 
 ### `ch29-b008` — 29.6 Evolución de enums y structs
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:115` · mode: `contextual`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:130` · mode: `contextual`
 
 ```rust,ignore
 match error {
@@ -12708,7 +12991,7 @@ match error {
 
 ### `ch29-b009` — 29.7 Clippy
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:131` · mode: `reference`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:146` · mode: `reference`
 
 ```text
 cargo clippy --all-targets --all-features -- -D warnings
@@ -12716,7 +12999,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 
 ### `ch29-b010` — 29.7 Clippy
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:144` · mode: `parse`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:160` · mode: `parse`
 
 ```toml
 [lints.rust]
@@ -12729,7 +13012,7 @@ dbg_macro = "warn"
 
 ### `ch29-b011` — 29.7 Clippy
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:157` · mode: `run`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:173` · mode: `run`
 
 ```rust
 #[allow(clippy::too_many_arguments, reason = "la firma refleja el protocolo externo")]
@@ -12738,15 +13021,15 @@ fn from_wire(/* ... */) { }
 
 ### `ch29-b012` — 29.8 rustfmt
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:166` · mode: `reference`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:182` · mode: `reference`
 
 ```text
 cargo fmt --all -- --check
 ```
 
-### `ch29-b013` — 29.9 Naming idiomático
+### `ch29-b013` — 29.9 Convenciones de nombres
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:183` · mode: `contextual`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:199` · mode: `contextual`
 
 ```rust,ignore
 impl Snapshot {
@@ -12760,7 +13043,7 @@ impl Snapshot {
 
 ### `ch29-b014` — 29.12 Deprecación
 
-Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:229` · mode: `run`
+Source: `29.Rustdoc-Clippy-rustfmt-y-diseño-de-APIs.md:245` · mode: `run`
 
 ```rust
 #[deprecated(since = "1.4.0", note = "usa `Order::try_new`")]
@@ -12769,7 +13052,7 @@ pub fn new_unchecked(/* ... */) { }
 
 ## 30.Threads-channels-y-estado-compartido
 
-### `ch30-b001` — 30.2 Crear un thread
+### `ch30-b001` — 30.2 Crear un hilo
 
 Source: `30.Threads-channels-y-estado-compartido.md:13` · mode: `run`
 
@@ -12780,7 +13063,7 @@ let handle = thread::spawn(|| {
     (1..=100).sum::<u64>()
 });
 
-let total = handle.join().expect("el worker hizo panic");
+let total = handle.join().expect("worker panicked");
 assert_eq!(total, 5050);
 ```
 
@@ -12803,17 +13086,21 @@ let handle = thread::spawn(|| names.len());
 Source: `30.Threads-channels-y-estado-compartido.md:48` · mode: `contextual`
 
 ```rust,ignore
+use std::thread;
+
 let names = vec![String::from("Ada"), String::from("Grace")];
 
 let handle = thread::spawn(move || names.len());
 assert_eq!(handle.join().unwrap(), 2);
 ```
 
-### `ch30-b004` — 30.4 Threads con scope
+### `ch30-b004` — 30.4 Hilos con un ámbito limitado
 
-Source: `30.Threads-channels-y-estado-compartido.md:61` · mode: `contextual`
+Source: `30.Threads-channels-y-estado-compartido.md:63` · mode: `contextual`
 
 ```rust,ignore
+use std::thread;
+
 let values = [10, 20, 30, 40];
 
 thread::scope(|scope| {
@@ -12824,34 +13111,45 @@ thread::scope(|scope| {
 });
 ```
 
-### `ch30-b005` — 30.5 Message passing
+### `ch30-b005` — 30.5 Paso de mensajes
 
-Source: `30.Threads-channels-y-estado-compartido.md:80` · mode: `contextual`
+Source: `30.Threads-channels-y-estado-compartido.md:84` · mode: `contextual`
+
+```rust,ignore
+use std::sync::mpsc;
+use std::thread;
+
+let (tx, rx) = mpsc::channel();
+let worker = thread::spawn(move || {
+    tx.send(String::from("done")).unwrap();
+});
+
+let message = rx.recv().unwrap();
+worker.join().unwrap();
+assert_eq!(message, "done");
+```
+
+### `ch30-b006` — 30.6 Varios productores y cierre
+
+Source: `30.Threads-channels-y-estado-compartido.md:106` · mode: `contextual`
 
 ```rust,ignore
 use std::sync::mpsc;
 
 let (tx, rx) = mpsc::channel();
-let worker = thread::spawn(move || {
-    tx.send(String::from("terminado")).unwrap();
-});
-
-let message = rx.recv().unwrap();
-worker.join().unwrap();
-assert_eq!(message, "terminado");
-```
-
-### `ch30-b006` — 30.6 Varios productores y cierre
-
-Source: `30.Threads-channels-y-estado-compartido.md:99` · mode: `contextual`
-
-```rust,ignore
 let tx2 = tx.clone();
+
+tx.send(1).unwrap();
+tx2.send(2).unwrap();
+drop(tx);
+drop(tx2);
+
+assert_eq!(rx.into_iter().collect::<Vec<_>>(), vec![1, 2]);
 ```
 
 ### `ch30-b007` — 30.6 Varios productores y cierre
 
-Source: `30.Threads-channels-y-estado-compartido.md:109` · mode: `contextual`
+Source: `30.Threads-channels-y-estado-compartido.md:126` · mode: `contextual`
 
 ```rust,ignore
 for command in rx {
@@ -12859,9 +13157,9 @@ for command in rx {
 }
 ```
 
-### `ch30-b008` — 30.7 Channels acotados
+### `ch30-b008` — 30.7 Canales acotados
 
-Source: `30.Threads-channels-y-estado-compartido.md:119` · mode: `run`
+Source: `30.Threads-channels-y-estado-compartido.md:138` · mode: `run`
 
 ```rust
 use std::sync::mpsc;
@@ -12872,15 +13170,14 @@ let (tx, rx) = mpsc::sync_channel::<u32>(2);
 
 let producer = thread::spawn(move || {
     for value in 0..5 {
-        // Con 2 elementos en vuelo, este send BLOQUEA hasta que
-        // el consumidor retire uno: el productor no puede adelantarse.
+        // Wait for space whenever both buffer slots are occupied.
         tx.send(value).unwrap();
     }
 });
 
 for value in rx {
-    thread::sleep(Duration::from_millis(10)); // simula consumidor lento
-    println!("procesando {value}");
+    thread::sleep(Duration::from_millis(10)); // Simulate a slow consumer.
+    println!("processing {value}");
 }
 
 producer.join().unwrap();
@@ -12888,16 +13185,16 @@ producer.join().unwrap();
 
 ### `ch30-b009` — 30.8 Estado compartido
 
-Source: `30.Threads-channels-y-estado-compartido.md:152` · mode: `reference`
+Source: `30.Threads-channels-y-estado-compartido.md:172` · mode: `reference`
 
 ```text
 estado compartido: varios acceden al mismo valor
-message passing:  el valor o comando cambia de dueño
+paso de mensajes: el valor o comando cambia de dueño
 ```
 
-### `ch30-b010` — 30.9 Un worker que posee el estado
+### `ch30-b010` — 30.9 Un hilo de trabajo que posee el estado
 
-Source: `30.Threads-channels-y-estado-compartido.md:163` · mode: `run`
+Source: `30.Threads-channels-y-estado-compartido.md:185` · mode: `run`
 
 ```rust
 use std::sync::mpsc::{self, Sender};
@@ -12905,33 +13202,33 @@ use std::thread;
 
 enum Command {
     Add(u64),
-    Total(Sender<u64>), // el canal de respuesta viaja dentro del comando
+    Total(Sender<u64>), // Each request includes its own reply channel.
 }
 
 fn spawn_counter() -> (Sender<Command>, thread::JoinHandle<u64>) {
     let (tx, rx) = mpsc::channel();
 
     let handle = thread::spawn(move || {
-        let mut total = 0; // estado SIN locks: un solo dueño
+        let mut total = 0_u64; // Only this thread can modify the total.
         for command in rx {
             match command {
-                Command::Add(value) => total += value,
+                Command::Add(value) => total = total.saturating_add(value),
                 Command::Total(reply) => {
-                    // Si el solicitante ya no espera, ignorar es la política:
+                    // Keep running if the caller no longer wants the reply.
                     let _ = reply.send(total);
                 }
             }
         }
-        total // el for terminó: no quedan senders vivos
+        total // All senders are gone and the queue is empty.
     });
 
     (tx, handle)
 }
 ```
 
-### `ch30-b011` — 30.9 Un worker que posee el estado
+### `ch30-b011` — 30.9 Un hilo de trabajo que posee el estado
 
-Source: `30.Threads-channels-y-estado-compartido.md:193` · mode: `contextual`
+Source: `30.Threads-channels-y-estado-compartido.md:217` · mode: `contextual`
 
 ```rust,ignore
 let (commands, worker) = spawn_counter();
@@ -12943,13 +13240,13 @@ let (reply_tx, reply_rx) = mpsc::channel();
 commands.send(Command::Total(reply_tx)).unwrap();
 assert_eq!(reply_rx.recv().unwrap(), 7);
 
-drop(commands);                        // shutdown: cae el último sender
-assert_eq!(worker.join().unwrap(), 7); // join recoge el estado final
+drop(commands);                       // Drop the last command sender.
+assert_eq!(worker.join().unwrap(), 7); // Wait and read the final total.
 ```
 
-### `ch30-b012` — 30.10 Diseñar un worker
+### `ch30-b012` — 30.10 Diseñar un hilo de trabajo
 
-Source: `30.Threads-channels-y-estado-compartido.md:232` · mode: `contextual`
+Source: `30.Threads-channels-y-estado-compartido.md:258` · mode: `contextual`
 
 ```rust,ignore
 enum Command {
@@ -12961,19 +13258,19 @@ enum Command {
 
 ### `ch30-b013` — 30.11 Granularidad
 
-Source: `30.Threads-channels-y-estado-compartido.md:253` · mode: `run`
+Source: `30.Threads-channels-y-estado-compartido.md:281` · mode: `run`
 
 ```rust
 let workers = std::thread::available_parallelism()
     .map(|n| n.get())
-    .unwrap_or(4);
+    .unwrap_or(1);
 ```
 
 ## 31.Send-y-Sync
 
-### `ch31-b001` — 31.2 Auto traits
+### `ch31-b001` — 31.2 *Traits* automáticos
 
-Source: `31.Send-y-Sync.md:19` · mode: `run`
+Source: `31.Send-y-Sync.md:21` · mode: `run`
 
 ```rust
 struct Report {
@@ -12986,16 +13283,16 @@ fn assert_send_sync<T: Send + Sync>() {}
 assert_send_sync::<Report>();
 ```
 
-### `ch31-b002` — 31.2 Auto traits
+### `ch31-b002` — 31.2 *Traits* automáticos
 
-Source: `31.Send-y-Sync.md:34` · mode: `compile_fail`
+Source: `31.Send-y-Sync.md:36` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::rc::Rc;
 
 struct CachedReport {
     title: String,
-    render_cache: Rc<String>, // este campo elimina Send y Sync
+    render_cache: Rc<String>, // This field prevents automatic Send and Sync.
 }
 
 fn assert_send<T: Send>() {}
@@ -13009,7 +13306,7 @@ fn main() {
 
 ### `ch31-b003` — 31.4 `Arc<T>` no basta siempre
 
-Source: `31.Send-y-Sync.md:61` · mode: `compile_fail`
+Source: `31.Send-y-Sync.md:63` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::{cell::RefCell, sync::Arc};
@@ -13020,7 +13317,7 @@ std::thread::spawn(move || *state.borrow_mut() += 1);
 
 ### `ch31-b004` — 31.4 `Arc<T>` no basta siempre
 
-Source: `31.Send-y-Sync.md:70` · mode: `run`
+Source: `31.Send-y-Sync.md:72` · mode: `run`
 
 ```rust
 use std::sync::{Arc, Mutex};
@@ -13037,7 +13334,7 @@ assert_eq!(*state.lock().unwrap(), 1);
 
 ### `ch31-b005` — 31.5 Closures y futures
 
-Source: `31.Send-y-Sync.md:100` · mode: `run`
+Source: `31.Send-y-Sync.md:102` · mode: `run`
 
 ```rust
 fn require_send<T: Send>(_: T) {}
@@ -13049,7 +13346,7 @@ require_send(future);
 
 ### `ch31-b006` — 31.5 Closures y futures
 
-Source: `31.Send-y-Sync.md:110` · mode: `compile_fail`
+Source: `31.Send-y-Sync.md:112` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::rc::Rc;
@@ -13058,8 +13355,8 @@ fn require_send<T: Send>(_: T) {}
 
 let shared = Rc::new(5);
 let future = async move {
-    let value = *shared; // `shared` sigue capturado por el future
-    pause().await;
+    let value = *shared; // The initial future stores shared.
+    std::future::ready(()).await;
     value
 };
 require_send(future);
@@ -13068,31 +13365,35 @@ require_send(future);
 
 ### `ch31-b007` — 31.5 Closures y futures
 
-Source: `31.Send-y-Sync.md:127` · mode: `contextual`
+Source: `31.Send-y-Sync.md:129` · mode: `run`
 
-```rust,ignore
+```rust
+use std::rc::Rc;
+
+fn require_send<T: Send>(_: T) {}
+
 let shared = Rc::new(5);
-let value = *shared; // se extrae aquí: el future captura un i32
+let value = *shared; // The future will capture only an i32.
 
 let future = async move {
-    pause().await;
+    std::future::ready(()).await;
     value
 };
 require_send(future);
 ```
 
-### `ch31-b008` — 31.6 `'static` es otra dimensión
+### `ch31-b008` — 31.6 `'static` impone un requisito distinto
 
-Source: `31.Send-y-Sync.md:146` · mode: `reference`
+Source: `31.Send-y-Sync.md:152` · mode: `reference`
 
 ```text
-thread::spawn  exige F: Send + 'static   (el thread puede sobrevivir al caller)
-scope.spawn    exige F: Send + 'scope    (el join está garantizado antes del fin)
+thread::spawn  exige F: Send + 'static   (el hilo puede sobrevivir a quien lo crea)
+scope.spawn    exige F: Send + 'scope    (el hilo termina antes de salir del ámbito)
 ```
 
-### `ch31-b009` — 31.7 Bounds en APIs
+### `ch31-b009` — 31.7 Condiciones en las APIs
 
-Source: `31.Send-y-Sync.md:157` · mode: `run`
+Source: `31.Send-y-Sync.md:163` · mode: `run`
 
 ```rust
 fn run_in_worker<F, T>(job: F) -> std::thread::JoinHandle<T>
@@ -13104,44 +13405,43 @@ where
 }
 ```
 
-### `ch31-b010` — 31.8 Implementación manual es unsafe
+### `ch31-b010` — 31.8 Una implementación manual requiere `unsafe`
 
-Source: `31.Send-y-Sync.md:171` · mode: `contextual`
+Source: `31.Send-y-Sync.md:179` · mode: `contextual`
 
 ```rust,ignore
 unsafe impl Send for MyHandle {}
 unsafe impl Sync for MyHandle {}
 ```
 
-### `ch31-b011` — 31.8 Implementación manual es unsafe
+### `ch31-b011` — 31.8 Una implementación manual requiere `unsafe`
 
-Source: `31.Send-y-Sync.md:178` · mode: `run`
+Source: `31.Send-y-Sync.md:186` · mode: `run`
 
 ```rust
 struct DeviceBuffer {
-    data: *mut u8, // los punteros crudos anulan la derivación automática
+    data: *mut u8, // Raw pointers prevent automatic Send and Sync.
     len: usize,
 }
 
 impl DeviceBuffer {
     fn write(&mut self, offset: usize, byte: u8) {
         assert!(offset < self.len);
-        // SAFETY: poseemos en exclusiva [data, data+len) y &mut self
-        // garantiza acceso único durante la escritura.
+        // SAFETY: the type owns a valid, writable region of len bytes.
+        // The checked offset is in bounds and &mut self ensures exclusive access.
         unsafe { self.data.add(offset).write(byte) }
     }
 }
 
-// SAFETY: DeviceBuffer posee en exclusiva su región de memoria; ningún
-// alias externo sobrevive a la construcción, toda mutación exige &mut self
-// y la liberación ocurre una sola vez en Drop. Moverlo a otro thread
-// transfiere la autoridad completa, sin estado afín a un thread concreto.
+// SAFETY: constructors must establish exclusive ownership of the allocation;
+// mutation requires &mut self and Drop must free it exactly once.
+// Access and deallocation must be valid from any thread that owns the value.
 unsafe impl Send for DeviceBuffer {}
 ```
 
 ### `ch31-b012` — 31.9 Cómo leer el diagnóstico
 
-Source: `31.Send-y-Sync.md:210` · mode: `reference`
+Source: `31.Send-y-Sync.md:217` · mode: `reference`
 
 ```text
 error: future cannot be sent between threads safely
@@ -13155,7 +13455,7 @@ note: future is not `Send` as this value is used across an await
 
 ## 32.Atomics-y-orden-de-memoria
 
-### `ch32-b001` — 32.1 Atomicidad no es una invariante completa
+### `ch32-b001` — 32.1 Una operación atómica no basta para proteger varios pasos
 
 Source: `32.Atomics-y-orden-de-memoria.md:11` · mode: `run`
 
@@ -13184,28 +13484,28 @@ fn main() {
 }
 ```
 
-### `ch32-b002` — 32.1 Atomicidad no es una invariante completa
+### `ch32-b002` — 32.1 Una operación atómica no basta para proteger varios pasos
 
 Source: `32.Atomics-y-orden-de-memoria.md:38` · mode: `contextual`
 
 ```rust,ignore
-// Transición NO atómica aunque cada operación lo sea:
+// The two operations together are NOT atomic.
 let current = counter.load(Ordering::Relaxed);
 counter.store(current + 1, Ordering::Relaxed);
 ```
 
-### `ch32-b003` — 32.1 Atomicidad no es una invariante completa
+### `ch32-b003` — 32.1 Una operación atómica no basta para proteger varios pasos
 
 Source: `32.Atomics-y-orden-de-memoria.md:44` · mode: `reference`
 
 ```text
-thread A: load  -> 41
-thread B: load  -> 41
-thread A: store 42
-thread B: store 42     // un incremento se perdió
+hilo A: load  -> 41
+hilo B: load  -> 41
+hilo A: store 42
+hilo B: store 42     // un incremento se perdió
 ```
 
-### `ch32-b004` — 32.2 Data race frente a race condition
+### `ch32-b004` — 32.2 Carrera de datos frente a carrera lógica
 
 Source: `32.Atomics-y-orden-de-memoria.md:61` · mode: `run`
 
@@ -13213,10 +13513,9 @@ Source: `32.Atomics-y-orden-de-memoria.md:61` · mode: `run`
 use std::sync::atomic::{AtomicU64, Ordering};
 
 fn withdraw_broken(balance: &AtomicU64, amount: u64) -> bool {
-    if balance.load(Ordering::Acquire) >= amount {
-        // Otro thread puede pasar esta misma comprobación aquí,
-        // antes de que restemos.
-        balance.fetch_sub(amount, Ordering::AcqRel);
+    if balance.load(Ordering::Relaxed) >= amount {
+        // Another thread can pass the same check before this subtraction.
+        balance.fetch_sub(amount, Ordering::Relaxed);
         true
     } else {
         false
@@ -13224,28 +13523,32 @@ fn withdraw_broken(balance: &AtomicU64, amount: u64) -> bool {
 }
 ```
 
-### `ch32-b005` — 32.3 Operaciones read-modify-write
+### `ch32-b005` — 32.3 Operaciones de lectura-modificación-escritura
 
-Source: `32.Atomics-y-orden-de-memoria.md:82` · mode: `contextual`
+Source: `32.Atomics-y-orden-de-memoria.md:81` · mode: `run`
 
-```rust,ignore
-fn decrement_if_positive(value: &std::sync::atomic::AtomicUsize) -> bool {
+```rust
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+fn decrement_if_positive(value: &AtomicUsize) -> bool {
     value
-        .fetch_update(Ordering::AcqRel, Ordering::Acquire, |current| {
+        .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |current| {
             current.checked_sub(1)
         })
         .is_ok()
 }
 ```
 
-### `ch32-b006` — 32.3 Operaciones read-modify-write
+### `ch32-b006` — 32.3 Operaciones de lectura-modificación-escritura
 
-Source: `32.Atomics-y-orden-de-memoria.md:94` · mode: `contextual`
+Source: `32.Atomics-y-orden-de-memoria.md:95` · mode: `run`
 
-```rust,ignore
+```rust
+use std::sync::atomic::{AtomicU64, Ordering};
+
 fn withdraw(balance: &AtomicU64, amount: u64) -> bool {
     balance
-        .fetch_update(Ordering::AcqRel, Ordering::Acquire, |current| {
+        .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |current| {
             current.checked_sub(amount)
         })
         .is_ok()
@@ -13254,7 +13557,7 @@ fn withdraw(balance: &AtomicU64, amount: u64) -> bool {
 
 ### `ch32-b007` — 32.4 `Relaxed`
 
-Source: `32.Atomics-y-orden-de-memoria.md:114` · mode: `run`
+Source: `32.Atomics-y-orden-de-memoria.md:117` · mode: `run`
 
 ```rust
 use std::sync::Arc;
@@ -13267,19 +13570,19 @@ let flag = Arc::clone(&shutdown);
 let worker = thread::spawn(move || {
     let mut processed = 0_u64;
     while !flag.load(Ordering::Relaxed) {
-        processed += 1; // una unidad de trabajo
+        processed = processed.saturating_add(1); // Count completed work, up to u64::MAX.
     }
     processed
 });
 
 shutdown.store(true, Ordering::Relaxed);
 let total = worker.join().unwrap();
-println!("procesadas {total} unidades");
+println!("processed {total} units");
 ```
 
 ### `ch32-b008` — 32.5 `Release` y `Acquire`
 
-Source: `32.Atomics-y-orden-de-memoria.md:145` · mode: `run`
+Source: `32.Atomics-y-orden-de-memoria.md:148` · mode: `run`
 
 ```rust
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -13287,40 +13590,40 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 static DATA: AtomicUsize = AtomicUsize::new(0);
 static READY: AtomicBool = AtomicBool::new(false);
 
-// Productor
+// Producer: publish exactly once.
 DATA.store(42, Ordering::Relaxed);
 READY.store(true, Ordering::Release);
 ```
 
 ### `ch32-b009` — 32.5 `Release` y `Acquire`
 
-Source: `32.Atomics-y-orden-de-memoria.md:158` · mode: `contextual`
+Source: `32.Atomics-y-orden-de-memoria.md:161` · mode: `contextual`
 
 ```rust,ignore
-// Consumidor
+// Consumer: observe the publication before reading DATA.
 while !READY.load(Ordering::Acquire) {
     std::hint::spin_loop();
 }
-assert_eq!(DATA.load(Ordering::Relaxed), 42); // garantizado tras observar READY
+assert_eq!(DATA.load(Ordering::Relaxed), 42);
 ```
 
-### `ch32-b010` — 32.8 ABA, overflow y wraparound
+### `ch32-b010` — 32.8 ABA y desbordamiento
 
-Source: `32.Atomics-y-orden-de-memoria.md:204` · mode: `reference`
+Source: `32.Atomics-y-orden-de-memoria.md:209` · mode: `reference`
 
 ```text
-thread A: lee top = nodo X, se prepara para CAS(X -> X.next)
-thread B: pop X, pop Y, push X          (top vuelve a ser X...
-                                         ...pero X.next ya no es Y)
-thread A: CAS(top, X -> X.next)          éxito aparente;
-                                         top apunta ahora a un nodo liberado
+hilo A: lee top = X y guarda next = Y; prepara CAS(X -> Y)
+hilo B: extrae X, extrae Y y vuelve a insertar X
+        (top vuelve a ser X, pero X.next ya no es Y)
+hilo A: CAS(top, X -> Y) tiene éxito porque top vuelve a ser X;
+        top queda apuntando al antiguo Y, que ya pudo ser retirado
 ```
 
 ## 33.Modelo-mental-async
 
-### `ch33-b001` — 33.1 Async trata espera, no velocidad automática
+### `ch33-b001` — 33.1 Async aprovecha la espera; no acelera el cálculo por sí solo
 
-Source: `33.Modelo-mental-async.md:11` · mode: `contextual`
+Source: `33.Modelo-mental-async.md:13` · mode: `contextual`
 
 ```rust,ignore
 async fn load_profile(id: UserId) -> Result<Profile, LoadError> {
@@ -13330,75 +13633,75 @@ async fn load_profile(id: UserId) -> Result<Profile, LoadError> {
 }
 ```
 
-### `ch33-b002` — 33.1 Async trata espera, no velocidad automática
+### `ch33-b002` — 33.1 Async aprovecha la espera; no acelera el cálculo por sí solo
 
-Source: `33.Modelo-mental-async.md:21` · mode: `illustrative`
+Source: `33.Modelo-mental-async.md:23` · mode: `illustrative`
 
 ```rust,ignore
-// Capítulo 38: ambos futures avanzan de forma alternada en la misma task.
-let (user, permissions) = join!(load_user(id), load_permissions(id));
+// Chapter 38: both operations advance within the same task.
+let (user, permissions) = tokio::join!(load_user(id), load_permissions(id));
 ```
 
-### `ch33-b003` — 33.3 `async fn` es lazy; una task lanzada ya tiene vida propia
+### `ch33-b003` — 33.3 Construir un future y lanzar una tarea son operaciones distintas
 
-Source: `33.Modelo-mental-async.md:52` · mode: `contextual`
+Source: `33.Modelo-mental-async.md:54` · mode: `contextual`
 
 ```rust,ignore
-let request = load_user(id); // todavía no completa el I/O
+let request = load_user(id); // The body of load_user has not started.
 let user = request.await?;
 ```
 
-### `ch33-b004` — 33.3 `async fn` es lazy; una task lanzada ya tiene vida propia
+### `ch33-b004` — 33.3 Construir un future y lanzar una tarea son operaciones distintas
 
-Source: `33.Modelo-mental-async.md:59` · mode: `run`
+Source: `33.Modelo-mental-async.md:61` · mode: `run`
 
 ```rust
 fn main() {
     let future = async {
-        println!("cuerpo ejecutado");
+        println!("body executed");
         42
     };
 
-    // Sin executor que lo sondee, el cuerpo nunca corre:
+    // No one polls this future, so its body never runs.
     drop(future);
-    println!("fin del programa");
+    println!("program finished");
 }
 ```
 
-### `ch33-b005` — 33.4 Executor
+### `ch33-b005` — 33.4 El ejecutor
 
-Source: `33.Modelo-mental-async.md:82` · mode: `reference`
+Source: `33.Modelo-mental-async.md:84` · mode: `reference`
 
 ```text
-ready queue -> poll task -> Ready(result)
-                         -> Pending + registrar Waker
-evento -> wake -> ready queue
+cola de tareas listas -> poll -> Ready(resultado)
+                              -> Pending + registrar Waker
+evento -> wake -> volver a la cola
 ```
 
 ### `ch33-b006` — 33.6 Cooperación
 
-Source: `33.Modelo-mental-async.md:108` · mode: `contextual`
+Source: `33.Modelo-mental-async.md:110` · mode: `contextual`
 
 ```rust,ignore
 async fn bad() {
     loop {
-        perform_cpu_step(); // nunca cede
+        perform_cpu_step(); // Never yields to the async executor.
     }
 }
 ```
 
 ### `ch33-b007` — 33.6 Cooperación
 
-Source: `33.Modelo-mental-async.md:118` · mode: `illustrative`
+Source: `33.Modelo-mental-async.md:120` · mode: `illustrative`
 
 ```rust,ignore
-// El worker async queda libre mientras el pool bloqueante calcula:
+// Run the blocking operation on the runtime's blocking thread pool.
 let digest = tokio::task::spawn_blocking(move || hash_large_file(path)).await?;
 ```
 
-### `ch33-b008` — 33.7 Blocking dentro de async
+### `ch33-b008` — 33.7 Código bloqueante dentro de async
 
-Source: `33.Modelo-mental-async.md:129` · mode: `compile_only`
+Source: `33.Modelo-mental-async.md:131` · mode: `compile_only`
 
 ```rust,no_run
 async fn bad_read() -> std::io::Result<String> {
@@ -13406,39 +13709,38 @@ async fn bad_read() -> std::io::Result<String> {
 }
 ```
 
-### `ch33-b009` — 33.8 Concurrencia no es spawning
+### `ch33-b009` — 33.8 Concurrencia no significa crear tareas nuevas
 
-Source: `33.Modelo-mental-async.md:143` · mode: `illustrative`
+Source: `33.Modelo-mental-async.md:145` · mode: `illustrative`
 
 ```rust,ignore
-// Misma task: concurrencia sin nueva unidad de fallo ni bounds extra.
-let (a, b) = join!(load_user(id), load_permissions(id));
+// Both operations belong to the current task.
+let (a, b) = tokio::join!(load_user(id), load_permissions(id));
 
-// Task nueva: unidad independiente, con handle, errores propios,
-// requisitos Send + 'static y responsabilidad de supervisión.
-let handle = spawn(refresh_cache(id));
+// A separate task with its own handle and Send + 'static requirements.
+let handle = tokio::spawn(refresh_cache(id));
 ```
 
-### `ch33-b010` — 33.10 Structured concurrency
+### `ch33-b010` — 33.10 Concurrencia estructurada
 
-Source: `33.Modelo-mental-async.md:176` · mode: `reference`
+Source: `33.Modelo-mental-async.md:177` · mode: `reference`
 
 ```text
-request scope
-├── load user
-├── load permissions
-└── timeout/cancel -> ambos trabajos resueltos
+ámbito de la petición
+├── cargar usuario
+├── cargar permisos
+└── tiempo límite/cancelación -> ambos trabajos resueltos
 ```
 
 ### `ch33-b011` — 33.11 Cuándo elegir async
 
-Source: `33.Modelo-mental-async.md:189` · mode: `reference`
+Source: `33.Modelo-mental-async.md:190` · mode: `reference`
 
 ```text
-¿muchas esperas concurrentes (red, timers)?      -> async
-¿pocos flujos, llamadas bloqueantes, simplicidad? -> threads
-¿cálculo divisible que satura cores?              -> pool paralelo (p. ej. rayon)
-¿mezcla?                                          -> fronteras: channels entre modelos
+¿muchas esperas concurrentes (red, temporizadores)? -> async
+¿pocos flujos bloqueantes y prima la sencillez?      -> hilos
+¿cálculo divisible que ocupa todos los núcleos?      -> ejecución paralela (p. ej., Rayon)
+¿una mezcla de cargas?                               -> fronteras y canales entre modelos
 ```
 
 ## 34.Future-Poll-Context-y-Waker
@@ -13461,7 +13763,7 @@ trait FutureShape {
 }
 ```
 
-### `ch34-b002` — 34.5 Un future inmediato y un executor de juguete
+### `ch34-b002` — 34.5 Un `Future` inmediato y un ejecutor didáctico
 
 Source: `34.Future-Poll-Context-y-Waker.md:69` · mode: `run`
 
@@ -13478,12 +13780,12 @@ impl<T: Unpin> Future for Immediate<T> {
     type Output = T;
 
     fn poll(mut self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<T> {
-        Poll::Ready(self.0.take().expect("future sondeado tras completar"))
+        Poll::Ready(self.0.take().expect("future polled after completion"))
     }
 }
 ```
 
-### `ch34-b003` — 34.5 Un future inmediato y un executor de juguete
+### `ch34-b003` — 34.5 Un `Future` inmediato y un ejecutor didáctico
 
 Source: `34.Future-Poll-Context-y-Waker.md:91` · mode: `compile_only`
 
@@ -13518,7 +13820,7 @@ Source: `34.Future-Poll-Context-y-Waker.md:122` · mode: `reference`
 
 ```text
 Map<F, Closure>
-├── future F pinneado
+├── Future F fijado mediante Pin
 ├── closure todavía disponible
 └── estado: esperando | completado
 ```
@@ -13530,16 +13832,16 @@ Source: `34.Future-Poll-Context-y-Waker.md:149` · mode: `reference`
 ```text
 consumidor: comprueba la cola      -> vacía
 productor:  encola el dato
-productor:  mira si hay waker      -> aún no hay -> no despierta a nadie
-consumidor: registra su waker
+productor:  mira si hay Waker      -> aún no hay -> no despierta a nadie
+consumidor: registra su Waker
 consumidor: devuelve Pending       -> el evento ya pasó y nadie lo despertará
 ```
 
 ## 35.Async-fn-bloques-y-máquinas-de-estado
 
-### `ch35-b001` — 35.1 Una función que construye un future
+### `ch35-b001` — 35.1 Una función que construye un `Future`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:7` · mode: `contextual`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:9` · mode: `contextual`
 
 ```rust,ignore
 async fn fetch_name(id: UserId) -> Result<String, FetchError> {
@@ -13551,9 +13853,9 @@ async fn fetch_name(id: UserId) -> Result<String, FetchError> {
 }
 ```
 
-### `ch35-b002` — 35.2 Bloques async
+### `ch35-b002` — 35.2 Bloques `async`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:32` · mode: `contextual`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:34` · mode: `contextual`
 
 ```rust,ignore
 let future = async {
@@ -13565,7 +13867,7 @@ let future = async {
 
 ### `ch35-b003` — 35.3 Captura y `async move`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:48` · mode: `contextual`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:50` · mode: `contextual`
 
 ```rust,ignore
 let request_id = String::from("req-42");
@@ -13576,12 +13878,12 @@ let future = async move {
 
 ### `ch35-b004` — 35.3 Captura y `async move`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:59` · mode: `compile_fail`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:61` · mode: `compile_fail`
 
 ```rust,compile_fail
 fn make_logger(prefix: String) -> impl std::future::Future<Output = ()> {
     async {
-        println!("{prefix}: listo");
+        println!("{prefix}: ready");
     }
     // error[E0373]: async block may outlive the current function,
     // but it borrows `prefix`, which is owned by the current function
@@ -13590,19 +13892,19 @@ fn make_logger(prefix: String) -> impl std::future::Future<Output = ()> {
 
 ### `ch35-b005` — 35.3 Captura y `async move`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:71` · mode: `run`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:73` · mode: `run`
 
 ```rust
 fn make_logger(prefix: String) -> impl std::future::Future<Output = ()> {
     async move {
-        println!("{prefix}: listo");
+        println!("{prefix}: ready");
     }
 }
 ```
 
-### `ch35-b006` — 35.4 La máquina de estado conceptual
+### `ch35-b006` — 35.4 La máquina de estados conceptual
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:85` · mode: `reference`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:87` · mode: `reference`
 
 ```text
 LoadAccess
@@ -13614,7 +13916,7 @@ LoadAccess
 
 ### `ch35-b007` — 35.5 Medir tamaño sin inventar garantías
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:103` · mode: `run`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:105` · mode: `run`
 
 ```rust
 use std::mem::size_of_val;
@@ -13628,14 +13930,14 @@ fn main() {
         std::hint::black_box(buffer)[0]
     };
 
-    println!("async vacío: {} bytes", size_of_val(&tiny));
-    println!("buffer vivo tras await: {} bytes", size_of_val(&with_buffer));
+    println!("empty async block: {} bytes", size_of_val(&tiny));
+    println!("buffer used after await: {} bytes", size_of_val(&with_buffer));
 }
 ```
 
 ### `ch35-b008` — 35.6 Locales que cruzan `.await`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:128` · mode: `contextual`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:132` · mode: `contextual`
 
 ```rust,ignore
 async fn process() {
@@ -13647,14 +13949,14 @@ async fn process() {
 
 ### `ch35-b009` — 35.6 Locales que cruzan `.await`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:138` · mode: `contextual`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:142` · mode: `contextual`
 
 ```rust,ignore
 async fn smaller() {
     let checksum = {
         let large = build_buffer();
         let checksum = calculate_checksum(&large);
-        consume(large);
+        drop(large);
         checksum
     };
 
@@ -13663,32 +13965,32 @@ async fn smaller() {
 }
 ```
 
-### `ch35-b010` — 35.7 `?`, `return` y la frontera de control
+### `ch35-b010` — 35.7 A qué bloque pertenecen `?` y `return`
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:166` · mode: `contextual`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:170` · mode: `contextual`
 
 ```rust,ignore
 fn make_job() -> impl std::future::Future<Output = Result<u64, Error>> {
     async {
         let value = load().await?;
-        Ok(value + 1)
+        value.checked_add(1).ok_or(Error::Overflow)
     }
 }
 ```
 
 ### `ch35-b011` — 35.9 Orden y concurrencia
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:192` · mode: `contextual`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:196` · mode: `contextual`
 
 ```rust,ignore
 let user_future = load_user(id);
 let permissions_future = load_permissions(id);
-let (user, permissions) = join(user_future, permissions_future).await;
+let (user, permissions) = tokio::join!(user_future, permissions_future);
 ```
 
 ### `ch35-b012` — 35.10 Recursión async e indirección
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:206` · mode: `compile_fail`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:210` · mode: `compile_fail`
 
 ```rust,compile_fail
 async fn countdown(n: u64) -> u64 {
@@ -13703,7 +14005,7 @@ async fn countdown(n: u64) -> u64 {
 
 ### `ch35-b013` — 35.10 Recursión async e indirección
 
-Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:219` · mode: `run`
+Source: `35.Async-fn-bloques-y-máquinas-de-estado.md:223` · mode: `run`
 
 ```rust
 async fn countdown(n: u64) -> u64 {
@@ -13717,9 +14019,9 @@ async fn countdown(n: u64) -> u64 {
 
 ## 36.Ownership-y-lifetimes-en-futures
 
-### `ch36-b001` — 36.2 Un future puede prestar
+### `ch36-b001` — 36.2 Un `Future` puede tomar datos prestados
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:19` · mode: `contextual`
+Source: `36.Ownership-y-lifetimes-en-futures.md:21` · mode: `contextual`
 
 ```rust,ignore
 async fn length(text: &str) -> usize {
@@ -13728,9 +14030,9 @@ async fn length(text: &str) -> usize {
 }
 ```
 
-### `ch36-b002` — 36.2 Un future puede prestar
+### `ch36-b002` — 36.2 Un `Future` puede tomar datos prestados
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:34` · mode: `contextual`
+Source: `36.Ownership-y-lifetimes-en-futures.md:36` · mode: `contextual`
 
 ```rust,ignore
 let text = String::from("rust");
@@ -13739,9 +14041,9 @@ drop(text);
 assert_eq!(result, 4);
 ```
 
-### `ch36-b003` — 36.3 Hacer owned el mínimo necesario
+### `ch36-b003` — 36.3 Hacer propio lo mínimo necesario
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:49` · mode: `contextual`
+Source: `36.Ownership-y-lifetimes-en-futures.md:51` · mode: `contextual`
 
 ```rust,ignore
 fn owned_length(text: &str) -> impl std::future::Future<Output = usize> + Send + 'static {
@@ -13755,7 +14057,7 @@ fn owned_length(text: &str) -> impl std::future::Future<Output = usize> + Send +
 
 ### `ch36-b004` — 36.4 El contrato real de `spawn`
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:69` · mode: `reference`
+Source: `36.Ownership-y-lifetimes-en-futures.md:71` · mode: `reference`
 
 ```text
 Future + Send + 'static
@@ -13764,7 +14066,7 @@ Future::Output + Send + 'static
 
 ### `ch36-b005` — 36.6 Préstamos que cruzan `.await`
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:92` · mode: `contextual`
+Source: `36.Ownership-y-lifetimes-en-futures.md:94` · mode: `contextual`
 
 ```rust,ignore
 async fn append_after_wait(buffer: &mut String) {
@@ -13774,9 +14076,9 @@ async fn append_after_wait(buffer: &mut String) {
 }
 ```
 
-### `ch36-b006` — 36.8 Guards: tipo de mutex y protocolo
+### `ch36-b006` — 36.8 `MutexGuard`: tipo de mutex y protocolo
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:126` · mode: `contextual`
+Source: `36.Ownership-y-lifetimes-en-futures.md:128` · mode: `contextual`
 
 ```rust,ignore
 async fn update(shared: &std::sync::Mutex<State>) {
@@ -13787,9 +14089,9 @@ async fn update(shared: &std::sync::Mutex<State>) {
 }
 ```
 
-### `ch36-b007` — 36.8 Guards: tipo de mutex y protocolo
+### `ch36-b007` — 36.8 `MutexGuard`: tipo de mutex y protocolo
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:139` · mode: `contextual`
+Source: `36.Ownership-y-lifetimes-en-futures.md:141` · mode: `contextual`
 
 ```rust,ignore
 let ticket = {
@@ -13805,7 +14107,7 @@ state.finish_if_revision_matches(ticket.revision);
 
 ### `ch36-b008` — 36.10 Salidas prestadas
 
-Source: `36.Ownership-y-lifetimes-en-futures.md:169` · mode: `contextual`
+Source: `36.Ownership-y-lifetimes-en-futures.md:171` · mode: `contextual`
 
 ```rust,ignore
 async fn first_line(input: &str) -> Option<&str> {
@@ -13824,7 +14126,7 @@ Source: `37.Pinning-de-futures.md:49` · mode: `contextual`
 let value = operation().await?;
 ```
 
-### `ch37-b002` — 37.6 Pinning local con `pin!`
+### `ch37-b002` — 37.6 Fijación local con `pin!`
 
 Source: `37.Pinning-de-futures.md:69` · mode: `contextual`
 
@@ -13834,10 +14136,10 @@ use std::pin::pin;
 let future = operation();
 let mut future = pin!(future);
 
-// Una API de bajo nivel puede recibir future.as_mut().
+// A low-level API can receive future.as_mut().
 ```
 
-### `ch37-b003` — 37.7 Pinning owned con `Box::pin`
+### `ch37-b003` — 37.7 Propiedad independiente con `Box::pin`
 
 Source: `37.Pinning-de-futures.md:86` · mode: `contextual`
 
@@ -13845,7 +14147,7 @@ Source: `37.Pinning-de-futures.md:86` · mode: `contextual`
 let future = Box::pin(operation());
 ```
 
-### `ch37-b004` — 37.8 Futures heterogéneos y lifetimes honestos
+### `ch37-b004` — 37.8 Futures de tipos distintos que conservan sus préstamos
 
 Source: `37.Pinning-de-futures.md:100` · mode: `run`
 
@@ -13860,13 +14162,13 @@ fn job(input: &str) -> BoxFuture<'_, usize> {
 }
 ```
 
-### `ch37-b005` — 37.10 Proyección y pinning estructural
+### `ch37-b005` — 37.10 Proyección y fijación estructural
 
 Source: `37.Pinning-de-futures.md:127` · mode: `reference`
 
 ```text
-Parent
-├── child: F       [estructuralmente pinneado]
+Contenedor
+├── child: F       [fijado estructuralmente]
 ├── output: Option [movible si la invariante lo permite]
 └── state          [movible si la invariante lo permite]
 ```
@@ -13875,7 +14177,7 @@ Parent
 
 ### `ch38-b001` — 38.2 Secuencial frente a concurrente
 
-Source: `38.Join-select-timeouts-y-cancelación.md:21` · mode: `contextual`
+Source: `38.Join-select-timeouts-y-cancelación.md:23` · mode: `contextual`
 
 ```rust,ignore
 let user = load_user(id).await?;
@@ -13884,7 +14186,7 @@ let orders = load_orders(id).await?;
 
 ### `ch38-b002` — 38.2 Secuencial frente a concurrente
 
-Source: `38.Join-select-timeouts-y-cancelación.md:30` · mode: `contextual`
+Source: `38.Join-select-timeouts-y-cancelación.md:32` · mode: `contextual`
 
 ```rust,ignore
 let (user, orders) = tokio::join!(load_user(id), load_orders(id));
@@ -13894,7 +14196,7 @@ let orders = orders?;
 
 ### `ch38-b003` — 38.3 `try_join`: fallo temprano con cancelación
 
-Source: `38.Join-select-timeouts-y-cancelación.md:44` · mode: `contextual`
+Source: `38.Join-select-timeouts-y-cancelación.md:46` · mode: `contextual`
 
 ```rust,ignore
 let (user, orders) = tokio::try_join!(
@@ -13903,9 +14205,9 @@ let (user, orders) = tokio::try_join!(
 )?;
 ```
 
-### `ch38-b004` — 38.4 Lifecycle preciso de `select!`
+### `ch38-b004` — 38.4 Ciclo de vida preciso de `select!`
 
-Source: `38.Join-select-timeouts-y-cancelación.md:59` · mode: `contextual`
+Source: `38.Join-select-timeouts-y-cancelación.md:63` · mode: `contextual`
 
 ```rust,ignore
 tokio::select! {
@@ -13914,9 +14216,9 @@ tokio::select! {
 }
 ```
 
-### `ch38-b005` — 38.5 `select!` dentro de un loop
+### `ch38-b005` — 38.5 `select!` dentro de un bucle
 
-Source: `38.Join-select-timeouts-y-cancelación.md:83` · mode: `contextual`
+Source: `38.Join-select-timeouts-y-cancelación.md:87` · mode: `contextual`
 
 ```rust,ignore
 loop {
@@ -13930,9 +14232,9 @@ loop {
 }
 ```
 
-### `ch38-b006` — 38.8 Timeout y deadline
+### `ch38-b006` — 38.8 Tiempo máximo y límite absoluto
 
-Source: `38.Join-select-timeouts-y-cancelación.md:138` · mode: `contextual`
+Source: `38.Join-select-timeouts-y-cancelación.md:142` · mode: `contextual`
 
 ```rust,ignore
 let result = tokio::time::timeout(
@@ -13944,15 +14246,15 @@ let result = tokio::time::timeout(
 
 ### `ch38-b007` — 38.9 Cancelación cooperativa y punto de compromiso
 
-Source: `38.Join-select-timeouts-y-cancelación.md:158` · mode: `reference`
+Source: `38.Join-select-timeouts-y-cancelación.md:162` · mode: `reference`
 
 ```text
 Running -> ShutdownRequested -> Draining -> Stopped
 ```
 
-### `ch38-b008` — 38.10 Tasks, handles y abort
+### `ch38-b008` — 38.10 Tareas, `JoinHandle` y aborto
 
-Source: `38.Join-select-timeouts-y-cancelación.md:174` · mode: `contextual`
+Source: `38.Join-select-timeouts-y-cancelación.md:178` · mode: `contextual`
 
 ```rust,ignore
 let handle = tokio::spawn(async move { run_worker().await });
@@ -13986,7 +14288,7 @@ while let Some(event) = stream.next().await {
 }
 ```
 
-### `ch39-b003` — 39.5 `mpsc` acotado: qué garantiza
+### `ch39-b003` — 39.5 Qué garantiza un `mpsc` acotado
 
 Source: `39.Streams-channels-y-backpressure.md:76` · mode: `contextual`
 
@@ -13994,14 +14296,15 @@ Source: `39.Streams-channels-y-backpressure.md:76` · mode: `contextual`
 let (tx, mut rx) = tokio::sync::mpsc::channel::<Job>(64);
 
 tx.send(job).await?;
+drop(tx);
 while let Some(job) = rx.recv().await {
     process(job).await;
 }
 ```
 
-### `ch39-b004` — 39.5 `mpsc` acotado: qué garantiza
+### `ch39-b004` — 39.5 Qué garantiza un `mpsc` acotado
 
-Source: `39.Streams-channels-y-backpressure.md:89` · mode: `contextual`
+Source: `39.Streams-channels-y-backpressure.md:90` · mode: `contextual`
 
 ```rust,ignore
 let permit = tx.reserve().await?;
@@ -14011,7 +14314,7 @@ permit.send(job);
 
 ### `ch39-b005` — 39.6 Concurrencia limitada sobre streams
 
-Source: `39.Streams-channels-y-backpressure.md:101` · mode: `reference`
+Source: `39.Streams-channels-y-backpressure.md:102` · mode: `reference`
 
 ```text
 stream<Item>
@@ -14020,9 +14323,9 @@ stream<Item>
   -> stream<Output en orden de finalización>
 ```
 
-### `ch39-b006` — 39.8 Request-response sin borrar errores
+### `ch39-b006` — 39.8 Petición y respuesta sin ocultar errores
 
-Source: `39.Streams-channels-y-backpressure.md:130` · mode: `contextual`
+Source: `39.Streams-channels-y-backpressure.md:131` · mode: `contextual`
 
 ```rust,ignore
 struct Lookup {
@@ -14031,9 +14334,9 @@ struct Lookup {
 }
 ```
 
-### `ch39-b007` — 39.9 Broadcast, lag y replay
+### `ch39-b007` — 39.9 `broadcast`, retraso y recuperación
 
-Source: `39.Streams-channels-y-backpressure.md:149` · mode: `contextual`
+Source: `39.Streams-channels-y-backpressure.md:150` · mode: `contextual`
 
 ```rust,ignore
 match receiver.recv().await {
@@ -14047,15 +14350,15 @@ match receiver.recv().await {
 
 ### `ch39-b008` — 39.10 Cierre y permisos pendientes
 
-Source: `39.Streams-channels-y-backpressure.md:165` · mode: `reference`
+Source: `39.Streams-channels-y-backpressure.md:166` · mode: `reference`
 
 ```text
-Running -> AdmissionClosed -> Draining(buffer + permits) -> WorkersJoined -> Stopped
+EnEjecucion -> AdmisionCerrada -> Drenando(bufer + permisos) -> TrabajadoresEsperados -> Detenido
 ```
 
 ## 40.Async-closures-y-AsyncFn
 
-### `ch40-b001` — 40.1 Superficie estable desde Rust 1.85
+### `ch40-b001` — 40.1 Closures asíncronas desde Rust 1.85
 
 Source: `40.Async-closures-y-AsyncFn.md:9` · mode: `contextual`
 
@@ -14122,7 +14425,7 @@ where
 }
 ```
 
-### `ch40-b005` — 40.5 `move` decide entrada, no cardinalidad
+### `ch40-b005` — 40.5 `move` decide cómo se capturan las variables
 
 Source: `40.Async-closures-y-AsyncFn.md:101` · mode: `run`
 
@@ -14130,17 +14433,17 @@ Source: `40.Async-closures-y-AsyncFn.md:101` · mode: `run`
 fn examples() {
     let client = String::from("client");
     let reusable = async move || client.len();
-    // `client` pertenece a la closure, pero cada llamada solo lo presta.
+    // `client` belongs to the closure, but each call only borrows it.
 
     let token = String::from("single-use");
     let consume_once = async move || token;
-    // El output mueve `token` fuera: solo `AsyncFnOnce`.
+    // The output moves `token` out: only `AsyncFnOnce` is implemented.
 
     let _ = (reusable, consume_once);
 }
 ```
 
-### `ch40-b006` — 40.6 El préstamo dura hasta `Ready` o drop
+### `ch40-b006` — 40.6 El préstamo dura hasta que se destruye el `Future`
 
 Source: `40.Async-closures-y-AsyncFn.md:125` · mode: `compile_fail`
 
@@ -14150,13 +14453,13 @@ where
     F: AsyncFnMut(),
 {
     let first = callback();
-    let second = callback(); // segundo préstamo mutable
+    let second = callback(); // A second mutable borrow overlaps the first.
     first.await;
     second.await;
 }
 ```
 
-### `ch40-b007` — 40.7 Callbacks higher-ranked y lending de argumentos
+### `ch40-b007` — 40.7 Callbacks de rango superior y préstamos de argumentos
 
 Source: `40.Async-closures-y-AsyncFn.md:145` · mode: `run`
 
@@ -14173,7 +14476,7 @@ where
 }
 ```
 
-### `ch40-b008` — 40.10 Retry: cardinalidad y efectos
+### `ch40-b008` — 40.10 Reintentos y efectos que pueden repetirse
 
 Source: `40.Async-closures-y-AsyncFn.md:192` · mode: `run`
 
@@ -14190,11 +14493,11 @@ where
             Err(error) => last_error = Some(error),
         }
     }
-    Err(last_error.expect("hubo al menos un intento"))
+    Err(last_error.expect("at least one attempt was made"))
 }
 ```
 
-### `ch40-b009` — 40.11 Borrado de tipo y dispatch dinámico
+### `ch40-b009` — 40.11 Borrado de tipo y despacho dinámico
 
 Source: `40.Async-closures-y-AsyncFn.md:215` · mode: `run`
 
@@ -14227,7 +14530,7 @@ impl UserRepository for InMemoryUsers {
 }
 ```
 
-### `ch41-b002` — 41.2 Desugaring mediante RPITIT
+### `ch41-b002` — 41.2 La forma equivalente con RPITIT
 
 Source: `41.Async-fn-en-traits.md:29` · mode: `contextual`
 
@@ -14240,7 +14543,7 @@ trait UserRepository {
 }
 ```
 
-### `ch41-b003` — 41.4 `Send` pertenece al future devuelto
+### `ch41-b003` — 41.4 `Send` pertenece al `Future` devuelto
 
 Source: `41.Async-fn-en-traits.md:60` · mode: `contextual`
 
@@ -14253,7 +14556,7 @@ trait SendUserRepository: Send + Sync {
 }
 ```
 
-### `ch41-b004` — 41.5 Semver y variantes local/Send
+### `ch41-b004` — 41.5 Compatibilidad y variantes local/`Send`
 
 Source: `41.Async-fn-en-traits.md:81` · mode: `contextual`
 
@@ -14264,7 +14567,7 @@ pub trait LocalUserRepository {
 }
 ```
 
-### `ch41-b005` — 41.6 Lo que el caller sabe —y lo que no
+### `ch41-b005` — 41.6 Lo que sabe quien llama —y lo que no
 
 Source: `41.Async-fn-en-traits.md:98` · mode: `contextual`
 
@@ -14278,15 +14581,15 @@ trait GatUserRepository {
 }
 ```
 
-### `ch41-b006` — 41.7 Un spawn genérico necesita toda la cadena
+### `ch41-b006` — 41.7 Un `spawn` genérico necesita toda la cadena
 
 Source: `41.Async-fn-en-traits.md:112` · mode: `contextual`
 
 ```rust,ignore
 fn spawn_find<R>(
     repository: std::sync::Arc<R>,
-    id: u64,
-) -> tokio::task::JoinHandle<Option<User>>
+    id: UserId,
+) -> tokio::task::JoinHandle<Result<Option<User>, RepoError>>
 where
     R: SendUserRepository + 'static,
 {
@@ -14308,7 +14611,7 @@ fn choose_at_runtime(repository: &dyn Repository) {
 }
 ```
 
-### `ch41-b008` — 41.9 Interfaz dyn-compatible boxed
+### `ch41-b008` — 41.9 Interfaz con `dyn` y `Future` dentro de un `Box`
 
 Source: `41.Async-fn-en-traits.md:148` · mode: `contextual`
 
@@ -14334,9 +14637,9 @@ trait DynUserRepository: Send + Sync {
 Source: `41.Async-fn-en-traits.md:190` · mode: `reference`
 
 ```text
-entidad / value object -> invariantes puras y síncronas
-caso de uso            -> coordina puertos; puede ser async
-adaptador              -> runtime, red, base de datos
+entidad / objeto de valor -> invariantes puras y síncronas
+caso de uso               -> coordina puertos; puede ser asíncrono
+adaptador                 -> runtime, red, base de datos
 ```
 
 ## 42.Rust-2024-y-captura-de-lifetimes
@@ -14351,12 +14654,12 @@ fn words(text: &str) -> impl Iterator<Item = &str> {
 }
 
 fn main() {
-    let text = String::from("uno dos");
-    assert_eq!(words(&text).collect::<Vec<_>>(), ["uno", "dos"]);
+    let text = String::from("one two");
+    assert_eq!(words(&text).collect::<Vec<_>>(), ["one", "two"]);
 }
 ```
 
-### `ch42-b002` — 42.3 Captura automática: la matriz completa
+### `ch42-b002` — 42.3 Reglas de captura automática
 
 Source: `42.Rust-2024-y-captura-de-lifetimes.md:50` · mode: `run`
 
@@ -14366,7 +14669,7 @@ fn length(text: &str) -> impl Copy {
 }
 ```
 
-### `ch42-b003` — 42.4 Overcapture observable
+### `ch42-b003` — 42.4 Captura excesiva observable
 
 Source: `42.Rust-2024-y-captura-de-lifetimes.md:64` · mode: `compile_fail`
 
@@ -14378,7 +14681,7 @@ fn length(text: &str) -> impl Copy + PartialEq<usize> {
 fn main() {
     let text = String::from("rust");
     let result = length(&text);
-    drop(text); // `result` todavía puede capturar el préstamo en Rust 2024
+    drop(text); // `result` may still capture the borrow in Rust 2024
     assert!(result == 4);
 }
 ```
@@ -14410,7 +14713,7 @@ fn attach<'a, T>(key: &'a str, value: T) -> impl Sized + use<'a, T> {
 }
 ```
 
-### `ch42-b006` — 42.6 Restricciones que no deben adivinarse
+### `ch42-b006` — 42.6 Restricciones de `use<...>`
 
 Source: `42.Rust-2024-y-captura-de-lifetimes.md:123` · mode: `run`
 
@@ -14425,9 +14728,9 @@ where
 }
 ```
 
-### `ch42-b007` — 42.7 Frontera de versión: 1.82, 1.85 y 1.87
+### `ch42-b007` — 42.7 Versiones relevantes y mínimo del proyecto
 
-Source: `42.Rust-2024-y-captura-de-lifetimes.md:148` · mode: `illustrative`
+Source: `42.Rust-2024-y-captura-de-lifetimes.md:149` · mode: `illustrative`
 
 ```rust,ignore
 trait CurrentApi {
@@ -14435,9 +14738,9 @@ trait CurrentApi {
 }
 ```
 
-### `ch42-b008` — 42.8 Captura no es `outlives`
+### `ch42-b008` — 42.8 Capturar no equivale a cumplir `outlives`
 
-Source: `42.Rust-2024-y-captura-de-lifetimes.md:165` · mode: `run`
+Source: `42.Rust-2024-y-captura-de-lifetimes.md:166` · mode: `run`
 
 ```rust
 fn old_pair<'a, T: 'a>(anchor: &'a (), value: T) -> impl Sized + 'a {
@@ -14445,9 +14748,9 @@ fn old_pair<'a, T: 'a>(anchor: &'a (), value: T) -> impl Sized + 'a {
 }
 ```
 
-### `ch42-b009` — 42.8 Captura no es `outlives`
+### `ch42-b009` — 42.8 Capturar no equivale a cumplir `outlives`
 
-Source: `42.Rust-2024-y-captura-de-lifetimes.md:173` · mode: `run`
+Source: `42.Rust-2024-y-captura-de-lifetimes.md:174` · mode: `run`
 
 ```rust
 fn pair<'a, T>(anchor: &'a (), value: T) -> impl Sized + use<'a, T> {
@@ -14457,7 +14760,7 @@ fn pair<'a, T>(anchor: &'a (), value: T) -> impl Sized + use<'a, T> {
 
 ### `ch42-b010` — 42.9 Async: captura real y captura conservadora
 
-Source: `42.Rust-2024-y-captura-de-lifetimes.md:185` · mode: `run`
+Source: `42.Rust-2024-y-captura-de-lifetimes.md:186` · mode: `run`
 
 ```rust
 async fn borrowed_length(text: &str) -> usize {
@@ -14468,7 +14771,7 @@ async fn borrowed_length(text: &str) -> usize {
 
 ### `ch42-b011` — 42.9 Async: captura real y captura conservadora
 
-Source: `42.Rust-2024-y-captura-de-lifetimes.md:194` · mode: `run`
+Source: `42.Rust-2024-y-captura-de-lifetimes.md:195` · mode: `run`
 
 ```rust
 use std::future::Future;
@@ -14479,20 +14782,20 @@ fn independent_length(text: &str) -> impl Future<Output = usize> + use<> {
 }
 ```
 
-### `ch42-b012` — 42.11 Migración de edition con evidencia
+### `ch42-b012` — 42.11 Migración de edición con evidencia
 
-Source: `42.Rust-2024-y-captura-de-lifetimes.md:223` · mode: `reference`
+Source: `42.Rust-2024-y-captura-de-lifetimes.md:224` · mode: `reference`
 
 ```console
 cargo fix --edition --workspace --all-targets --all-features
-# actualizar cada Cargo.toml a edition = "2024"
+# update each Cargo.toml to edition = "2024"
 cargo test --workspace --all-targets --all-features
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 ```
 
 ## 43.Diseño-runtime-agnostic-y-Tokio
 
-### `ch43-b001` — 43.4 Dominio síncrono, aplicación async
+### `ch43-b001` — 43.4 Dominio síncrono, aplicación asíncrona
 
 Source: `43.Diseño-runtime-agnostic-y-Tokio.md:44` · mode: `run`
 
@@ -14506,11 +14809,15 @@ struct Account {
 
 #[derive(Debug)]
 enum AccountError {
+    ZeroAmount,
     Overflow,
 }
 
 impl Account {
     fn deposit(&mut self, amount: u64) -> Result<u64, AccountError> {
+        if amount == 0 {
+            return Err(AccountError::ZeroAmount);
+        }
         self.balance = self.balance.checked_add(amount).ok_or(AccountError::Overflow)?;
         Ok(self.balance)
     }
@@ -14523,20 +14830,27 @@ trait AccountRepository {
     fn save(&self, account: Account) -> impl Future<Output = Result<(), Self::Error>> + Send;
 }
 
-async fn deposit<R>(repository: &R, amount: u64) -> Result<u64, &'static str>
+#[derive(Debug)]
+enum DepositError<E> {
+    Load(E),
+    Domain(AccountError),
+    Save(E),
+}
+
+async fn deposit<R>(repository: &R, amount: u64) -> Result<u64, DepositError<R::Error>>
 where
     R: AccountRepository + Sync,
 {
-    let mut account = repository.load().await.map_err(|_| "load")?;
-    let balance = account.deposit(amount).map_err(|_| "domain")?;
-    repository.save(account).await.map_err(|_| "save")?;
+    let mut account = repository.load().await.map_err(DepositError::Load)?;
+    let balance = account.deposit(amount).map_err(DepositError::Domain)?;
+    repository.save(account).await.map_err(DepositError::Save)?;
     Ok(balance)
 }
 ```
 
 ### `ch43-b002` — 43.5 Features mínimas y verificables
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:99` · mode: `parse`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:110` · mode: `parse`
 
 ```toml
 [dependencies]
@@ -14548,7 +14862,7 @@ tokio = { version = "1", features = ["macros", "rt", "test-util", "time"] }
 
 ### `ch43-b003` — 43.5 Features mínimas y verificables
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:111` · mode: `run`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:122` · mode: `run`
 
 ```rust
 #[tokio::main]
@@ -14559,7 +14873,7 @@ async fn main() {
 
 ### `ch43-b004` — 43.6 `Runtime`, `Handle` y contextos
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:124` · mode: `run`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:135` · mode: `run`
 
 ```rust
 use tokio::runtime::Handle;
@@ -14574,7 +14888,7 @@ fn spawn_cleanup(handle: &Handle) -> JoinHandle<()> {
 
 ### `ch43-b005` — 43.8 Frontera bloqueante y CPU
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:161` · mode: `run`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:172` · mode: `run`
 
 ```rust
 async fn count_words(document: String) -> Result<usize, tokio::task::JoinError> {
@@ -14582,9 +14896,9 @@ async fn count_words(document: String) -> Result<usize, tokio::task::JoinError> 
 }
 ```
 
-### `ch43-b006` — 43.9 Dos relojes y tests sin sleeps reales
+### `ch43-b006` — 43.9 Dos relojes y pruebas sin esperas reales
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:183` · mode: `run`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:194` · mode: `run`
 
 ```rust
 use std::time::Duration;
@@ -14605,9 +14919,9 @@ fn main() {
 }
 ```
 
-### `ch43-b007` — 43.11 Shutdown como protocolo de estados
+### `ch43-b007` — 43.11 El cierre como protocolo de estados
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:220` · mode: `reference`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:231` · mode: `reference`
 
 ```text
 RUNNING -> QUIESCING -> DRAINING -> FORCING -> STOPPED
@@ -14615,9 +14929,9 @@ RUNNING -> QUIESCING -> DRAINING -> FORCING -> STOPPED
       cerrar admisión   deadline    abort + join
 ```
 
-### `ch43-b008` — 43.13 Observabilidad que sigue a la task
+### `ch43-b008` — 43.13 Observabilidad ligada a la tarea
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:258` · mode: `run`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:269` · mode: `run`
 
 ```rust
 use tracing::Instrument;
@@ -14635,7 +14949,7 @@ fn spawn_job(job_id: u64) -> tokio::task::JoinHandle<()> {
 
 ### `ch43-b009` — 43.14 Axum como adaptador HTTP
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:278` · mode: `run`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:289` · mode: `run`
 
 ```rust
 use axum::{
@@ -14675,7 +14989,7 @@ fn router(state: AppState) -> Router {
 
 ### `ch43-b010` — 43.15 Tauri 2 como adaptador IPC
 
-Source: `43.Diseño-runtime-agnostic-y-Tokio.md:320` · mode: `reference`
+Source: `43.Diseño-runtime-agnostic-y-Tokio.md:331` · mode: `reference`
 
 ```text
 webview -> comando IPC -> DTO de entrada -> caso de uso -> dominio/adaptadores
@@ -14692,7 +15006,7 @@ Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:52` · mode: `compile_only`
 fn main() {
     let pointer: *const i32 = std::ptr::null();
 
-    // Compila, pero ejecutarlo intentaría crear un acceso inválido: UB.
+    // This compiles, but running it would attempt an invalid access: UB.
     let _value = unsafe { *pointer };
 }
 ```
@@ -14739,31 +15053,34 @@ unsafe fn view<'a, T>(pointer: *const T, length: usize) -> &'a [T] {
 fn main() {}
 ```
 
-### `ch44-b004` — 44.7 Comprobar null no basta para una API safe
+### `ch44-b004` — 44.7 Comprobar un puntero nulo no basta para una API segura
 
 Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:145` · mode: `run`
 
 ```rust
-unsafe fn raw_sum(pointer: *const i32, length: usize) -> i32 {
-    // SAFETY: the caller supplies one readable, initialized region.
+/// # Safety
+/// The pair must satisfy every `slice::from_raw_parts` precondition for this call.
+unsafe fn raw_sum(pointer: *const i32, length: usize) -> Option<i32> {
+    // SAFETY: guaranteed by the caller contract above.
     let values = unsafe { std::slice::from_raw_parts(pointer, length) };
-    values.iter().sum()
+    values.iter().try_fold(0_i32, |sum, value| sum.checked_add(*value))
 }
 
-fn safe_sum(values: &[i32]) -> i32 {
+fn safe_sum(values: &[i32]) -> Option<i32> {
     // SAFETY: pointer and length come from this same live slice.
     unsafe { raw_sum(values.as_ptr(), values.len()) }
 }
 
 fn main() {
-    assert_eq!(safe_sum(&[10, 20, 12]), 42);
-    assert_eq!(safe_sum(&[]), 0);
+    assert_eq!(safe_sum(&[10, 20, 12]), Some(42));
+    assert_eq!(safe_sum(&[]), Some(0));
+    assert_eq!(safe_sum(&[i32::MAX, 1]), None);
 }
 ```
 
 ### `ch44-b005` — 44.9 `unsafe_op_in_unsafe_fn`
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:185` · mode: `run`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:188` · mode: `run`
 
 ```rust
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -14773,6 +15090,8 @@ Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:185` · mode: `run`
 /// # Safety
 ///
 /// `pointer.add(count)` must remain in-bounds or one-past the same allocation.
+/// The byte offset must fit in `isize`; the address calculation must not wrap.
+/// For a nonzero byte offset, the full traversed range must lie in that allocation.
 unsafe fn advance<T>(pointer: *const T, count: usize) -> *const T {
     // SAFETY: guaranteed by the caller contract above.
     unsafe { pointer.add(count) }
@@ -14781,9 +15100,9 @@ unsafe fn advance<T>(pointer: *const T, count: usize) -> *const T {
 fn main() {}
 ```
 
-### `ch44-b006` — 44.10 Unsafe traits: obligación de implementer
+### `ch44-b006` — 44.10 `unsafe trait`: obligación de quien lo implementa
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:207` · mode: `run`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:212` · mode: `run`
 
 ```rust
 /// Exposes one contiguous region readable for the lifetime of `&self`.
@@ -14792,6 +15111,8 @@ Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:207` · mode: `run`
 ///
 /// The pointer-length pair must be non-null, initialized, contained in one
 /// live allocation and free from conflicting mutation while `self` is borrowed.
+/// The length must not exceed `isize::MAX`; adding it to the address must not wrap.
+/// These requirements apply to empty regions too; alignment for `u8` is one.
 unsafe trait ContiguousBytes {
     fn raw_parts(&self) -> (*const u8, usize);
 }
@@ -14804,14 +15125,14 @@ unsafe impl<const N: usize> ContiguousBytes for [u8; N] {
 }
 ```
 
-### `ch44-b007` — 44.11 Extern blocks y atributos unsafe en Rust 2024
+### `ch44-b007` — 44.11 Bloques externos y atributos `unsafe` en Rust 2024
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:234` · mode: `run`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:241` · mode: `run`
 
 ```rust
 unsafe extern "C" {
-    // Safe only if the linked symbol really accepts every i32 value this way.
-    pub safe fn abs(input: i32) -> i32;
+    // Safe only if the linked symbol really accepts every f64 value this way.
+    pub safe fn sqrt(input: f64) -> f64;
 
     // The caller must provide a valid NUL-terminated string pointer.
     pub unsafe fn strlen(pointer: *const std::ffi::c_char) -> usize;
@@ -14820,9 +15141,9 @@ unsafe extern "C" {
 fn main() {}
 ```
 
-### `ch44-b008` — 44.11 Extern blocks y atributos unsafe en Rust 2024
+### `ch44-b008` — 44.11 Bloques externos y atributos `unsafe` en Rust 2024
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:248` · mode: `run`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:255` · mode: `run`
 
 ```rust
 // SAFETY: this artifact defines this symbol exactly once with the published C ABI.
@@ -14836,14 +15157,14 @@ fn main() {
 }
 ```
 
-### `ch44-b009` — 44.12 Soundness se juzga desde el caller safe
+### `ch44-b009` — 44.12 La solidez se juzga desde quien usa la API segura
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:266` · mode: `compile_only`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:273` · mode: `compile_only`
 
 ```rust,no_run
 fn forged<'a>() -> &'a i32 {
     let local = 42;
-    // El cast no liga `'a` a `local`: la referencia escapará de su storage.
+    // The cast does not tie `'a` to `local`: the reference escapes its storage.
     unsafe { &*(&raw const local) }
 }
 
@@ -14852,23 +15173,23 @@ fn main() {
 }
 ```
 
-### `ch44-b010` — 44.13 Panic safety, `Drop` y estados temporales
+### `ch44-b010` — 44.13 Seguridad ante panic, `Drop` y estados temporales
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:286` · mode: `run`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:293` · mode: `run`
 
 ```rust
 fn replace_after_successful_build<T, F>(slot: &mut T, build: F)
 where
     F: FnOnce(&T) -> T,
 {
-    let replacement = build(slot); // si hace panic, `slot` sigue intacto
+    let replacement = build(slot); // No replacement is assigned if this call panics.
     *slot = replacement;
 }
 ```
 
 ### `ch44-b011` — 44.16 Herramientas: detectores, no demostraciones
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:344` · mode: `reference`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:351` · mode: `reference`
 
 ```console
 rustup +nightly component add miri
@@ -14877,9 +15198,9 @@ cargo test --release --all-targets --all-features
 cargo clippy --all-targets --all-features -- -D warnings
 ```
 
-### `ch44-b012` — 44.17 Primero busca la alternativa safe
+### `ch44-b012` — 44.17 Primero busca la alternativa segura
 
-Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:369` · mode: `run`
+Source: `44.Safe-Rust-y-responsabilidad-unsafe.md:376` · mode: `run`
 
 ```rust
 fn checked_get<T>(values: &[T], index: usize) -> Option<&T> {
@@ -14908,8 +15229,8 @@ let mut value = 7_i32;
 let read: *const i32 = &raw const value;
 let write: *mut i32 = &raw mut value;
 
-// SAFETY: ambos punteros proceden del mismo `value`, que sigue vivo y
-// alineado; las operaciones están secuenciadas y no hay referencias activas.
+// SAFETY: both pointers come from the same live, aligned `value`; the
+// operations are sequenced and no references are active.
 unsafe {
     assert_eq!(read.read(), 7);
     write.write(8);
@@ -14918,7 +15239,7 @@ unsafe {
 assert_eq!(value, 8);
 ```
 
-### `ch45-b002` — 45.4 `&raw` evita una referencia intermedia
+### `ch45-b002` — 45.4 `&raw` evita crear una referencia intermedia
 
 Source: `45.Punteros-crudos-aliasing-y-provenance.md:59` · mode: `run`
 
@@ -14935,8 +15256,8 @@ let header = Header {
 };
 let pointer = &raw const header.sequence;
 
-// SAFETY: el puntero señala el campo inicializado; `read_unaligned` no exige
-// la alineación natural de `u32` que una referencia sí exigiría.
+// SAFETY: the pointer targets the initialized field; `read_unaligned` does
+// not require the natural `u32` alignment that a reference would require.
 let sequence = unsafe { pointer.read_unaligned() };
 assert_eq!(sequence, 0x1020_3040);
 ```
@@ -14946,23 +15267,26 @@ assert_eq!(sequence, 0x1020_3040);
 Source: `45.Punteros-crudos-aliasing-y-provenance.md:86` · mode: `compile_only`
 
 ```rust,no_run
+/// # Safety
+/// `pointer` must be non-null, aligned and point to a valid `T` for all of `'a`.
+/// The caller must uphold shared-reference aliasing and lifetime requirements.
 unsafe fn forged_ref<'a, T>(pointer: *const T) -> &'a T {
-    // SAFETY: esta línea solo sería correcta si el contrato externo demostrase
-    // todas las premisas de referencia, incluido el `'a` elegido.
+    // SAFETY: this is correct only if the caller contract proves every
+    // reference requirement, including the chosen `'a`.
     unsafe { &*pointer }
 }
 ```
 
 ### `ch45-b004` — 45.5 Convertir a referencia afirma mucho más
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:98` · mode: `run`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:101` · mode: `run`
 
 ```rust
 fn second<T>(owner: &[T]) -> Option<&T> {
     let pointer = owner.as_ptr();
     (owner.len() > 1).then(|| {
-        // SAFETY: el índice está dentro de `owner` y la referencia devuelta
-        // hereda exactamente su lifetime compartido.
+        // SAFETY: the index is inside `owner`, and the returned reference
+        // inherits exactly its shared lifetime.
         unsafe { &*pointer.add(1) }
     })
 }
@@ -14972,7 +15296,7 @@ assert_eq!(second(&[10, 20, 30]), Some(&20));
 
 ### `ch45-b005` — 45.6 Qué garantiza —y qué no— `NonNull<T>`
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:126` · mode: `run`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:130` · mode: `run`
 
 ```rust
 use std::mem::align_of;
@@ -14982,12 +15306,12 @@ let pointer = NonNull::<u64>::dangling();
 assert_ne!(pointer.as_ptr().addr(), 0);
 assert_eq!(pointer.as_ptr().addr() % align_of::<u64>(), 0);
 
-// No se dereferencia: non-null + alineado no implica memoria accesible.
+// Do not dereference it: being non-null and aligned does not make it accessible.
 ```
 
 ### `ch45-b006` — 45.8 Referencias compartidas y `UnsafeCell<T>`
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:160` · mode: `compile_only`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:164` · mode: `compile_only`
 
 ```rust,no_run
 #![allow(invalid_reference_casting)]
@@ -14996,14 +15320,14 @@ let value = 1_i32;
 let shared = &value;
 let raw = shared as *const i32 as *mut i32;
 
-// UB: la escritura contradice la referencia compartida activa.
+// UB: this write violates the active shared reference's guarantee.
 unsafe { raw.write(2) };
 println!("{shared}");
 ```
 
 ### `ch45-b007` — 45.8 Referencias compartidas y `UnsafeCell<T>`
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:179` · mode: `run`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:183` · mode: `run`
 
 ```rust
 use std::cell::UnsafeCell;
@@ -15011,24 +15335,25 @@ use std::cell::UnsafeCell;
 struct LocalCounter(UnsafeCell<u64>);
 
 impl LocalCounter {
-    fn increment(&self) -> u64 {
+    fn increment(&self) -> Option<u64> {
         let pointer = self.0.get();
-        // SAFETY: UnsafeCell permite la mutación compartida; el tipo no es Sync
-        // y el método no llama código reentrante mientras modifica el valor.
+        // SAFETY: UnsafeCell permits shared mutation; the type is not Sync,
+        // and the method calls no reentrant code while changing the value.
         unsafe {
-            *pointer += 1;
-            *pointer
+            let next = (*pointer).checked_add(1)?;
+            *pointer = next;
+            Some(next)
         }
     }
 }
 
 let counter = LocalCounter(UnsafeCell::new(41));
-assert_eq!(counter.increment(), 42);
+assert_eq!(counter.increment(), Some(42));
 ```
 
-### `ch45-b008` — 45.9 Exclusividad, derivación y reborrowing
+### `ch45-b008` — 45.9 Exclusividad, derivación y nuevos préstamos
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:206` · mode: `run`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:211` · mode: `run`
 
 ```rust
 use std::ptr;
@@ -15039,8 +15364,8 @@ fn swap_disjoint<T>(values: &mut [T], left: usize, right: usize) -> bool {
     }
 
     let base = values.as_mut_ptr();
-    // SAFETY: ambos índices pertenecen a la misma slice y son distintos; el
-    // préstamo `&mut [T]` impide accesos externos durante la operación.
+    // SAFETY: both indices belong to the same slice and are distinct; the
+    // `&mut [T]` borrow prevents outside access during this operation.
     unsafe { ptr::swap(base.add(left), base.add(right)) };
     true
 }
@@ -15050,27 +15375,28 @@ assert!(swap_disjoint(&mut values, 0, 2));
 assert_eq!(values, ["c", "b", "a"]);
 ```
 
-### `ch45-b009` — 45.10 Aritmética: dirección alcanzada y camino permitido
+### `ch45-b009` — 45.10 Aritmética: no basta con llegar a la dirección correcta
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:237` · mode: `run`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:242` · mode: `run`
 
 ```rust
 let values = [10_u32, 20, 30];
 let begin = values.as_ptr();
 
-// SAFETY: dos elementos están dentro de la misma array viva.
+// SAFETY: two elements are inside the same live array.
 let third = unsafe { begin.add(2) };
-// SAFETY: `third` señala un `u32` inicializado y compartidamente legible.
+// SAFETY: `third` points to an initialized, shared-readable `u32`.
 assert_eq!(unsafe { third.read() }, 30);
 
-// SAFETY: one-past puede calcularse, pero no leerse.
+// SAFETY: the one-past pointer may be computed but not read.
 let end = unsafe { begin.add(values.len()) };
+// SAFETY: advancing one element from `third` reaches the same one-past pointer.
 assert_eq!(end, unsafe { third.add(1) });
 ```
 
-### `ch45-b010` — 45.13 Tagged pointers sin perder provenance
+### `ch45-b010` — 45.13 Punteros etiquetados sin perder la procedencia
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:281` · mode: `run`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:287` · mode: `run`
 
 ```rust
 #[repr(align(2))]
@@ -15083,14 +15409,14 @@ let tagged = base.map_addr(|address| address | 1);
 assert_eq!(tagged.addr() & 1, 1);
 let restored = tagged.map_addr(|address| address & !1);
 
-// SAFETY: se recuperó exactamente la dirección de `value`; `map_addr`
-// conservó su provenance y `value` sigue prestado compartidamente.
+// SAFETY: this restores the exact address of `value`; `map_addr` kept its
+// provenance, and `value` remains borrowed for shared access.
 assert_eq!(unsafe { (*restored).0 }, 42);
 ```
 
-### `ch45-b011` — 45.16 Copias, solapamiento y ownership lógico
+### `ch45-b011` — 45.16 Copias, solapamiento y propiedad lógica
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:330` · mode: `run`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:336` · mode: `run`
 
 ```rust
 use std::ops::Range;
@@ -15113,8 +15439,8 @@ fn copy_within_raw<T: Copy>(
     }
 
     let base = values.as_mut_ptr();
-    // SAFETY: ambos rangos están dentro de la slice; `copy` admite overlap y
-    // `T: Copy` permite usar tanto las copias de origen como las de destino.
+    // SAFETY: both ranges are inside the slice; `copy` permits overlap, and
+    // `T: Copy` allows both source and destination copies to remain usable.
     unsafe { ptr::copy(base.add(source.start), base.add(destination), count) };
     true
 }
@@ -15126,7 +15452,7 @@ assert_eq!(values, [1, 1, 2, 3, 4]);
 
 ### `ch45-b012` — 45.17 Miri: detector potente, no especificación final
 
-Source: `45.Punteros-crudos-aliasing-y-provenance.md:370` · mode: `reference`
+Source: `45.Punteros-crudos-aliasing-y-provenance.md:376` · mode: `reference`
 
 ```console
 rustup +nightly component add miri
@@ -15135,7 +15461,7 @@ cargo +nightly miri test
 
 ## 46.Layout-alignment-padding-y-repr
 
-### `ch46-b001` — 46.2 Tamaño, alineación y offsets
+### `ch46-b001` — 46.2 Tamaño, alineación y desplazamientos
 
 Source: `46.Layout-alignment-padding-y-repr.md:26` · mode: `run`
 
@@ -15167,7 +15493,7 @@ assert!(offset_of!(Header, payload_length) < offset_of!(Header, version));
 assert_eq!(size_of::<Header>() % align_of::<Header>(), 0);
 ```
 
-### `ch46-b003` — 46.5 Cómo se calcula un struct `repr(C)`
+### `ch46-b003` — 46.5 Cómo se calcula una estructura `repr(C)`
 
 Source: `46.Layout-alignment-padding-y-repr.md:83` · mode: `run`
 
@@ -15179,7 +15505,7 @@ pub struct Point {
 }
 ```
 
-### `ch46-b004` — 46.8 `repr(transparent)`: misma representación, invariantes distintas
+### `ch46-b004` — 46.8 `repr(transparent)`: misma disposición, invariantes distintas
 
 Source: `46.Layout-alignment-padding-y-repr.md:128` · mode: `run`
 
@@ -15203,7 +15529,7 @@ assert_eq!(Percentage::new(75).map(Percentage::get), Some(75));
 assert_eq!(Percentage::new(101), None);
 ```
 
-### `ch46-b005` — 46.9 Enums sin payload y entradas externas
+### `ch46-b005` — 46.9 Enums sin datos asociados y entradas externas
 
 Source: `46.Layout-alignment-padding-y-repr.md:156` · mode: `run`
 
@@ -15231,7 +15557,7 @@ assert_eq!(RecordTag::try_from(2), Ok(RecordTag::Order));
 assert_eq!(RecordTag::try_from(99), Err(99));
 ```
 
-### `ch46-b006` — 46.10 Enums con payload son tagged unions
+### `ch46-b006` — 46.10 Las enums con datos son uniones etiquetadas
 
 Source: `46.Layout-alignment-padding-y-repr.md:193` · mode: `run`
 
@@ -15250,7 +15576,7 @@ let event = Event::Finished {
 assert!(std::mem::size_of_val(&event) >= std::mem::size_of::<u32>());
 ```
 
-### `ch46-b007` — 46.11 Niches: depender solo de garantías publicadas
+### `ch46-b007` — 46.11 Nichos de representación: solo garantías publicadas
 
 Source: `46.Layout-alignment-padding-y-repr.md:218` · mode: `run`
 
@@ -15268,7 +15594,7 @@ assert_eq!(
 );
 ```
 
-### `ch46-b008` — 46.12 `repr(packed)` reduce alineación, no obligaciones
+### `ch46-b008` — 46.12 `repr(packed)` reduce la alineación, no las obligaciones
 
 Source: `46.Layout-alignment-padding-y-repr.md:240` · mode: `run`
 
@@ -15285,13 +15611,13 @@ let packet = Packet {
 };
 let pointer = &raw const packet.payload_length;
 
-// SAFETY: el campo está inicializado dentro de `packet`; el raw borrow evita
-// crear `&u32` y `read_unaligned` admite la alineación reducida.
+// SAFETY: the field is initialized inside `packet`; the raw borrow avoids
+// creating `&u32`, and `read_unaligned` accepts the reduced alignment.
 let length = unsafe { pointer.read_unaligned() };
 assert_eq!(length, 42);
 ```
 
-### `ch46-b009` — 46.13 `repr(align(N))` eleva el requisito
+### `ch46-b009` — 46.13 `repr(align(N))` eleva la alineación exigida
 
 Source: `46.Layout-alignment-padding-y-repr.md:265` · mode: `run`
 
@@ -15319,7 +15645,7 @@ assert_eq!(align_of::<()>(), 1);
 assert_eq!(size_of::<[(); 1_000]>(), 0);
 ```
 
-### `ch46-b011` — 46.15 Un formato binario se codifica explícitamente
+### `ch46-b011` — 46.15 Los formatos binarios se codifican de forma explícita
 
 Source: `46.Layout-alignment-padding-y-repr.md:299` · mode: `run`
 
@@ -15341,7 +15667,7 @@ assert_eq!(
 );
 ```
 
-### `ch46-b012` — 46.16 Assertions de layout y matriz de targets
+### `ch46-b012` — 46.16 Comprobaciones de disposición en cada plataforma
 
 Source: `46.Layout-alignment-padding-y-repr.md:323` · mode: `run`
 
@@ -15378,8 +15704,8 @@ unsafe extern "C" {
 Source: `47.FFI-y-fronteras-con-C.md:46` · mode: `run`
 
 ```rust
-// SAFETY: la biblioteca publica una única definición de este símbolo y su
-// header declara exactamente `uint32_t course_abi_version(void)`.
+// SAFETY: the library publishes a single definition of this symbol, and its
+// header declares exactly `uint32_t course_abi_version(void)`.
 #[unsafe(no_mangle)]
 pub extern "C" fn course_abi_version() -> u32 {
     1
@@ -15388,44 +15714,46 @@ pub extern "C" fn course_abi_version() -> u32 {
 assert_eq!(course_abi_version(), 1);
 ```
 
-### `ch47-b003` — 47.4 Cuatro capas, una sola zona raw
+### `ch47-b003` — 47.4 Cuatro capas y una sola zona de bajo nivel
 
 Source: `47.FFI-y-fronteras-con-C.md:63` · mode: `reference`
 
 ```text
-bindings raw: símbolos, ABI y constantes
+declaraciones externas: símbolos, ABI y constantes
         ↓
-wrapper de ownership: handles, Drop, strings, errores
+envoltorio de recursos: manejadores, Drop, cadenas y errores
         ↓
-API safe: préstamos, Result, tipos de dominio
+API segura: préstamos, Result y tipos del dominio
         ↓
-aplicación: sin raw pointers ni códigos C
+aplicación: sin punteros crudos ni códigos de C
 ```
 
-### `ch47-b004` — 47.6 C strings: bytes primero, UTF-8 después
+### `ch47-b004` — 47.6 Cadenas de C: bytes primero, UTF-8 después
 
 Source: `47.FFI-y-fronteras-con-C.md:105` · mode: `run`
 
 ```rust
 use std::ffi::{CStr, c_char};
 
+/// # Safety
+/// `pointer` must satisfy `CStr::from_ptr` for the duration of this call.
 unsafe fn raw_strlen(pointer: *const c_char) -> usize {
-    // SAFETY: esta función privada delega las premisas a su caller.
+    // SAFETY: this private function delegates the requirements to its caller.
     unsafe { CStr::from_ptr(pointer) }.to_bytes().len()
 }
 
 fn c_length(text: &CStr) -> usize {
-    // SAFETY: `text` aporta región viva, non-null y terminada en NUL; la
-    // función simulada no conserva el puntero tras retornar.
+    // SAFETY: `text` provides a live, non-null, NUL-terminated region; the
+    // simulated function does not retain the pointer after returning.
     unsafe { raw_strlen(text.as_ptr()) }
 }
 
 assert_eq!(c_length(c"Rust"), 4);
 ```
 
-### `ch47-b005` — 47.8 Puntero + longitud + parámetro de salida
+### `ch47-b005` — 47.8 Puntero, longitud y parámetro de salida
 
-Source: `47.FFI-y-fronteras-con-C.md:145` · mode: `run`
+Source: `47.FFI-y-fronteras-con-C.md:147` · mode: `run`
 
 ```rust
 use std::ffi::c_int;
@@ -15437,9 +15765,15 @@ const OVERFLOW: c_int = -3;
 
 /// # Safety
 ///
-/// `output` debe ser escribible como `u64`. Si `len > 0`, `values` describe
-/// `len` elementos inicializados dentro de una allocation viva y disjunta.
-unsafe extern "C" fn sum_u32(
+/// Null pointers are handled as documented error or empty-input cases.
+/// A non-null `output` must be aligned, writable as a `u64`, and not accessed
+/// elsewhere during this call. If both pointers are non-null and `len > 0`,
+/// `values` must be aligned and readable for `len` initialized `u32` elements
+/// in one live allocation, disjoint from `output` and not modified during
+/// this call. The byte size must fit in `isize::MAX`, without address wrap.
+// SAFETY: this example owns the unique symbol `rust_a_fondo_sum_u32_v1`.
+#[unsafe(export_name = "rust_a_fondo_sum_u32_v1")]
+pub unsafe extern "C" fn sum_u32(
     values: *const u32,
     len: usize,
     output: *mut u64,
@@ -15453,7 +15787,8 @@ unsafe extern "C" fn sum_u32(
         if values.is_null() {
             return NULL_INPUT;
         }
-        // SAFETY: el contrato público aporta rango, init, vida y aliasing.
+        // SAFETY: the public contract provides range, initialization,
+        // lifetime, and aliasing guarantees.
         unsafe { std::slice::from_raw_parts(values, len) }
     };
     let Some(sum) = values
@@ -15462,21 +15797,21 @@ unsafe extern "C" fn sum_u32(
     else {
         return OVERFLOW;
     };
-    // SAFETY: `output` es escribible y el input ya se consumió.
+    // SAFETY: `output` is writable, and the input has already been consumed.
     unsafe { output.write(sum) };
     OK
 }
 
 let values = [10_u32, 20, 12];
 let mut output = 0_u64;
-// SAFETY: input y output son regiones vivas, alineadas y disjuntas.
+// SAFETY: input and output are live, aligned, disjoint regions.
 assert_eq!(unsafe { sum_u32(values.as_ptr(), 3, &mut output) }, OK);
 assert_eq!(output, 42);
 ```
 
-### `ch47-b006` — 47.10 Handle opaco RAII
+### `ch47-b006` — 47.10 Manejador opaco con RAII
 
-Source: `47.FFI-y-fronteras-con-C.md:215` · mode: `reference`
+Source: `47.FFI-y-fronteras-con-C.md:226` · mode: `reference`
 
 ```text
 buffer_create(...) -> BufferHandle*   // null + código al fallar
@@ -15486,7 +15821,7 @@ buffer_data(const BufferHandle*, ...)
 
 ### `ch47-b007` — 47.12 Códigos, null, `errno` y valores desconocidos
 
-Source: `47.FFI-y-fronteras-con-C.md:244` · mode: `run`
+Source: `47.FFI-y-fronteras-con-C.md:255` · mode: `run`
 
 ```rust
 use std::ffi::c_int;
@@ -15509,9 +15844,9 @@ fn decode_status(code: c_int) -> Status {
 assert_eq!(decode_status(91), Status::Unknown(91));
 ```
 
-### `ch47-b008` — 47.13 Callbacks: function pointer + contexto
+### `ch47-b008` — 47.13 Callbacks: puntero a función y contexto
 
-Source: `47.FFI-y-fronteras-con-C.md:273` · mode: `run`
+Source: `47.FFI-y-fronteras-con-C.md:284` · mode: `run`
 
 ```rust
 use std::ffi::{c_int, c_void};
@@ -15529,9 +15864,9 @@ type Callback = unsafe extern "C" fn(
 let _type_check: Option<Callback> = None;
 ```
 
-### `ch47-b009` — 47.16 Panic, unwind y el payload capturado
+### `ch47-b009` — 47.16 Qué hacer con los panics al llamar a C
 
-Source: `47.FFI-y-fronteras-con-C.md:336` · mode: `compile_only`
+Source: `47.FFI-y-fronteras-con-C.md:349` · mode: `compile_only`
 
 ```rust,no_run
 use std::ffi::c_int;
@@ -15546,7 +15881,7 @@ where
     match catch_unwind(operation) {
         Ok(code) => code,
         Err(payload) => {
-            // Evita que un payload hostil vuelva a hacer panic en Drop.
+            // A hostile payload could panic again from its Drop implementation.
             std::mem::forget(payload);
             PANIC
         }
@@ -15559,7 +15894,7 @@ assert_eq!(ffi_firewall(|| panic!("boom")), PANIC);
 
 ### `ch47-b010` — 47.18 Versionar una ABI C
 
-Source: `47.FFI-y-fronteras-con-C.md:397` · mode: `compile_only`
+Source: `47.FFI-y-fronteras-con-C.md:412` · mode: `compile_only`
 
 ```rust,no_run
 use std::ffi::c_void;
@@ -15583,7 +15918,7 @@ assert_eq!(api.abi_version, 1);
 
 ## 48.Lectura-guiada-del-Rustonomicon
 
-### `ch48-b001` — 48.4 Caso guía: el estado completo de un buffer raw
+### `ch48-b001` — 48.4 Caso guía: el estado completo de un búfer de bajo nivel
 
 Source: `48.Lectura-guiada-del-Rustonomicon.md:64` · mode: `reference`
 
@@ -15597,8 +15932,8 @@ Source: `48.Lectura-guiada-del-Rustonomicon.md:91` · mode: `reference`
 
 ```text
 1. producir T                 ← puede devolver error o hacer panic
-2. escribir T en el slot k   ← el slot pasa a ser válido
-3. incrementar initialized   ← el guard ya puede destruirlo
+2. escribir T en la posición k   ← la posición pasa a ser válida
+3. incrementar initialized   ← el objeto de guarda ya puede destruirlo
 ```
 
 ### `ch48-b003` — 48.6 `MaybeUninit<T>` representa «todavía no es T»
@@ -15612,14 +15947,14 @@ let mut slot = MaybeUninit::<String>::uninit();
 let initialized: &mut String = slot.write(String::from("ready"));
 initialized.push('!');
 
-// SAFETY: `write` produjo un String válido y no se ha movido ni destruido.
+// SAFETY: `write` produced a valid String that has not been moved or dropped.
 let value = unsafe { slot.assume_init() };
 assert_eq!(value, "ready!");
 ```
 
-### `ch48-b004` — 48.11 Variance se demuestra con coerciones pequeñas
+### `ch48-b004` — 48.11 La varianza se observa con coerciones pequeñas
 
-Source: `48.Lectura-guiada-del-Rustonomicon.md:196` · mode: `run`
+Source: `48.Lectura-guiada-del-Rustonomicon.md:198` · mode: `run`
 
 ```rust
 use std::marker::PhantomData;
@@ -15634,25 +15969,27 @@ let long = Reader::<'static, String>(PhantomData);
 let _short = shorten(long);
 ```
 
-### `ch48-b005` — 48.11 Variance se demuestra con coerciones pequeñas
+### `ch48-b005` — 48.11 La varianza se observa con coerciones pequeñas
 
-Source: `48.Lectura-guiada-del-Rustonomicon.md:211` · mode: `compile_fail`
+Source: `48.Lectura-guiada-del-Rustonomicon.md:213` · mode: `compile_fail`
 
 ```rust,compile_fail
 use std::marker::PhantomData;
 
 struct Writer<'a, T>(PhantomData<&'a mut T>);
 
-fn invent_static<'short>(writer: Writer<'_, &'short str>) -> Writer<'_, &'static str> {
+fn shorten_element<'a, 'short: 'a>(
+    writer: Writer<'a, &'static str>,
+) -> Writer<'a, &'short str> {
     writer
 }
 
 fn main() {}
 ```
 
-### `ch48-b006` — 48.12 `Send` y `Sync`: prueba de operaciones, no de campos
+### `ch48-b006` — 48.12 `Send` y `Sync`: se justifican las operaciones, no los campos
 
-Source: `48.Lectura-guiada-del-Rustonomicon.md:229` · mode: `run`
+Source: `48.Lectura-guiada-del-Rustonomicon.md:235` · mode: `run`
 
 ```rust
 use std::marker::PhantomData;
@@ -15663,9 +16000,9 @@ struct RawOwner<T> {
     owns: PhantomData<T>,
 }
 
-// SAFETY: la prueba completa debe justificar ownership único, accesos y Drop.
+// SAFETY: the complete proof must justify unique ownership, access, and Drop.
 unsafe impl<T: Send> Send for RawOwner<T> {}
-// SAFETY: desde &RawOwner<T> solo debe poder obtenerse &T.
+// SAFETY: only shared &T references may be obtained from &RawOwner<T>.
 unsafe impl<T: Sync> Sync for RawOwner<T> {}
 
 fn main() {}
@@ -15673,7 +16010,7 @@ fn main() {}
 
 ### `ch48-b007` — 48.14 `transmute` como pregunta de cinco partes
 
-Source: `48.Lectura-guiada-del-Rustonomicon.md:293` · mode: `run`
+Source: `48.Lectura-guiada-del-Rustonomicon.md:301` · mode: `run`
 
 ```rust
 let bytes = [0x78, 0x56, 0x34, 0x12];
@@ -15684,25 +16021,25 @@ assert_eq!("Rust".as_bytes(), b"Rust");
 
 ### `ch48-b008` — 48.18 Laboratorio reproducible
 
-Source: `48.Lectura-guiada-del-Rustonomicon.md:351` · mode: `reference`
+Source: `48.Lectura-guiada-del-Rustonomicon.md:361` · mode: `reference`
 
 ```console
 cargo test --workspace --all-targets --all-features --locked
 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
-cargo +1.85.0 test -p course-solutions --lib unsafe_low_level::c48::tests --all-features
+cargo +1.86.0 test -p course-solutions --lib unsafe_low_level::c48::tests --all-features --locked
 cargo +nightly miri test -p course-solutions --lib unsafe_low_level::c48::tests
 ```
 
 ## 49.Macro-rules-higiene-y-fragmentos
 
-### `ch49-b001` — 49.2 Matcher y transcriber
+### `ch49-b001` — 49.2 Patrón de entrada y plantilla de expansión
 
 Source: `49.Macro-rules-higiene-y-fragmentos.md:34` · mode: `run`
 
 ```rust
 macro_rules! vec_of_strings {
     ($($value:expr),* $(,)?) => {{
-        let mut output = Vec::new();
+        let mut output = ::std::vec::Vec::<String>::new();
         $(output.push($value.to_string());)*
         output
     }};
@@ -15712,7 +16049,7 @@ let names = vec_of_strings!["Ada", String::from("Grace"),];
 assert_eq!(names, ["Ada", "Grace"]);
 ```
 
-### `ch49-b002` — 49.4 Primera coincidencia, sin backtracking posterior
+### `ch49-b002` — 49.4 Primera coincidencia, sin retroceso posterior
 
 Source: `49.Macro-rules-higiene-y-fragmentos.md:61` · mode: `compile_fail`
 
@@ -15723,13 +16060,13 @@ macro_rules! choose {
 }
 
 fn main() {
-    let _ = choose!(1); // coincide con el primer brazo; el segundo no rescata el error
+    let _ = choose!(1); // The first arm matches; the second cannot rescue the error.
 }
 ```
 
-### `ch49-b003` — 49.6 Follow sets: compatibilidad con sintaxis futura
+### `ch49-b003` — 49.6 Conjuntos de continuación y sintaxis futura
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:118` · mode: `compile_fail`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:121` · mode: `compile_fail`
 
 ```rust,compile_fail
 macro_rules! invalid_follow {
@@ -15739,9 +16076,9 @@ macro_rules! invalid_follow {
 fn main() {}
 ```
 
-### `ch49-b004` — 49.7 Repeticiones y cardinalidad
+### `ch49-b004` — 49.7 Repeticiones y número de elementos
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:140` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:143` · mode: `run`
 
 ```rust
 macro_rules! make_newtypes {
@@ -15758,9 +16095,9 @@ assert_eq!(UserId(7).0, 7);
 assert_eq!(OrderId(9).0, 9);
 ```
 
-### `ch49-b005` — 49.8 La expansión debe tener límites estructurales
+### `ch49-b005` — 49.8 Usar un bloque como resultado de la macro
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:161` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:164` · mode: `run`
 
 ```rust
 macro_rules! measured {
@@ -15771,14 +16108,13 @@ macro_rules! measured {
     }};
 }
 
-let (answer, elapsed) = measured!(40 + 2);
+let (answer, _elapsed) = measured!(40 + 2);
 assert_eq!(answer, 42);
-assert!(elapsed <= std::time::Duration::from_secs(1));
 ```
 
-### `ch49-b006` — 49.9 Evaluar una vez también es API
+### `ch49-b006` — 49.9 Cuántas veces se evalúa cada expresión
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:181` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:185` · mode: `run`
 
 ```rust
 use std::cell::Cell;
@@ -15805,7 +16141,7 @@ assert_eq!(calls.get(), 2);
 
 ### `ch49-b007` — 49.10 Higiene mixta
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:215` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:221` · mode: `run`
 
 ```rust
 macro_rules! doubled {
@@ -15822,7 +16158,7 @@ assert_eq!(temporary, 99);
 
 ### `ch49-b008` — 49.11 `$crate`, exportación y privacidad
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:234` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:240` · mode: `run`
 
 ```rust
 #[doc(hidden)]
@@ -15842,27 +16178,27 @@ fn main() {
 }
 ```
 
-### `ch49-b009` — 49.13 Forwarding: los fragmentos son opacos
+### `ch49-b009` — 49.13 Al reenviar, los fragmentos son opacos
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:274` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:280` · mode: `run`
 
 ```rust
 macro_rules! classify {
-    (3) => { "literal tres" };
-    ($value:expr) => { "expresión opaca" };
+    (3) => { "literal three" };
+    ($value:expr) => { "opaque expression" };
 }
 
 macro_rules! forward {
     ($value:expr) => { classify!($value) };
 }
 
-assert_eq!(classify!(3), "literal tres");
-assert_eq!(forward!(3), "expresión opaca");
+assert_eq!(classify!(3), "literal three");
+assert_eq!(forward!(3), "opaque expression");
 ```
 
-### `ch49-b010` — 49.14 TT munchers y ambigüedad local
+### `ch49-b010` — 49.14 Consumidores recursivos de tokens y ambigüedad local
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:294` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:300` · mode: `run`
 
 ```rust
 macro_rules! count_tokens {
@@ -15873,9 +16209,9 @@ macro_rules! count_tokens {
 assert_eq!(count_tokens!(alpha + beta), 3);
 ```
 
-### `ch49-b011` — 49.15 Diagnósticos diseñados
+### `ch49-b011` — 49.15 Mensajes de error útiles
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:316` · mode: `compile_fail`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:322` · mode: `compile_fail`
 
 ```rust,compile_fail
 const fn port_from_literal(value: u16) -> u16 {
@@ -15885,7 +16221,7 @@ const fn port_from_literal(value: u16) -> u16 {
 macro_rules! checked_port {
     ($value:literal) => { port_from_literal($value) };
     ($($other:tt)*) => {
-        compile_error!("checked_port! espera un único literal entero entre 0 y 65535")
+        compile_error!("checked_port! expects one integer literal in 0..=65535")
     };
 }
 
@@ -15895,33 +16231,33 @@ fn main() {
 }
 ```
 
-### `ch49-b012` — 49.16 Editions y `expr_2021`
+### `ch49-b012` — 49.16 Ediciones y `expr_2021`
 
-Source: `49.Macro-rules-higiene-y-fragmentos.md:344` · mode: `run`
+Source: `49.Macro-rules-higiene-y-fragmentos.md:352` · mode: `run`
 
 ```rust
 macro_rules! expression_kind {
-    (const $value:expr) => { "const block" };
+    (const $value:block) => { "const block" };
     (_) => { "placeholder" };
-    ($value:expr_2021) => { "expresión heredada" };
+    ($value:expr_2021) => { "legacy expression" };
 }
 
-assert_eq!(expression_kind!(1 + 2), "expresión heredada");
+assert_eq!(expression_kind!(1 + 2), "legacy expression");
 assert_eq!(expression_kind!(const { 1 + 2 }), "const block");
 assert_eq!(expression_kind!(_), "placeholder");
 ```
 
 ## 50.Procedural-macros-y-derives
 
-### `ch50-b001` — 50.3 Arquitectura host/target sin ciclo
+### `ch50-b001` — 50.3 Arquitectura entre la máquina anfitriona y la plataforma destino
 
 Source: `50.Procedural-macros-y-derives.md:40` · mode: `reference`
 
 ```text
-macro_lab/      crate proc-macro: parsea y genera tokens
-macro_api/      trait Entity + reexport de las tres macros
-macro_fixture/  consumidor externo; renombra macro_api como domain_api
-solutions/      ejercicios y asserts de contrato
+macro_lab/      crate proc-macro: analiza y genera tokens
+macro_api/      trait Entity y reexportación de las tres macros
+macro_fixture/  consumidor externo; importa macro_api como domain_api
+solutions/      ejercicios y comprobaciones del contrato
 ```
 
 ### `ch50-b002` — 50.4 La crate `proc-macro`
@@ -15945,7 +16281,7 @@ quote = "1"
 syn = { version = "2", features = ["full"] }
 ```
 
-### `ch50-b003` — 50.6 Pipeline parsear → validar → modelar → emitir
+### `ch50-b003` — 50.6 Del análisis a la generación
 
 Source: `50.Procedural-macros-y-derives.md:100` · mode: `illustrative`
 
@@ -15963,7 +16299,7 @@ pub fn derive_entity(input: TokenStream) -> TokenStream {
 }
 ```
 
-### `ch50-b004` — 50.7 Un derive añade items
+### `ch50-b004` — 50.7 Un `derive` añade definiciones
 
 Source: `50.Procedural-macros-y-derives.md:120` · mode: `illustrative`
 
@@ -15976,7 +16312,7 @@ struct User {
 }
 ```
 
-### `ch50-b005` — 50.8 Preservar generics no es copiar una cadena
+### `ch50-b005` — 50.8 Conservar los parámetros genéricos no consiste en copiar texto
 
 Source: `50.Procedural-macros-y-derives.md:137` · mode: `run`
 
@@ -16000,15 +16336,15 @@ let wrapper = Wrapper { values: &values };
 assert_eq!(wrapper.values.len(), 1);
 ```
 
-### `ch50-b006` — 50.8 Preservar generics no es copiar una cadena
+### `ch50-b006` — 50.8 Conservar los parámetros genéricos no consiste en copiar texto
 
 Source: `50.Procedural-macros-y-derives.md:159` · mode: `reference`
 
 ```text
-impl <impl_generics> Trait for Name <type_generics> <where_clause>
+impl #impl_generics Trait for #name #type_generics #where_clause { ... }
 ```
 
-### `ch50-b007` — 50.10 Helper attributes como gramática cerrada
+### `ch50-b007` — 50.10 Los atributos auxiliares tienen una gramática cerrada
 
 Source: `50.Procedural-macros-y-derives.md:193` · mode: `illustrative`
 
@@ -16021,24 +16357,24 @@ attribute.parse_nested_meta(|meta| {
         options.crate_path = Some(meta.value()?.parse()?);
         Ok(())
     } else {
-        Err(meta.error("se esperaba `id` o `crate_path`"))
+        Err(meta.error("expected `id` or `crate_path`"))
     }
 })?;
 ```
 
-### `ch50-b008` — 50.11 Diagnósticos y spans son parte del contrato
+### `ch50-b008` — 50.11 Indicar qué falla y dónde
 
 Source: `50.Procedural-macros-y-derives.md:215` · mode: `reference`
 
 ```text
-error: el campo `missing` no existe en esta struct
+error: field `missing` does not exist in this struct
  --> src/lib.rs:4:15
   |
 4 | #[entity(id = "missing")]
   |               ^^^^^^^^^
 ```
 
-### `ch50-b009` — 50.12 Higiene procedural y paths runtime
+### `ch50-b009` — 50.12 Higiene y rutas hacia la crate de API
 
 Source: `50.Procedural-macros-y-derives.md:239` · mode: `parse`
 
@@ -16047,18 +16383,18 @@ Source: `50.Procedural-macros-y-derives.md:239` · mode: `parse`
 domain-api = { package = "course-macro-api", path = "../macro_api" }
 ```
 
-### `ch50-b010` — 50.13 Attribute macros: reemplazo total
+### `ch50-b010` — 50.13 Las macros de atributo reemplazan la definición completa
 
 Source: `50.Procedural-macros-y-derives.md:256` · mode: `illustrative`
 
 ```rust,ignore
 #[proc_macro_attribute]
 pub fn preserve_item(attribute: TokenStream, item: TokenStream) -> TokenStream {
-    // validar attribute, parsear item y devolver el item completo preservado
+    // Validate the attribute, parse the item, and return the complete item.
 }
 ```
 
-### `ch50-b011` — 50.14 Function-like macros: parser antes que DSL ilimitada
+### `ch50-b011` — 50.14 Macros con sintaxis de función: una gramática pequeña y explícita
 
 Source: `50.Procedural-macros-y-derives.md:278` · mode: `illustrative`
 
@@ -16068,7 +16404,7 @@ const FIELDS: &[&str] = course_macro_api::field_names!(id, payload,);
 
 ### `ch50-b012` — 50.20 Laboratorio verificable del libro
 
-Source: `50.Procedural-macros-y-derives.md:372` · mode: `reference`
+Source: `50.Procedural-macros-y-derives.md:377` · mode: `reference`
 
 ```console
 cargo test -p course-macro-fixture --all-targets
@@ -16080,7 +16416,7 @@ cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
 ## 51.Editions-migraciones-y-evolución
 
-### `ch51-b001` — 51.2 Tres ejes que no deben colapsarse
+### `ch51-b001` — 51.2 Edición, herramientas y versión mínima
 
 Source: `51.Editions-migraciones-y-evolución.md:30` · mode: `parse`
 
@@ -16092,19 +16428,19 @@ edition = "2024"
 rust-version = "1.85"
 ```
 
-### `ch51-b002` — 51.3 La frontera de compatibilidad de una edition
+### `ch51-b002` — 51.3 La frontera de compatibilidad de una edición
 
 Source: `51.Editions-migraciones-y-evolución.md:60` · mode: `run`
 
 ```rust
 fn r#gen() -> &'static str {
-    "nombre legado"
+    "legacy name"
 }
 
-assert_eq!(r#gen(), "nombre legado");
+assert_eq!(r#gen(), "legacy name");
 ```
 
-### `ch51-b003` — 51.6 Puerta 1: baseline reproducible
+### `ch51-b003` — 51.6 Primera etapa: un punto de partida reproducible
 
 Source: `51.Editions-migraciones-y-evolución.md:98` · mode: `reference`
 
@@ -16115,7 +16451,7 @@ cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 cargo fmt --all --check
 ```
 
-### `ch51-b004` — 51.7 Puerta 2: lints y `cargo fix --edition`
+### `ch51-b004` — 51.7 Segunda etapa: avisos y `cargo fix --edition`
 
 Source: `51.Editions-migraciones-y-evolución.md:113` · mode: `reference`
 
@@ -16134,14 +16470,14 @@ let values = RefCell::new(Vec::<u8>::new());
 if let Some(value) = values.borrow_mut().pop() {
     assert!(value > 0);
 } else {
-    // En 2024 ya se destruyó el RefMut temporal de la condición.
+    // In Rust 2024, the temporary RefMut from the condition is already gone.
     values.borrow_mut().push(1);
 }
 
 assert_eq!(values.into_inner(), vec![1]);
 ```
 
-### `ch51-b006` — 51.11 Temporales de una tail expression
+### `ch51-b006` — 51.11 Temporales en la expresión final de un bloque
 
 Source: `51.Editions-migraciones-y-evolución.md:181` · mode: `run`
 
@@ -16156,7 +16492,7 @@ fn stored_values() -> usize {
 assert_eq!(stored_values(), 3);
 ```
 
-### `ch51-b007` — 51.12 Match ergonomics más explícitas
+### `ch51-b007` — 51.12 Patrones de referencia más explícitos
 
 Source: `51.Editions-migraciones-y-evolución.md:198` · mode: `run`
 
@@ -16209,20 +16545,24 @@ Source: `51.Editions-migraciones-y-evolución.md:258` · mode: `run`
 ```rust
 #![deny(unsafe_op_in_unsafe_fn)]
 
+/// # Safety
+/// `pointer` must be aligned, readable, and point to a valid initialized T.
+/// No incompatible access, including a concurrent write, may occur during
+/// this read. Copying the value must respect the validity rules of T.
 unsafe fn read_copy<T: Copy>(pointer: *const T) -> T {
-    // SAFETY: el caller garantiza que pointer está alineado, es legible y
-    // apunta a un T inicializado durante toda esta lectura.
+    // SAFETY: The caller guarantees that `pointer` is aligned, readable,
+    // and points to an initialized `T` for the duration of this read.
     unsafe { pointer.read() }
 }
 
 let value = 21_u32;
-// SAFETY: &value produce un puntero válido, alineado e inicializado.
+// SAFETY: `&value` produces a valid, aligned pointer to initialized data.
 assert_eq!(unsafe { read_copy(&value) }, 21);
 ```
 
 ### `ch51-b011` — 51.16 Cargo y `resolver = "3"`
 
-Source: `51.Editions-migraciones-y-evolución.md:280` · mode: `parse`
+Source: `51.Editions-migraciones-y-evolución.md:284` · mode: `parse`
 
 ```toml
 [workspace]
@@ -16236,7 +16576,7 @@ rust-version = "1.85"
 
 ### `ch51-b012` — 51.16 Cargo y `resolver = "3"`
 
-Source: `51.Editions-migraciones-y-evolución.md:292` · mode: `parse`
+Source: `51.Editions-migraciones-y-evolución.md:296` · mode: `parse`
 
 ```toml
 [package]
@@ -16248,7 +16588,7 @@ rust-version.workspace = true
 
 ### `ch51-b013` — 51.18 `rust-toolchain.toml`: reproducibilidad, no MSRV
 
-Source: `51.Editions-migraciones-y-evolución.md:321` · mode: `parse`
+Source: `51.Editions-migraciones-y-evolución.md:325` · mode: `parse`
 
 ```toml
 [toolchain]
@@ -16260,7 +16600,7 @@ targets = ["wasm32-unknown-unknown"]
 
 ## 52.Rustc-MIR-LLVM-y-toolchain
 
-### `ch52-b001` — 52.8 Moves, drops y unwind observables
+### `ch52-b001` — 52.8 Movimientos, destrucciones y rutas de recuperación
 
 Source: `52.Rustc-MIR-LLVM-y-toolchain.md:92` · mode: `run`
 
@@ -16277,13 +16617,13 @@ fn inspect_ticket(ticket: Ticket) -> usize {
 assert_eq!(inspect_ticket(Ticket { label: String::from("MIR") }), 3);
 ```
 
-### `ch52-b002` — 52.10 Queries e invalidación incremental
+### `ch52-b002` — 52.10 Consultas e invalidación incremental
 
 Source: `52.Rustc-MIR-LLVM-y-toolchain.md:123` · mode: `reference`
 
 ```text
-source(api) → HIR(api) → typeck(api) → metadata(crate)
-source(body privado) → MIR(body) → codegen(unit)
+código(api) → HIR(api) → tipos(api) → metadatos(crate)
+código(cuerpo privado) → MIR(cuerpo) → generación(unidad)
 ```
 
 ### `ch52-b003` — 52.11 Monomorfización: de genérico a instancias
@@ -16310,23 +16650,23 @@ assert_eq!(twice(1.5_f64), 3.0);
 Source: `52.Rustc-MIR-LLVM-y-toolchain.md:196` · mode: `reference`
 
 ```text
-rustc --edition=2024 --crate-type=lib --emit=mir,llvm-ir,asm code/compiler_lab/pipeline.rs
-rustc --edition=2024 -C opt-level=3 --crate-type=lib --emit=asm code/compiler_lab/pipeline.rs
+rustc --edition=2024 --crate-name c52_debug --crate-type=lib --emit=mir,llvm-ir,asm code/compiler_lab/pipeline.rs
+rustc --edition=2024 --crate-name c52_optimized -C opt-level=3 --crate-type=lib --emit=asm code/compiler_lab/pipeline.rs
 ```
 
-### `ch52-b005` — 52.18 Timings: buscar camino crítico, no la crate más grande
+### `ch52-b005` — 52.18 Tiempos de compilación: buscar el camino crítico
 
-Source: `52.Rustc-MIR-LLVM-y-toolchain.md:243` · mode: `reference`
+Source: `52.Rustc-MIR-LLVM-y-toolchain.md:247` · mode: `reference`
 
 ```text
-cargo clean
-cargo build --workspace --timings
-cargo build --workspace --timings
+cargo clean --target-dir target/c52-timings
+cargo build --workspace --timings --target-dir target/c52-timings --locked
+cargo build --workspace --timings --target-dir target/c52-timings --locked
 ```
 
-### `ch52-b006` — 52.20 Profiles: hipótesis que se miden
+### `ch52-b006` — 52.20 Perfiles: hipótesis que deben medirse
 
-Source: `52.Rustc-MIR-LLVM-y-toolchain.md:280` · mode: `parse`
+Source: `52.Rustc-MIR-LLVM-y-toolchain.md:284` · mode: `parse`
 
 ```toml
 [profile.release-observable]
@@ -16337,29 +16677,30 @@ codegen-units = 1
 incremental = false
 ```
 
-### `ch52-b007` — 52.21 Inspeccionar el build que Cargo realmente pidió
+### `ch52-b007` — 52.21 Inspeccionar la compilación que Cargo solicitó
 
-Source: `52.Rustc-MIR-LLVM-y-toolchain.md:297` · mode: `reference`
+Source: `52.Rustc-MIR-LLVM-y-toolchain.md:301` · mode: `reference`
 
 ```text
 cargo metadata --format-version 1
-cargo tree --edges all --duplicates
+cargo tree --duplicates
+cargo tree --edges features
 cargo build -vv
 cargo rustc --lib -- --emit=mir
 ```
 
-### `ch52-b008` — 52.25 Cross-compilation completa
+### `ch52-b008` — 52.25 Una compilación cruzada completa
 
-Source: `52.Rustc-MIR-LLVM-y-toolchain.md:347` · mode: `reference`
+Source: `52.Rustc-MIR-LLVM-y-toolchain.md:352` · mode: `reference`
 
 ```text
 rustup target add aarch64-unknown-linux-gnu
 cargo build --target aarch64-unknown-linux-gnu
 ```
 
-### `ch52-b009` — 52.25 Cross-compilation completa
+### `ch52-b009` — 52.25 Una compilación cruzada completa
 
-Source: `52.Rustc-MIR-LLVM-y-toolchain.md:364` · mode: `parse`
+Source: `52.Rustc-MIR-LLVM-y-toolchain.md:369` · mode: `parse`
 
 ```toml
 [target.aarch64-unknown-linux-gnu]
@@ -16369,7 +16710,7 @@ runner = "qemu-aarch64"
 
 ## 53.Diseño-de-librerías-idiomáticas
 
-### `ch53-b001` — 53.1 Diseñar una promesa, no una colección de módulos
+### `ch53-b001` — 53.1 Empezar por cómo se usará la biblioteca
 
 Source: `53.Diseño-de-librerías-idiomáticas.md:9` · mode: `illustrative`
 
@@ -16410,7 +16751,7 @@ fn main() {
 }
 ```
 
-### `ch53-b003` — 53.6 Invariantes en constructores y newtypes
+### `ch53-b003` — 53.6 Invariantes en constructores y tipos envoltorio
 
 Source: `53.Diseño-de-librerías-idiomáticas.md:108` · mode: `run`
 
@@ -16448,9 +16789,9 @@ fn main() {
 }
 ```
 
-### `ch53-b004` — 53.7 Ownership y coste visibles
+### `ch53-b004` — 53.7 Propiedad y coste visibles
 
-Source: `53.Diseño-de-librerías-idiomáticas.md:146` · mode: `illustrative`
+Source: `53.Diseño-de-librerías-idiomáticas.md:150` · mode: `illustrative`
 
 ```rust,ignore
 impl Document {
@@ -16460,34 +16801,42 @@ impl Document {
 }
 ```
 
-### `ch53-b005` — 53.8 Bounds mínimos en el lugar mínimo
+### `ch53-b005` — 53.8 La restricción mínima en el lugar adecuado
 
-Source: `53.Diseño-de-librerías-idiomáticas.md:171` · mode: `run`
+Source: `53.Diseño-de-librerías-idiomáticas.md:175` · mode: `run`
 
 ```rust
 use std::fmt::Display;
+use std::rc::Rc;
 
 pub fn labels<T: Display>(items: &[T]) -> Vec<String> {
     items.iter().map(ToString::to_string).collect()
 }
 
-struct DisplayOnly(u8);
+struct DisplayOnly<'a> {
+    label: &'a str,
+    _not_send_or_sync: Rc<()>,
+}
 
-impl Display for DisplayOnly {
+impl Display for DisplayOnly<'_> {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(formatter, "item-{}", self.0)
+        formatter.write_str(self.label)
     }
 }
 
 fn main() {
-    let values = [DisplayOnly(7)];
+    let label = String::from("item-7");
+    let values = [DisplayOnly {
+        label: &label,
+        _not_send_or_sync: Rc::new(()),
+    }];
     assert_eq!(labels(&values), ["item-7"]);
 }
 ```
 
-### `ch53-b006` — 53.10 Errores para que el caller decida
+### `ch53-b006` — 53.10 Errores que permiten decidir a quien llama
 
-Source: `53.Diseño-de-librerías-idiomáticas.md:208` · mode: `run`
+Source: `53.Diseño-de-librerías-idiomáticas.md:220` · mode: `run`
 
 ```rust
 use std::error::Error;
@@ -16504,9 +16853,9 @@ pub enum LoadError {
 impl fmt::Display for LoadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::NotFound { key } => write!(f, "no existe {key}"),
-            Self::InvalidFormat { line } => write!(f, "formato inválido en línea {line}"),
-            Self::Backend { .. } => f.write_str("falló el backend"),
+            Self::NotFound { key } => write!(f, "key not found: {key}"),
+            Self::InvalidFormat { line } => write!(f, "invalid format at line {line}"),
+            Self::Backend { .. } => f.write_str("storage backend failed"),
         }
     }
 }
@@ -16526,9 +16875,9 @@ fn main() {
 }
 ```
 
-### `ch53-b007` — 53.15 Features aditivas y unificación
+### `ch53-b007` — 53.15 Características aditivas y unificación
 
-Source: `53.Diseño-de-librerías-idiomáticas.md:296` · mode: `parse`
+Source: `53.Diseño-de-librerías-idiomáticas.md:308` · mode: `parse`
 
 ```toml
 [features]
@@ -16543,7 +16892,7 @@ tokio = { version = "1", optional = true }
 
 ### `ch53-b008` — 53.17 `no_std`: separar `core`, `alloc` y `std`
 
-Source: `53.Diseño-de-librerías-idiomáticas.md:333` · mode: `illustrative`
+Source: `53.Diseño-de-librerías-idiomáticas.md:345` · mode: `illustrative`
 
 ```rust,ignore
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -16552,9 +16901,9 @@ Source: `53.Diseño-de-librerías-idiomáticas.md:333` · mode: `illustrative`
 extern crate alloc;
 ```
 
-### `ch53-b009` — 53.23 MSRV, edition y dependencias públicas
+### `ch53-b009` — 53.23 MSRV, edición y dependencias públicas
 
-Source: `53.Diseño-de-librerías-idiomáticas.md:413` · mode: `parse`
+Source: `53.Diseño-de-librerías-idiomáticas.md:425` · mode: `parse`
 
 ```toml
 [package]
@@ -16564,7 +16913,7 @@ rust-version = "1.85"
 
 ### `ch53-b010` — 53.25 Empaquetar antes de publicar
 
-Source: `53.Diseño-de-librerías-idiomáticas.md:445` · mode: `reference`
+Source: `53.Diseño-de-librerías-idiomáticas.md:459` · mode: `reference`
 
 ```text
 cargo fmt --all --check
@@ -16579,7 +16928,7 @@ cargo publish --dry-run
 
 ### `ch54-b001` — 54.6 Caso inicial: válido, pero con contratos mezclados
 
-Source: `54.Refactorización-hacia-código-excelente.md:72` · mode: `run`
+Source: `54.Refactorización-hacia-código-excelente.md:74` · mode: `run`
 
 ```rust
 fn create_user(
@@ -16608,13 +16957,16 @@ fn main() {
 }
 ```
 
-### `ch54-b002` — 54.7 Primer corte: nombres e invariantes
+### `ch54-b002` — 54.7 Primer paso: nombres e invariantes
 
-Source: `54.Refactorización-hacia-código-excelente.md:103` · mode: `run`
+Source: `54.Refactorización-hacia-código-excelente.md:105` · mode: `run`
 
 ```rust
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct Email(String);
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct EmailError;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Role {
@@ -16629,11 +16981,11 @@ struct User {
 }
 
 impl Email {
-    fn parse(value: String) -> Result<Self, String> {
+    fn parse(value: String) -> Result<Self, EmailError> {
         value
             .contains('@')
             .then_some(Self(value))
-            .ok_or_else(|| "invalid email".to_owned())
+            .ok_or(EmailError)
     }
 }
 
@@ -16646,9 +16998,9 @@ fn main() {
 }
 ```
 
-### `ch54-b003` — 54.8 Segundo corte: errores que conservan causalidad
+### `ch54-b003` — 54.8 Segundo paso: conservar la causa de los errores
 
-Source: `54.Refactorización-hacia-código-excelente.md:143` · mode: `illustrative`
+Source: `54.Refactorización-hacia-código-excelente.md:148` · mode: `illustrative`
 
 ```rust,ignore
 #[derive(Debug)]
@@ -16661,7 +17013,7 @@ enum CreateUserError {
 
 ### `ch54-b004` — 54.9 Separar decisión de efecto
 
-Source: `54.Refactorización-hacia-código-excelente.md:167` · mode: `illustrative`
+Source: `54.Refactorización-hacia-código-excelente.md:172` · mode: `illustrative`
 
 ```rust,ignore
 fn prepare_user(email: String, role: Role) -> Result<User, EmailError> {
@@ -16684,7 +17036,7 @@ fn register(
 
 ### `ch54-b005` — 54.10 Estados y transiciones explícitas
 
-Source: `54.Refactorización-hacia-código-excelente.md:194` · mode: `run`
+Source: `54.Refactorización-hacia-código-excelente.md:199` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -16714,9 +17066,9 @@ fn main() {
 }
 ```
 
-### `ch54-b006` — 54.12 Iteradores: lazy, ownership y legibilidad
+### `ch54-b006` — 54.12 Iteradores: evaluación diferida, propiedad y legibilidad
 
-Source: `54.Refactorización-hacia-código-excelente.md:242` · mode: `run`
+Source: `54.Refactorización-hacia-código-excelente.md:247` · mode: `run`
 
 ```rust
 #[derive(Debug)]
@@ -16744,18 +17096,18 @@ fn main() {
 
 ### `ch54-b007` — 54.14 La concurrencia forma parte del contrato
 
-Source: `54.Refactorización-hacia-código-excelente.md:285` · mode: `reference`
+Source: `54.Refactorización-hacia-código-excelente.md:290` · mode: `reference`
 
 ```text
-actor A: contains(email) -> false
-actor B: contains(email) -> false
-actor A: insert(user)   -> éxito
-actor B: insert(user)   -> ¿duplicado?
+tarea A: contains(email) -> false
+tarea B: contains(email) -> false
+tarea A: insert(user)   -> éxito
+tarea B: insert(user)   -> ¿duplicado?
 ```
 
 ### `ch54-b008` — 54.14 La concurrencia forma parte del contrato
 
-Source: `54.Refactorización-hacia-código-excelente.md:294` · mode: `illustrative`
+Source: `54.Refactorización-hacia-código-excelente.md:299` · mode: `illustrative`
 
 ```rust,ignore
 trait UserStore {
@@ -16770,7 +17122,7 @@ trait UserStore {
 
 ### `ch54-b009` — 54.18 Automatización: rustfmt, Clippy y `cargo fix`
 
-Source: `54.Refactorización-hacia-código-excelente.md:354` · mode: `reference`
+Source: `54.Refactorización-hacia-código-excelente.md:359` · mode: `reference`
 
 ```text
 cargo fmt --all --check
@@ -16784,7 +17136,7 @@ cargo test --workspace --doc --all-features
 
 ### `ch55-b001` — 55.7 `Cargo.toml`: arquitectura declarada
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:112` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:114` · mode: `reference`
 
 ```text
 cargo metadata --format-version 1
@@ -16795,7 +17147,7 @@ cargo tree -d
 
 ### `ch55-b002` — 55.9 `cargo tree`: explicar por qué, no solo qué
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:141` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:143` · mode: `reference`
 
 ```text
 cargo tree -e features -i nombre-dependencia
@@ -16805,7 +17157,7 @@ cargo tree -d
 
 ### `ch55-b003` — 55.10 Leer lo que se distribuye
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:153` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:155` · mode: `reference`
 
 ```text
 cargo package --list
@@ -16814,7 +17166,7 @@ cargo package
 
 ### `ch55-b004` — 55.11 Dibujar la fachada pública
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:172` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:174` · mode: `reference`
 
 ```text
 crate root
@@ -16822,59 +17174,59 @@ crate root
 ├── Error
 ├── model::{Id, Record}
 ├── traits::Transport
-└── feature-gated integrations
+└── integraciones opcionales
 ```
 
-### `ch55-b005` — 55.13 Seguir un corte vertical
+### `ch55-b005` — 55.13 Seguir una operación completa
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:214` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:216` · mode: `reference`
 
 ```text
 entrada pública
 → validación / normalización
 → tipo o estado interno
-→ selección de backend
-→ efecto / syscall / await
-→ mapeo de error
+→ selección de implementación
+→ efecto / llamada al sistema / .await
+→ conversión del error
 → resultado observable
 ```
 
-### `ch55-b006` — 55.19 Auditar `unsafe` desde su frontera safe
+### `ch55-b006` — 55.19 Auditar `unsafe` desde la API segura que lo utiliza
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:309` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:311` · mode: `reference`
 
 ```text
 rg -n "unsafe|SAFETY|MaybeUninit|from_raw|into_raw|transmute|NonNull" src
 ```
 
-### `ch55-b007` — 55.20 Concurrencia y async: dibujar propietarios
+### `ch55-b007` — 55.20 Concurrencia y código asíncrono: dibujar responsables
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:331` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:335` · mode: `reference`
 
 ```text
-Service
-├── task de admisión       — owner: supervisor
-├── N workers              — owner: JoinSet/grupo
-├── channel bounded        — cierre: sender principal
-└── shutdown deadline      — después: abort + join
+Servicio
+├── tarea de admisión      — responsable: supervisor
+├── N tareas de trabajo    — responsable: JoinSet/grupo
+├── canal con capacidad    — cierre: emisor principal
+└── límite para el cierre — después: abortar + esperar
 ```
 
 ### `ch55-b008` — 55.26 La ficha de evidencia
 
-Source: `55.Lectura-de-crates-de-alta-calidad.md:433` · mode: `reference`
+Source: `55.Lectura-de-crates-de-alta-calidad.md:439` · mode: `reference`
 
 ```text
 Pregunta y criterio de cierre:
-Versión / commit / checksum:
-Toolchain / target / features:
+Versión / commit / suma de comprobación:
+Toolchain / plataforma / características:
 Promesa pública y enlace:
 Grafo relevante:
-Corte vertical:
-Tipos y ownership:
+Recorrido de la operación:
+Tipos y propiedad:
 Errores y efectos:
 Concurrencia / cancelación:
-Unsafe y premisas:
-Tests que sostienen el contrato:
+Unsafe y sus premisas:
+Pruebas que sostienen el contrato:
 Historia relevante:
 Hechos:
 Inferencias pendientes:
@@ -16885,7 +17237,7 @@ Experimento mínimo y resultado:
 
 ## 56.Katas-de-ownership-lifetimes-traits-y-concurrencia
 
-### `ch56-b001` — 56.2 Protocolo de práctica
+### `ch56-b001` — 56.2 Método de práctica
 
 Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:30` · mode: `reference`
 
@@ -16896,7 +17248,7 @@ cargo fmt --all --check
 cargo clippy --all-targets --all-features -- -D warnings
 ```
 
-### `ch56-b002` — 56.5 Kata 1 — moves en una cola
+### `ch56-b002` — 56.5 Kata 1 — movimientos de propiedad en una cola
 
 Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:77` · mode: `illustrative`
 
@@ -16925,7 +17277,7 @@ fn transfer(
 ) -> Result<(), TransferError>;
 ```
 
-### `ch56-b005` — 56.8 Kata 4 — parser sin copiar tokens
+### `ch56-b005` — 56.8 Kata 4 — analizador sin copiar tokens
 
 Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:150` · mode: `illustrative`
 
@@ -16938,7 +17290,7 @@ struct Command<'a> {
 
 ### `ch56-b006` — 56.11 Kata 7 — enum frente a `dyn`
 
-Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:210` · mode: `illustrative`
+Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:212` · mode: `illustrative`
 
 ```rust,ignore
 enum Transform {
@@ -16950,7 +17302,7 @@ enum Transform {
 
 ### `ch56-b007` — 56.12 Kata 8 — iterador propio
 
-Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:234` · mode: `illustrative`
+Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:238` · mode: `illustrative`
 
 ```rust,ignore
 struct ChunksExact<'a, T> {
@@ -16960,9 +17312,9 @@ struct ChunksExact<'a, T> {
 }
 ```
 
-### `ch56-b008` — 56.13 Kata 9 — worker con shutdown
+### `ch56-b008` — 56.13 Kata 9 — hilo de trabajo con cierre ordenado
 
-Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:256` · mode: `illustrative`
+Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:260` · mode: `illustrative`
 
 ```rust,ignore
 enum Command {
@@ -16972,9 +17324,9 @@ enum Command {
 }
 ```
 
-### `ch56-b009` — 56.14 Kata 10 — atomics e invariantes
+### `ch56-b009` — 56.14 Kata 10 — operaciones atómicas e invariantes
 
-Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:288` · mode: `reference`
+Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:293` · mode: `reference`
 
 ```text
 A carga source = 10; B carga source = 10
@@ -16982,9 +17334,9 @@ A decide transferir 7; B decide transferir 7
 ambos debitan y acreditan por separado
 ```
 
-### `ch56-b010` — 56.15 Kata 11 — cancelación async
+### `ch56-b010` — 56.15 Kata 11 — cancelación asíncrona
 
-Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:306` · mode: `reference`
+Source: `56.Katas-de-ownership-lifetimes-traits-y-concurrencia.md:311` · mode: `reference`
 
 ```text
 download → decode → validate → persist
@@ -17019,7 +17371,7 @@ UserId · OrderId · Email · Percentage · Money
 Source: `57.Mini-crates-y-proyectos-de-consolidación.md:105` · mode: `reference`
 
 ```text
-bytes → UTF-8 → líneas → parse → validate → deduplicate → report
+bytes → UTF-8 → líneas → analizar → validar → deduplicar → informar
 ```
 
 ### `ch57-b004` — 57.11 Proyecto 6: `catalog_service`
@@ -17040,24 +17392,24 @@ apps/
 Source: `57.Mini-crates-y-proyectos-de-consolidación.md:249` · mode: `reference`
 
 ```text
-native-checksum-sys   # bindings raw + build/link
-native-checksum       # API safe + ownership + errores
+native-checksum-sys   # declaraciones de bajo nivel + compilación y enlace
+native-checksum       # API segura + propiedad + errores
 ```
 
-### `ch57-b006` — 57.14 Proyecto 9: capstone offline-first
+### `ch57-b006` — 57.14 Proyecto 9: proyecto integrador offline-first
 
 Source: `57.Mini-crates-y-proyectos-de-consolidación.md:275` · mode: `reference`
 
 ```text
 domain       cambios · versiones · conflictos
 application  editar · sincronizar · resolver
-storage      documento + log local transaccional
+persistencia documento + registro local transaccional
 http         servidor Axum
 desktop      comandos Tauri
-runtime      tasks Tokio supervisadas
+runtime      tareas Tokio supervisadas
 ```
 
-### `ch57-b007` — 57.15 Arquitectura del capstone
+### `ch57-b007` — 57.15 Arquitectura del proyecto integrador
 
 Source: `57.Mini-crates-y-proyectos-de-consolidación.md:304` · mode: `reference`
 
@@ -17065,27 +17417,27 @@ Source: `57.Mini-crates-y-proyectos-de-consolidación.md:304` · mode: `referenc
 Tauri ─┐
        ├─> application ─> domain
 Axum ──┘        │
-                ├─> storage port <─ adapter local
-                └─> sync port    <─ adapter HTTP
+                ├─> puerto de persistencia  <─ adaptador local
+                └─> puerto de sincronización <─ adaptador HTTP
 ```
 
-### `ch57-b008` — 57.21 Demo reproducible
+### `ch57-b008` — 57.21 Demostración reproducible
 
-Source: `57.Mini-crates-y-proyectos-de-consolidación.md:397` · mode: `reference`
+Source: `57.Mini-crates-y-proyectos-de-consolidación.md:398` · mode: `reference`
 
 ```text
-1. checkout limpio y toolchain fijado
+1. copia limpia y toolchain fijado
 2. cargo test --workspace --all-targets --all-features
 3. iniciar componentes con puertos efímeros
-4. ejecutar escenario y guardar IDs
+4. ejecutar el escenario y guardar los identificadores
 5. provocar el fallo documentado
-6. cerrar y comprobar reporte
+6. cerrar y comprobar el informe
 7. repetir sin estado residual
 ```
 
-### `ch57-b009` — 57.22 Puerta automatizada y MSRV
+### `ch57-b009` — 57.22 Comprobaciones automáticas y MSRV
 
-Source: `57.Mini-crates-y-proyectos-de-consolidación.md:413` · mode: `reference`
+Source: `57.Mini-crates-y-proyectos-de-consolidación.md:414` · mode: `reference`
 
 ```text
 cargo check --workspace --all-targets --all-features
@@ -17095,9 +17447,9 @@ cargo fmt --all --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 ```
 
-### `ch57-b010` — 57.26 Cómo auditar los kernels del libro
+### `ch57-b010` — 57.26 Cómo auditar los núcleos del libro
 
-Source: `57.Mini-crates-y-proyectos-de-consolidación.md:472` · mode: `reference`
+Source: `57.Mini-crates-y-proyectos-de-consolidación.md:473` · mode: `reference`
 
 ```text
 cargo test -p course-solutions --lib projects
@@ -17108,17 +17460,29 @@ cargo clippy -p course-solutions --lib --all-features -- -D warnings
 
 ### `ch58-b001` — 58.1 La triple explicación
 
-Source: `58.Criterio-de-maestría.md:13` · mode: `illustrative`
+Source: `58.Criterio-de-maestría.md:13` · mode: `run`
 
-```rust,ignore
+```rust
+struct User {
+    name: String,
+}
+
 fn names(users: &[User]) -> impl Iterator<Item = &str> {
     users.iter().map(|user| user.name.as_str())
+}
+
+fn main() {
+    let users = [User {
+        name: String::from("Ferris"),
+    }];
+
+    assert_eq!(names(&users).next(), Some("Ferris"));
 }
 ```
 
 ### `ch58-b002` — 58.2 Leer una firma completa
 
-Source: `58.Criterio-de-maestría.md:27` · mode: `illustrative`
+Source: `58.Criterio-de-maestría.md:39` · mode: `illustrative`
 
 ```rust,ignore
 async fn execute<R>(
@@ -17131,12 +17495,12 @@ where
 
 ### `ch58-b003` — 58.15 Paquete mínimo de evidencia
 
-Source: `58.Criterio-de-maestría.md:290` · mode: `reference`
+Source: `58.Criterio-de-maestría.md:304` · mode: `reference`
 
 ```text
 PREDICTION.md    regla y resultado antes de compilar
 src/             implementación mínima
-tests/           éxito, borde, fallo y contrato negativo
+tests/           éxito, límite, fallo y contrato negativo
 EXPLANATION.md   compila · garantiza · cuesta
 EVIDENCE.md      comandos, fuentes, medidas y versiones
 CHANGE.md        requisito sorpresa y adaptación
@@ -17144,16 +17508,16 @@ CHANGE.md        requisito sorpresa y adaptación
 
 ### `ch58-b004` — 58.15 Paquete mínimo de evidencia
 
-Source: `58.Criterio-de-maestría.md:301` · mode: `reference`
+Source: `58.Criterio-de-maestría.md:315` · mode: `reference`
 
 ```text
 cargo test -p course-solutions --lib mastery
 cargo clippy -p course-solutions --lib --all-features -- -D warnings
 ```
 
-### `ch58-b005` — 58.22 Puerta automatizada
+### `ch58-b005` — 58.22 Comprobaciones automáticas
 
-Source: `58.Criterio-de-maestría.md:403` · mode: `reference`
+Source: `58.Criterio-de-maestría.md:417` · mode: `reference`
 
 ```text
 cargo check --workspace --all-targets --all-features --locked

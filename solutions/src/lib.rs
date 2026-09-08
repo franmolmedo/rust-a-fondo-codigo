@@ -4,6 +4,8 @@
 //! implementaciones buscan enseñar el contrato esencial; no pretenden imponer
 //! una única arquitectura válida para los ejercicios abiertos.
 
+#![deny(rustdoc::broken_intra_doc_links)]
+
 pub mod abstraction;
 pub mod async_rust;
 pub mod compiler;

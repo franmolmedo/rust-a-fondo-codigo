@@ -4,6 +4,8 @@
 ///
 /// The pointer-length pair must be non-null, initialized, contained in one
 /// live allocation and free from conflicting mutation while `self` is borrowed.
+/// The length must not exceed `isize::MAX`; adding it to the address must not wrap.
+/// These requirements apply to empty regions too; alignment for `u8` is one.
 unsafe trait ContiguousBytes {
     fn raw_parts(&self) -> (*const u8, usize);
 }

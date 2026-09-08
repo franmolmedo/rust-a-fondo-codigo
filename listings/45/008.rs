@@ -6,8 +6,8 @@ fn swap_disjoint<T>(values: &mut [T], left: usize, right: usize) -> bool {
     }
 
     let base = values.as_mut_ptr();
-    // SAFETY: ambos índices pertenecen a la misma slice y son distintos; el
-    // préstamo `&mut [T]` impide accesos externos durante la operación.
+    // SAFETY: both indices belong to the same slice and are distinct; the
+    // `&mut [T]` borrow prevents outside access during this operation.
     unsafe { ptr::swap(base.add(left), base.add(right)) };
     true
 }

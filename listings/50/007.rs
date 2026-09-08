@@ -6,6 +6,6 @@ attribute.parse_nested_meta(|meta| {
         options.crate_path = Some(meta.value()?.parse()?);
         Ok(())
     } else {
-        Err(meta.error("se esperaba `id` o `crate_path`"))
+        Err(meta.error("expected `id` or `crate_path`"))
     }
 })?;

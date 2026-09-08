@@ -6,6 +6,6 @@ struct Metrics {
 
 impl Metrics {
     fn record(&self) {
-        self.hits.set(self.hits.get() + 1);
+        self.hits.set(self.hits.get().saturating_add(1));
     }
 }

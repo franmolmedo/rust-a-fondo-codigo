@@ -3,7 +3,7 @@ fn main() {
         let raw = String::from("  Ada Lovelace  ");
         let clean = raw.trim();
         format!("nombre: {clean}")
-    }; // `clean` termina y `raw` se destruye; `summary` posee otro String
+    }; // `raw` se destruye; `summary` conserva un String independiente
 
     assert_eq!(summary, "nombre: Ada Lovelace");
 }

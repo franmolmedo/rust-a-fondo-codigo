@@ -44,4 +44,11 @@ fn main() {
     assert_eq!(issued.number, 41);
     assert_eq!(issued.lines.len(), 2);
     assert_eq!(issued.total, Cents(500));
+
+    let draft = DraftInvoice {
+        lines: vec![Cents(u64::MAX), Cents(1)],
+    };
+    let (draft, error) = draft.issue(42).unwrap_err();
+    assert_eq!(error, IssueError::Overflow);
+    assert_eq!(draft.lines.len(), 2);
 }

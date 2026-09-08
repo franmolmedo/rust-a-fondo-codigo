@@ -1,4 +1,4 @@
-cargo metadata
+cargo metadata --format-version 1
 cargo tree
 cargo tree -e features
 cargo update -p crate_name

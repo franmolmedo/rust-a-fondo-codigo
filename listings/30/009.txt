@@ -1,2 +1,2 @@
 estado compartido: varios acceden al mismo valor
-message passing:  el valor o comando cambia de dueño
+paso de mensajes: el valor o comando cambia de dueño

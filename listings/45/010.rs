@@ -8,6 +8,6 @@ let tagged = base.map_addr(|address| address | 1);
 assert_eq!(tagged.addr() & 1, 1);
 let restored = tagged.map_addr(|address| address & !1);
 
-// SAFETY: se recuperó exactamente la dirección de `value`; `map_addr`
-// conservó su provenance y `value` sigue prestado compartidamente.
+// SAFETY: this restores the exact address of `value`; `map_addr` kept its
+// provenance, and `value` remains borrowed for shared access.
 assert_eq!(unsafe { (*restored).0 }, 42);

@@ -10,7 +10,7 @@ let packet = Packet {
 };
 let pointer = &raw const packet.payload_length;
 
-// SAFETY: el campo está inicializado dentro de `packet`; el raw borrow evita
-// crear `&u32` y `read_unaligned` admite la alineación reducida.
+// SAFETY: the field is initialized inside `packet`; the raw borrow avoids
+// creating `&u32`, and `read_unaligned` accepts the reduced alignment.
 let length = unsafe { pointer.read_unaligned() };
 assert_eq!(length, 42);

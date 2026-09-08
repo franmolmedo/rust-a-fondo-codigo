@@ -9,6 +9,6 @@ fn main() {
         std::hint::black_box(buffer)[0]
     };
 
-    println!("async vacío: {} bytes", size_of_val(&tiny));
-    println!("buffer vivo tras await: {} bytes", size_of_val(&with_buffer));
+    println!("empty async block: {} bytes", size_of_val(&tiny));
+    println!("buffer used after await: {} bytes", size_of_val(&with_buffer));
 }

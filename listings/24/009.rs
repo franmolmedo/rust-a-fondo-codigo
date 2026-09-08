@@ -5,16 +5,16 @@ use std::{
 };
 
 struct Counted<F> {
-    future: F,     // estructuralmente pinneado: es la máquina async
-    polls: u32,    // no pinneado: un u32 puede moverse sin riesgo
+    future: F,     // estructuralmente fijado
+    polls: u32,    // no fijado: un u32 puede moverse sin riesgo
 }
 
 impl<F> Counted<F> {
     fn project(self: Pin<&mut Self>) -> (Pin<&mut F>, &mut u32) {
         // SAFETY: `future` nunca se mueve fuera de `self` ni se
-        // reemplaza: solo se re-pinnea. Entregar `polls` como &mut
-        // no permite mover `future`, y `Counted` no implementa
-        // `Unpin` a la carta ni un Drop que mueva campos.
+        // reemplaza: solo se proyecta como Pin. Entregar `polls` como &mut
+        // no permite mover `future`, y `Counted` no tiene una
+        // implementación incondicional de `Unpin` ni un Drop que mueva campos.
         unsafe {
             let this = self.get_unchecked_mut();
             (Pin::new_unchecked(&mut this.future), &mut this.polls)
@@ -27,7 +27,7 @@ impl<F: Future> Future for Counted<F> {
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<F::Output> {
         let (future, polls) = self.project();
-        *polls += 1;
+        *polls = polls.saturating_add(1);
         future.poll(cx)
     }
 }

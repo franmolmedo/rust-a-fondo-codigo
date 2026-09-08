@@ -1,3 +1,3 @@
 productor A ──┐
-productor B ──┼── Sender<Command> ──> [thread dueño del State] ──> eventos/respuestas
+productor B ──┼── Sender<Command> ──> [hilo propietario de State] ──> eventos/respuestas
 productor C ──┘

@@ -11,7 +11,8 @@ impl EventLog {
     }
 
     fn record(&self, event: impl Into<String>) {
-        self.events.borrow_mut().push(event.into());
+        let event = event.into();
+        self.events.borrow_mut().push(event);
     }
 
     fn snapshot(&self) -> Vec<String> {

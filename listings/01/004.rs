@@ -1,7 +1,7 @@
 fn main() {
-    // El compilador usa la representación imposible (puntero nulo)
-    // para codificar None: la seguridad no añade ni un byte.
+    // Rust representa None mediante un puntero nulo.
+    // En estos dos tipos, Option no necesita espacio adicional.
     assert_eq!(size_of::<Option<&u8>>(), size_of::<&u8>());
     assert_eq!(size_of::<Option<Box<u64>>>(), size_of::<Box<u64>>());
-    println!("Option sobre punteros: mismo tamaño que el puntero desnudo");
+    println!("En estos dos casos, Option ocupa lo mismo que el tipo que contiene");
 }

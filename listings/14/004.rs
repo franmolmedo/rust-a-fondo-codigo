@@ -15,10 +15,11 @@ impl Username {
         if value.is_empty() {
             return Err(UsernameError::Empty);
         }
-        if value.chars().count() > Self::MAX_LEN {
+        let length = value.chars().count();
+        if length > Self::MAX_LEN {
             return Err(UsernameError::TooLong {
                 max: Self::MAX_LEN,
-                actual: value.chars().count(),
+                actual: length,
             });
         }
         Ok(Self(value.to_owned()))

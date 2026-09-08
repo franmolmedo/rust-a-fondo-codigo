@@ -1,0 +1,15 @@
+[package]
+name = "sum-service"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+rust-appendix-lab = { path = "../lab" }
+tokio = { version = "1.52", features = ["rt-multi-thread", "macros", "net", "io-util", "time", "signal", "sync"] }
+
+[lints]
+workspace = true

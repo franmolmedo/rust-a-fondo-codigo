@@ -1,4 +1,4 @@
-thread A: load  -> 41
-thread B: load  -> 41
-thread A: store 42
-thread B: store 42     // un incremento se perdió
+hilo A: load  -> 41
+hilo B: load  -> 41
+hilo A: store 42
+hilo B: store 42     // un incremento se perdió

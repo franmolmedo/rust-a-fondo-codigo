@@ -11,8 +11,8 @@ let pinned = Box::pin(Stable {
 });
 let before = pinned.as_ref().get_ref() as *const Stable;
 
-let moved_handle = pinned; // se mueve Pin<Box<_>>, no Stable
-let after = moved_handle.as_ref().get_ref() as *const Stable;
+let moved_pointer = pinned; // se mueve Pin<Box<_>>, no Stable
+let after = moved_pointer.as_ref().get_ref() as *const Stable;
 
 assert_eq!(before, after);
-assert_eq!(moved_handle.as_ref().get_ref().name.as_str(), "rust");
+assert_eq!(moved_pointer.as_ref().get_ref().name.as_str(), "rust");

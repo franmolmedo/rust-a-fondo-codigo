@@ -3,4 +3,4 @@ crate root
 ├── Error
 ├── model::{Id, Record}
 ├── traits::Transport
-└── feature-gated integrations
+└── integraciones opcionales

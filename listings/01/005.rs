@@ -4,7 +4,7 @@ fn greet(name: String) {
 
 fn main() {
     let name = String::from("Ada");
-    greet(name); // move: `name` se transfiere a greet
+    greet(name); // `greet` recibe la propiedad de `name`
     println!("{name}");
     // error[E0382]: borrow of moved value: `name`
 }

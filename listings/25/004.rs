@@ -16,5 +16,5 @@ pub mod domain {
 }
 
 pub fn report(order: &domain::order::Order) -> String {
-    format!("pedido {}", order.id)
+    format!("order {}", order.id)
 }

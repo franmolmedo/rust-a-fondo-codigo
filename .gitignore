@@ -1,4 +1,7 @@
-/target/
+target/
+/appendices/reports/
+/appendices/fuzz/artifacts/
+/appendices/fuzz/corpus/
 __pycache__/
 *.pyc
 .DS_Store

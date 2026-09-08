@@ -1,2 +1,2 @@
-// Capítulo 38: ambos futures avanzan de forma alternada en la misma task.
-let (user, permissions) = join!(load_user(id), load_permissions(id));
+// Chapter 38: both operations advance within the same task.
+let (user, permissions) = tokio::join!(load_user(id), load_permissions(id));

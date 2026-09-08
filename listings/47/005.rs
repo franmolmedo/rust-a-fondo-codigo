@@ -7,9 +7,15 @@ const OVERFLOW: c_int = -3;
 
 /// # Safety
 ///
-/// `output` debe ser escribible como `u64`. Si `len > 0`, `values` describe
-/// `len` elementos inicializados dentro de una allocation viva y disjunta.
-unsafe extern "C" fn sum_u32(
+/// Null pointers are handled as documented error or empty-input cases.
+/// A non-null `output` must be aligned, writable as a `u64`, and not accessed
+/// elsewhere during this call. If both pointers are non-null and `len > 0`,
+/// `values` must be aligned and readable for `len` initialized `u32` elements
+/// in one live allocation, disjoint from `output` and not modified during
+/// this call. The byte size must fit in `isize::MAX`, without address wrap.
+// SAFETY: this example owns the unique symbol `rust_a_fondo_sum_u32_v1`.
+#[unsafe(export_name = "rust_a_fondo_sum_u32_v1")]
+pub unsafe extern "C" fn sum_u32(
     values: *const u32,
     len: usize,
     output: *mut u64,
@@ -23,7 +29,8 @@ unsafe extern "C" fn sum_u32(
         if values.is_null() {
             return NULL_INPUT;
         }
-        // SAFETY: el contrato público aporta rango, init, vida y aliasing.
+        // SAFETY: the public contract provides range, initialization,
+        // lifetime, and aliasing guarantees.
         unsafe { std::slice::from_raw_parts(values, len) }
     };
     let Some(sum) = values
@@ -32,13 +39,13 @@ unsafe extern "C" fn sum_u32(
     else {
         return OVERFLOW;
     };
-    // SAFETY: `output` es escribible y el input ya se consumió.
+    // SAFETY: `output` is writable, and the input has already been consumed.
     unsafe { output.write(sum) };
     OK
 }
 
 let values = [10_u32, 20, 12];
 let mut output = 0_u64;
-// SAFETY: input y output son regiones vivas, alineadas y disjuntas.
+// SAFETY: input and output are live, aligned, disjoint regions.
 assert_eq!(unsafe { sum_u32(values.as_ptr(), 3, &mut output) }, OK);
 assert_eq!(output, 42);

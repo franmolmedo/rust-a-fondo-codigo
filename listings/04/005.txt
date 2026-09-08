@@ -1,4 +1,4 @@
 String
-├── puntero ──────► buffer UTF-8 en el heap
+├── puntero ──────► bytes UTF-8 en memoria dinámica
 ├── longitud
 └── capacidad

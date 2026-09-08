@@ -1,4 +1,4 @@
-# MAL DISEÑO: dos features que eligen backend
+# Problemático si el código impide compilar ambas implementaciones juntas.
 [features]
 backend-postgres = []
 backend-sqlite = []

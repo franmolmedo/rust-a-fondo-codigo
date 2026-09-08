@@ -16,6 +16,7 @@ fn signup(age: u8) -> Result<(), SignupError> {
 }
 
 fn main() {
+    assert_eq!(signup(18), Ok(()));
     assert_eq!(
         signup(16),
         Err(SignupError::TooYoung {

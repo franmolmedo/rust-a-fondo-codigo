@@ -1,4 +1,4 @@
-/// Reserva stock para todas las líneas del pedido.
+/// Reserva las unidades de todas las líneas del pedido.
 ///
 /// La reserva es atómica: o se reservan todas las líneas o ninguna.
 ///
@@ -15,8 +15,9 @@
 ///
 /// # Errors
 ///
-/// Devuelve [`ReserveError::Insufficient`] si alguna línea supera el stock
-/// disponible. En ese caso ninguna línea queda reservada.
+/// Devuelve [`ReserveError::Insufficient`] si la cantidad total solicitada de
+/// algún producto supera las unidades disponibles, sumando las líneas repetidas.
+/// En ese caso ninguna línea queda reservada.
 pub fn reserve(&mut self, order: &Order) -> Result<(), ReserveError> {
     /* ... */
 }

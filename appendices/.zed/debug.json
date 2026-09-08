@@ -1,0 +1,21 @@
+[
+  {
+    "label": "Debug first-steps",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "-p", "first-steps"]
+    },
+    "sourceLanguages": ["rust"]
+  },
+  {
+    "label": "Debug Unicode preview",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "-p", "rust-appendix-lab", "--example", "debug_preview"]
+    },
+    "args": ["--broken"],
+    "sourceLanguages": ["rust"]
+  }
+]

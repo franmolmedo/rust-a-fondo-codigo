@@ -1,4 +1,4 @@
-let cached = cache.borrow().get("clave").copied(); // el guard muere aquí
+let cached = cache.borrow().get("clave").copied(); // la guarda se destruye aquí
 
 let value = match cached {
     Some(value) => value,

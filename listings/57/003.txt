@@ -1,1 +1,1 @@
-bytes → UTF-8 → líneas → parse → validate → deduplicate → report
+bytes → UTF-8 → líneas → analizar → validar → deduplicar → informar

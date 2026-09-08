@@ -10,7 +10,7 @@ where
     match catch_unwind(operation) {
         Ok(code) => code,
         Err(payload) => {
-            // Evita que un payload hostil vuelva a hacer panic en Drop.
+            // A hostile payload could panic again from its Drop implementation.
             std::mem::forget(payload);
             PANIC
         }

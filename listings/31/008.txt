@@ -1,2 +1,2 @@
-thread::spawn  exige F: Send + 'static   (el thread puede sobrevivir al caller)
-scope.spawn    exige F: Send + 'scope    (el join está garantizado antes del fin)
+thread::spawn  exige F: Send + 'static   (el hilo puede sobrevivir a quien lo crea)
+scope.spawn    exige F: Send + 'scope    (el hilo termina antes de salir del ámbito)

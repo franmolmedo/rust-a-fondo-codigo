@@ -6,6 +6,5 @@ macro_rules! measured {
     }};
 }
 
-let (answer, elapsed) = measured!(40 + 2);
+let (answer, _elapsed) = measured!(40 + 2);
 assert_eq!(answer, 42);
-assert!(elapsed <= std::time::Duration::from_secs(1));

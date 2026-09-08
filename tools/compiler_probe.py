@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verifica el laboratorio estable de MIR, LLVM IR y assembly del capítulo 52."""
+"""Verify the stable MIR, LLVM IR, and assembly lab from chapter 52."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def run(command: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     )
     if completed.returncode != 0:
         raise RuntimeError(
-            f"Falló {' '.join(command)}\n{completed.stdout}\n{completed.stderr}"
+            f"Command failed: {' '.join(command)}\n{completed.stdout}\n{completed.stderr}"
         )
     return completed
 
@@ -35,7 +35,7 @@ def one_file(directory: Path, suffix: str) -> Path:
     matches = list(directory.glob(f"*{suffix}"))
     if len(matches) != 1:
         raise RuntimeError(
-            f"Se esperaba un artefacto {suffix} y se encontraron {len(matches)}"
+            f"Expected one {suffix} artifact, found {len(matches)}"
         )
     return matches[0]
 
@@ -79,7 +79,7 @@ def emit(directory: Path, label: str, opt_level: int) -> dict[str, int]:
     for artifact, markers in required.items():
         missing = [marker for marker in markers if marker not in observed[artifact]]
         if missing:
-            raise RuntimeError(f"{artifact} no contiene los marcadores {missing}")
+            raise RuntimeError(f"{artifact} does not contain markers {missing}")
 
     return {
         "mir_bytes": mir.stat().st_size,
@@ -90,31 +90,37 @@ def emit(directory: Path, label: str, opt_level: int) -> dict[str, int]:
 
 def main() -> None:
     if not SOURCE.is_file():
-        raise RuntimeError(f"No existe la fuente del laboratorio: {SOURCE}")
+        raise RuntimeError(f"Lab source does not exist: {SOURCE}")
 
     with tempfile.TemporaryDirectory(prefix="rust-c52-compiler-probe-") as temporary:
         directory = Path(temporary)
-        executable = directory / ("c52-tests.exe" if os.name == "nt" else "c52-tests")
-        run(
-            [
-                "rustc",
-                "--edition=2024",
-                "--test",
-                str(SOURCE),
-                "-o",
-                str(executable),
-            ],
-            CODE_ROOT,
-        )
-        runtime = run([str(executable)], CODE_ROOT)
+        runtime_profiles = []
+        for label, opt_level in [("debug", 0), ("optimized", 3)]:
+            suffix = ".exe" if os.name == "nt" else ""
+            executable = directory / f"c52-tests-{label}{suffix}"
+            run(
+                [
+                    "rustc",
+                    "--edition=2024",
+                    f"-Copt-level={opt_level}",
+                    "--test",
+                    str(SOURCE),
+                    "-o",
+                    str(executable),
+                ],
+                CODE_ROOT,
+            )
+            runtime = run([str(executable)], CODE_ROOT)
+            if "1 passed" not in runtime.stdout:
+                raise RuntimeError(f"The {label} runtime test did not pass")
+            runtime_profiles.append(label)
         result = {
             "ok": True,
-            "runtime_test_passed": "1 passed" in runtime.stdout,
+            "runtime_test_passed": True,
+            "runtime_profiles": runtime_profiles,
             "debug": emit(directory, "debug", 0),
             "optimized": emit(directory, "optimized", 3),
         }
-        if not result["runtime_test_passed"]:
-            raise RuntimeError("El binario de test no confirmó el test runtime")
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

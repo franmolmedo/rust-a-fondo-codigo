@@ -12,7 +12,11 @@ impl Jobs for Queue {
 
 fn require_send<T: Send>(_value: T) {}
 
+fn check_jobs<J: Jobs>(jobs: &J) {
+    require_send(jobs.pending());
+}
+
 fn main() {
     let queue = Queue(vec![10, 20]);
-    require_send(queue.pending());
+    check_jobs(&queue);
 }

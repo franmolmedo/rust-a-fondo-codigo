@@ -1,6 +1,6 @@
 fn forged<'a>() -> &'a i32 {
     let local = 42;
-    // El cast no liga `'a` a `local`: la referencia escapará de su storage.
+    // The cast does not tie `'a` to `local`: the reference escapes its storage.
     unsafe { &*(&raw const local) }
 }
 

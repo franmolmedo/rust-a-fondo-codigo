@@ -3,3 +3,4 @@ set -eu
 
 repository_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 python3 "$repository_root/tools/verify.py"
+python3 "$repository_root/appendices/verify.py"

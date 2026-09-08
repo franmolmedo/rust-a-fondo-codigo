@@ -1,4 +1,4 @@
-//! Capítulos 44 a 48: wrappers safe, layout, FFI conceptual e inicialización.
+//! Chapters 44 to 48: safe wrappers, layout, FFI models, and initialization.
 
 pub mod c44 {
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -26,6 +26,7 @@ pub mod c44 {
     }
 
     // SOLUTION: C44-E01
+    /// Audits a supplied checklist; it does not inspect memory or validate pointers.
     pub const fn audit_raw_slice_contract(facts: RawSliceFacts) -> Result<(), RawSliceViolation> {
         if !facts.non_null_even_when_empty {
             return Err(RawSliceViolation::Null);
@@ -75,15 +76,19 @@ pub mod c44 {
         *slot = replacement;
     }
 
-    unsafe fn raw_sum(pointer: *const i32, length: usize) -> i32 {
-        // SAFETY: el caller promete una región legible de `length` elementos.
+    /// # Safety
+    /// The pair must satisfy every `slice::from_raw_parts` precondition for this call.
+    unsafe fn raw_sum(pointer: *const i32, length: usize) -> Option<i32> {
+        // SAFETY: the caller supplies all conditions in the contract above.
         let values = unsafe { std::slice::from_raw_parts(pointer, length) };
-        values.iter().sum()
+        values
+            .iter()
+            .try_fold(0_i32, |sum, value| sum.checked_add(*value))
     }
 
     // SOLUTION: C44-E04
-    pub fn safe_sum(values: &[i32]) -> i32 {
-        // SAFETY: `as_ptr` y `len` proceden del mismo slice vivo e inicializado.
+    pub fn safe_sum(values: &[i32]) -> Option<i32> {
+        // SAFETY: `as_ptr` and `len` come from the same live, initialized slice.
         unsafe { raw_sum(values.as_ptr(), values.len()) }
     }
 
@@ -93,7 +98,8 @@ pub mod c44 {
     ///
     /// `raw_parts` must return a non-null pointer and a byte length contained
     /// in one live allocation. The range must stay initialized and readable,
-    /// without conflicting mutation, for the lifetime of `&self`.
+    /// without conflicting mutation, for the lifetime of `&self`. The length
+    /// must not exceed `isize::MAX`, and adding it to the address must not wrap.
     pub unsafe trait ContiguousBytes {
         fn raw_parts(&self) -> (*const u8, usize);
     }
@@ -107,7 +113,7 @@ pub mod c44 {
     }
 
     // SOLUTION: C44-E05
-    pub fn byte_sum<T>(value: &T) -> u64
+    pub fn byte_sum<T>(value: &T) -> Option<u64>
     where
         T: ContiguousBytes + ?Sized,
     {
@@ -115,7 +121,9 @@ pub mod c44 {
         // SAFETY: `ContiguousBytes` makes these facts an implementer obligation,
         // and the returned slice cannot outlive the shared borrow of `value`.
         let bytes = unsafe { std::slice::from_raw_parts(pointer, length) };
-        bytes.iter().map(|byte| u64::from(*byte)).sum()
+        bytes
+            .iter()
+            .try_fold(0_u64, |sum, byte| sum.checked_add(u64::from(*byte)))
     }
 
     // SOLUTION: C44-E06
@@ -131,6 +139,7 @@ pub mod c44 {
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub enum FfiSliceError {
         NullWithElements,
+        Overflow,
     }
 
     /// Sums a pointer-length pair received through an FFI-like boundary.
@@ -153,7 +162,7 @@ pub mod c44 {
         // SAFETY: the non-null case inherits the remaining requirements from
         // the public safety contract; the slice is used only during this call.
         let values = unsafe { std::slice::from_raw_parts(pointer, length) };
-        Ok(values.iter().sum())
+        safe_sum(values).ok_or(FfiSliceError::Overflow)
     }
 
     #[cfg(test)]
@@ -178,19 +187,69 @@ pub mod c44 {
         fn raw_slice_contract_requires_every_independent_fact() {
             assert_eq!(audit_raw_slice_contract(valid_raw_slice_facts()), Ok(()));
 
-            let mut facts = valid_raw_slice_facts();
-            facts.contained_in_one_allocation = false;
-            assert_eq!(
-                audit_raw_slice_contract(facts),
-                Err(RawSliceViolation::MultipleAllocations),
-            );
+            let valid = valid_raw_slice_facts();
+            let cases = [
+                (
+                    RawSliceFacts {
+                        non_null_even_when_empty: false,
+                        ..valid
+                    },
+                    RawSliceViolation::Null,
+                ),
+                (
+                    RawSliceFacts {
+                        properly_aligned: false,
+                        ..valid
+                    },
+                    RawSliceViolation::Misaligned,
+                ),
+                (
+                    RawSliceFacts {
+                        contained_in_one_allocation: false,
+                        ..valid
+                    },
+                    RawSliceViolation::MultipleAllocations,
+                ),
+                (
+                    RawSliceFacts {
+                        initialized_for_element_type: false,
+                        ..valid
+                    },
+                    RawSliceViolation::Uninitialized,
+                ),
+                (
+                    RawSliceFacts {
+                        readable_for_returned_lifetime: false,
+                        ..valid
+                    },
+                    RawSliceViolation::NotReadableForLifetime,
+                ),
+                (
+                    RawSliceFacts {
+                        no_conflicting_mutation: false,
+                        ..valid
+                    },
+                    RawSliceViolation::ConflictingMutation,
+                ),
+                (
+                    RawSliceFacts {
+                        byte_len_within_isize: false,
+                        ..valid
+                    },
+                    RawSliceViolation::TooLarge,
+                ),
+                (
+                    RawSliceFacts {
+                        address_addition_does_not_wrap: false,
+                        ..valid
+                    },
+                    RawSliceViolation::AddressWrap,
+                ),
+            ];
 
-            let mut facts = valid_raw_slice_facts();
-            facts.non_null_even_when_empty = false;
-            assert_eq!(
-                audit_raw_slice_contract(facts),
-                Err(RawSliceViolation::Null),
-            );
+            for (facts, violation) in cases {
+                assert_eq!(audit_raw_slice_contract(facts), Err(violation));
+            }
         }
 
         #[test]
@@ -213,14 +272,14 @@ pub mod c44 {
 
         #[test]
         fn safe_boundary_constructs_coherent_pointer_and_length() {
-            assert_eq!(safe_sum(&[10, 20, 12]), 42);
-            assert_eq!(safe_sum(&[]), 0);
+            assert_eq!(safe_sum(&[10, 20, 12]), Some(42));
+            assert_eq!(safe_sum(&[]), Some(0));
         }
 
         #[test]
         fn unsafe_trait_moves_the_proof_to_each_implementation() {
-            assert_eq!(byte_sum(&[1_u8, 2, 3, 4]), 10);
-            assert_eq!(byte_sum(&[]), 0);
+            assert_eq!(byte_sum(&[1_u8, 2, 3, 4]), Some(10));
+            assert_eq!(byte_sum(&[]), Some(0));
         }
 
         #[test]
@@ -262,6 +321,8 @@ pub mod c45 {
     /// allocation that contains at least `length` initialized `T` values. It
     /// must be properly aligned and valid for a read at `index`, and no access
     /// incompatible with that read may occur during this call.
+    /// The mathematical offset `index * size_of::<T>()` must fit in `isize`;
+    /// pointer arithmetic must stay within that allocation without wrapping.
     // SOLUTION: C45-E01
     pub unsafe fn read_copy_at<T: Copy>(
         pointer: *const T,
@@ -285,6 +346,16 @@ pub mod c45 {
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct InsufficientTagAlignment;
 
+    /// A tagged pointer retains the lifetime of its owner's shared borrow.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::unsafe_low_level::c45::TaggedRef;
+    /// let tagged = {
+    ///     let owner = 42_u64;
+    ///     TaggedRef::new(&owner, true).unwrap()
+    /// };
+    /// println!("{}", tagged.get());
+    /// ```
     pub struct TaggedRef<'a, T> {
         tagged: *const T,
         owner: PhantomData<&'a T>,
@@ -348,6 +419,13 @@ pub mod c45 {
     }
 
     // SOLUTION: C45-E05
+    /// Ownership may move between threads, but shared references are not `Send`.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::unsafe_low_level::c45::LocalCounter;
+    /// fn require_sync<T: Sync>() {}
+    /// require_sync::<LocalCounter>();
+    /// ```
     pub struct LocalCounter {
         value: UnsafeCell<u64>,
     }
@@ -359,13 +437,14 @@ pub mod c45 {
             }
         }
 
-        pub fn increment(&self) -> u64 {
+        pub fn increment(&self) -> Option<u64> {
             let pointer = self.value.get();
             // SAFETY: `UnsafeCell` permits mutation through a shared reference.
             // The type is not `Sync`, and this method performs no reentrant call.
             unsafe {
-                *pointer += 1;
-                *pointer
+                let next = (*pointer).checked_add(1)?;
+                *pointer = next;
+                Some(next)
             }
         }
 
@@ -480,8 +559,8 @@ pub mod c45 {
         #[test]
         fn unsafe_cell_supports_a_deliberately_single_threaded_api() {
             let counter = LocalCounter::new(40);
-            assert_eq!(counter.increment(), 41);
-            assert_eq!(counter.increment(), 42);
+            assert_eq!(counter.increment(), Some(41));
+            assert_eq!(counter.increment(), Some(42));
             assert_eq!(counter.get(), 42);
         }
 
@@ -571,7 +650,7 @@ pub mod c46 {
     }
 
     #[derive(Clone, Copy, Debug, Error, Eq, PartialEq)]
-    #[error("porcentaje fuera de 0..=100: {0}")]
+    #[error("percentage outside 0..=100: {0}")]
     pub struct InvalidPercentage(pub u8);
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -605,7 +684,7 @@ pub mod c46 {
     }
 
     #[derive(Clone, Copy, Debug, Error, Eq, PartialEq)]
-    #[error("tag desconocido {0}")]
+    #[error("unknown tag {0}")]
     pub struct UnknownTag(pub u8);
 
     // SOLUTION: C46-E03
@@ -630,9 +709,9 @@ pub mod c46 {
 
     #[derive(Clone, Copy, Debug, Error, Eq, PartialEq)]
     pub enum DecodeError {
-        #[error("cabecera incompleta")]
+        #[error("truncated header")]
         Truncated,
-        #[error("magic inválido {0:02x?}")]
+        #[error("invalid magic bytes {0:02x?}")]
         BadMagic([u8; 2]),
         #[error(transparent)]
         UnknownTag(#[from] UnknownTag),
@@ -652,6 +731,8 @@ pub mod c46 {
             bytes
         }
 
+        /// Parses the nine-byte header prefix, allowing trailing payload bytes.
+        /// This does not validate supported versions, payload availability, or size limits.
         pub fn decode(bytes: &[u8]) -> Result<Self, DecodeError> {
             let header = bytes
                 .get(..Self::ENCODED_LENGTH)
@@ -750,12 +831,15 @@ pub mod c46 {
         fn transparent_wrapper_preserves_layout_but_validates_values() {
             assert_eq!(size_of::<Percentage>(), size_of::<u8>());
             assert_eq!(align_of::<Percentage>(), align_of::<u8>());
-            assert_eq!(Percentage::new(75).map(Percentage::get), Ok(75));
+            assert_eq!(Percentage::new(0).map(Percentage::get), Ok(0));
+            assert_eq!(Percentage::new(100).map(Percentage::get), Ok(100));
             assert_eq!(Percentage::new(101), Err(InvalidPercentage(101)));
         }
 
         #[test]
         fn unknown_integer_never_becomes_an_invalid_enum() {
+            assert_eq!(RecordTag::try_from(1), Ok(RecordTag::User));
+            assert_eq!(RecordTag::try_from(2), Ok(RecordTag::Order));
             assert_eq!(RecordTag::try_from(9), Err(UnknownTag(9)));
         }
 
@@ -823,6 +907,8 @@ pub mod c47 {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
+    /// # Safety
+    /// `pointer` must satisfy `CStr::from_ptr` for the duration of this call.
     unsafe fn raw_strlen(pointer: *const c_char) -> usize {
         // SAFETY: delegated to this private function's caller contract.
         unsafe { CStr::from_ptr(pointer) }.to_bytes().len()
@@ -848,7 +934,8 @@ pub mod c47 {
     }
 
     unsafe fn buffer_destroy(pointer: *mut RawBuffer) {
-        // SAFETY: el wrapper llama exactamente una vez con el puntero de Box::into_raw.
+        // SAFETY: the wrapper calls this exactly once with the pointer returned
+        // by `Box::into_raw`.
         let raw = unsafe { Box::from_raw(pointer) };
         raw.drops.fetch_add(1, Ordering::SeqCst);
         drop(raw);
@@ -883,14 +970,15 @@ pub mod c47 {
         }
 
         pub fn as_slice(&self) -> &[u8] {
-            // SAFETY: `self` posee el handle y evita destruirlo durante el préstamo.
+            // SAFETY: `self` owns the handle, so it cannot be destroyed during
+            // the returned borrow.
             unsafe { &self.raw.as_ref().bytes }
         }
     }
 
     impl Drop for Buffer {
         fn drop(&mut self) {
-            // SAFETY: `raw` procede de `buffer_create` y Buffer no es Clone.
+            // SAFETY: `raw` came from `buffer_create`, and `Buffer` is not Clone.
             unsafe { buffer_destroy(self.raw.as_ptr()) }
         }
     }
@@ -915,42 +1003,55 @@ pub mod c47 {
     pub enum CallbackLifecycleError {
         NotAccepting,
         NoCallbackInFlight,
+        AlreadyUnregistering,
         StillRegistered,
         CallbacksInFlight(usize),
         AlreadyReleased,
+        CounterExhausted,
+        AcknowledgementPending,
+        NotAwaitingAcknowledgement,
+    }
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum CallbackPhase {
+        Registered,
+        Unregistering,
+        Drained,
+        Released,
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct CallbackSnapshot {
-        pub accepting: bool,
+        pub phase: CallbackPhase,
         pub in_flight: usize,
-        pub released: bool,
     }
 
+    /// Sequential protocol model, not a thread-safe foreign callback registry.
+    /// The provider must stop new invocations before acknowledging unregister.
     pub struct CallbackLifecycle {
-        accepting: bool,
+        phase: CallbackPhase,
         in_flight: usize,
-        released: bool,
+        unregister_acknowledged: bool,
     }
 
     // SOLUTION: C47-E04
     impl CallbackLifecycle {
         pub const fn registered() -> Self {
             Self {
-                accepting: true,
+                phase: CallbackPhase::Registered,
                 in_flight: 0,
-                released: false,
+                unregister_acknowledged: false,
             }
         }
 
         pub fn callback_started(&mut self) -> Result<(), CallbackLifecycleError> {
-            if !self.accepting || self.released {
+            if self.phase != CallbackPhase::Registered {
                 return Err(CallbackLifecycleError::NotAccepting);
             }
             self.in_flight = self
                 .in_flight
                 .checked_add(1)
-                .expect("el contador de callbacks no cabe en usize");
+                .ok_or(CallbackLifecycleError::CounterExhausted)?;
             Ok(())
         }
 
@@ -959,36 +1060,61 @@ pub mod c47 {
                 return Err(CallbackLifecycleError::NoCallbackInFlight);
             }
             self.in_flight -= 1;
+            if self.in_flight == 0
+                && self.phase == CallbackPhase::Unregistering
+                && self.unregister_acknowledged
+            {
+                self.phase = CallbackPhase::Drained;
+            }
             Ok(())
         }
 
         pub fn begin_unregister(&mut self) -> Result<(), CallbackLifecycleError> {
-            if self.released {
-                return Err(CallbackLifecycleError::AlreadyReleased);
+            match self.phase {
+                CallbackPhase::Registered => {
+                    self.phase = CallbackPhase::Unregistering;
+                    Ok(())
+                }
+                CallbackPhase::Unregistering | CallbackPhase::Drained => {
+                    Err(CallbackLifecycleError::AlreadyUnregistering)
+                }
+                CallbackPhase::Released => Err(CallbackLifecycleError::AlreadyReleased),
             }
-            self.accepting = false;
+        }
+
+        /// Records the provider's guarantee that no new callbacks can start.
+        pub fn acknowledge_unregister(&mut self) -> Result<(), CallbackLifecycleError> {
+            if self.phase != CallbackPhase::Unregistering || self.unregister_acknowledged {
+                return Err(CallbackLifecycleError::NotAwaitingAcknowledgement);
+            }
+            self.unregister_acknowledged = true;
+            if self.in_flight == 0 {
+                self.phase = CallbackPhase::Drained;
+            }
             Ok(())
         }
 
         pub fn release_context(&mut self) -> Result<(), CallbackLifecycleError> {
-            if self.released {
-                return Err(CallbackLifecycleError::AlreadyReleased);
+            match self.phase {
+                CallbackPhase::Registered => Err(CallbackLifecycleError::StillRegistered),
+                CallbackPhase::Unregistering if !self.unregister_acknowledged => {
+                    Err(CallbackLifecycleError::AcknowledgementPending)
+                }
+                CallbackPhase::Unregistering => {
+                    Err(CallbackLifecycleError::CallbacksInFlight(self.in_flight))
+                }
+                CallbackPhase::Drained => {
+                    self.phase = CallbackPhase::Released;
+                    Ok(())
+                }
+                CallbackPhase::Released => Err(CallbackLifecycleError::AlreadyReleased),
             }
-            if self.accepting {
-                return Err(CallbackLifecycleError::StillRegistered);
-            }
-            if self.in_flight != 0 {
-                return Err(CallbackLifecycleError::CallbacksInFlight(self.in_flight));
-            }
-            self.released = true;
-            Ok(())
         }
 
         pub const fn snapshot(&self) -> CallbackSnapshot {
             CallbackSnapshot {
-                accepting: self.accepting,
+                phase: self.phase,
                 in_flight: self.in_flight,
-                released: self.released,
             }
         }
     }
@@ -1017,11 +1143,16 @@ pub mod c47 {
     ///
     /// # Safety
     ///
-    /// If `output` is non-null, it must be aligned and valid for a `u64` write
-    /// for the duration of the call. When `length > 0`,
-    /// `values` must describe one live allocation with `length` initialized
-    /// `u32` elements, and it must not overlap `output` incompatibly.
+    /// Null pointers are handled as error or empty-input cases. A non-null
+    /// `output` must be aligned, writable as a `u64`, and not accessed elsewhere
+    /// during this call. If both pointers are non-null and `length > 0`,
+    /// `values` must be aligned and readable for `length` initialized `u32`
+    /// elements in one live allocation, disjoint from `output` and not modified
+    /// during this call. Its byte size must fit in `isize::MAX`, without address
+    /// wrap. These requirements cannot be checked from a raw pointer alone.
     // SOLUTION: C47-E06
+    // SAFETY: this teaching library owns this uniquely prefixed export name.
+    #[unsafe(export_name = "rust_a_fondo_sum_u32_solution_v1")]
     pub unsafe extern "C" fn sum_u32_export(
         values: *const u32,
         length: usize,
@@ -1107,8 +1238,28 @@ pub mod c47 {
         #[test]
         fn callback_context_is_released_only_after_unregister_and_drain() {
             let mut lifecycle = CallbackLifecycle::registered();
+            assert_eq!(
+                lifecycle.release_context(),
+                Err(CallbackLifecycleError::StillRegistered),
+            );
+            assert_eq!(
+                lifecycle.callback_finished(),
+                Err(CallbackLifecycleError::NoCallbackInFlight),
+            );
             lifecycle.callback_started().unwrap();
             lifecycle.begin_unregister().unwrap();
+            lifecycle.acknowledge_unregister().unwrap();
+            assert_eq!(
+                lifecycle.snapshot(),
+                CallbackSnapshot {
+                    phase: CallbackPhase::Unregistering,
+                    in_flight: 1,
+                },
+            );
+            assert_eq!(
+                lifecycle.begin_unregister(),
+                Err(CallbackLifecycleError::AlreadyUnregistering),
+            );
             assert_eq!(
                 lifecycle.release_context(),
                 Err(CallbackLifecycleError::CallbacksInFlight(1)),
@@ -1118,14 +1269,24 @@ pub mod c47 {
                 Err(CallbackLifecycleError::NotAccepting),
             );
             lifecycle.callback_finished().unwrap();
+            assert_eq!(
+                lifecycle.snapshot(),
+                CallbackSnapshot {
+                    phase: CallbackPhase::Drained,
+                    in_flight: 0,
+                },
+            );
             lifecycle.release_context().unwrap();
             assert_eq!(
                 lifecycle.snapshot(),
                 CallbackSnapshot {
-                    accepting: false,
+                    phase: CallbackPhase::Released,
                     in_flight: 0,
-                    released: true,
                 },
+            );
+            assert_eq!(
+                lifecycle.release_context(),
+                Err(CallbackLifecycleError::AlreadyReleased),
             );
         }
 
@@ -1199,6 +1360,7 @@ pub mod c48 {
         LayoutTooLarge,
     }
 
+    /// Checks a supplied bookkeeping model, not the validity of actual memory.
     // SOLUTION: C48-E01
     pub fn audit_buffer(snapshot: BufferSnapshot) -> Result<(), Vec<BufferInvariantError>> {
         let mut errors = Vec::new();
@@ -1239,10 +1401,14 @@ pub mod c48 {
 
     impl<T> Drop for InitGuard<'_, T> {
         fn drop(&mut self) {
-            for value in &mut self.storage[..self.initialized] {
-                // SAFETY: el contador solo avanza después de escribir un T válido.
-                unsafe { value.assume_init_drop() }
-            }
+            let prefix = std::ptr::slice_from_raw_parts_mut(
+                self.storage.as_mut_ptr().cast::<T>(),
+                self.initialized,
+            );
+            // SAFETY: only the initialized, uniquely owned prefix is dropped.
+            // MaybeUninit<T> preserves T's layout, including alignment. Slice
+            // drop glue also cleans the tail if one element's Drop unwinds.
+            unsafe { std::ptr::drop_in_place(prefix) }
         }
     }
 
@@ -1265,7 +1431,8 @@ pub mod c48 {
 
         let pointer = guard.storage.as_ptr().cast::<[T; LENGTH]>();
         mem::forget(guard);
-        // SAFETY: las LENGTH posiciones se inicializaron y el guard ya no las destruye.
+        // SAFETY: all LENGTH slots are initialized, and the forgotten guard
+        // will no longer drop them.
         Ok(unsafe { pointer.read() })
     }
 
@@ -1292,6 +1459,21 @@ pub mod c48 {
         }
     }
 
+    /// A uniquely owned allocation with the same thread bounds as Box<T>.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::unsafe_low_level::c48::RawOwner;
+    /// use std::rc::Rc;
+    /// fn require_send<T: Send>() {}
+    /// require_send::<RawOwner<Rc<()>>>();
+    /// ```
+    ///
+    /// ```compile_fail
+    /// use course_solutions::unsafe_low_level::c48::RawOwner;
+    /// use std::cell::Cell;
+    /// fn require_sync<T: Sync>() {}
+    /// require_sync::<RawOwner<Cell<u32>>>();
+    /// ```
     pub struct RawOwner<T> {
         pointer: NonNull<T>,
         _owns: PhantomData<T>,
@@ -1307,32 +1489,33 @@ pub mod c48 {
         }
 
         pub fn get(&self) -> &T {
-            // SAFETY: `new` creó el allocation, `self` conserva ownership y
-            // solo `&self` permite obtener este préstamo compartido.
+            // SAFETY: `new` created the allocation, `self` retains ownership,
+            // and only a shared borrow is returned from `&self`.
             unsafe { self.pointer.as_ref() }
         }
 
         pub fn get_mut(&mut self) -> &mut T {
-            // SAFETY: `&mut self` impide otros accesos a través de la API.
+            // SAFETY: `&mut self` prevents other access through this API.
             unsafe { self.pointer.as_mut() }
         }
     }
 
     impl<T> Drop for RawOwner<T> {
         fn drop(&mut self) {
-            // SAFETY: el puntero procede de un único `Box::leak`; nunca se
-            // reconstruye antes y `Drop` se ejecuta como máximo una vez.
+            // SAFETY: the pointer came from exactly one `Box::leak`; it is not
+            // reconstructed earlier, and `Drop` runs at most once.
             unsafe { drop(Box::from_raw(self.pointer.as_ptr())) }
         }
     }
 
     // SOLUTION: C48-E04
-    // SAFETY: `RawOwner` posee un único T y mover el owner mueve la facultad
-    // exclusiva de accederlo y destruirlo. No existe estado externo afín al hilo.
+    // SAFETY: `RawOwner` uniquely owns T, and moving the owner transfers the
+    // exclusive ability to access and drop it. There is no thread-affine state.
     unsafe impl<T: Send> Send for RawOwner<T> {}
 
-    // SAFETY: desde `&RawOwner<T>` solo se obtiene `&T`; no hay mutación
-    // interior. Por tanto compartir el owner requiere exactamente `T: Sync`.
+    // SAFETY: `&RawOwner<T>` exposes only `&T`; any interior mutation of T
+    // must obey T's own Sync contract.
+    // Sharing the owner therefore requires exactly `T: Sync`.
     unsafe impl<T: Sync> Sync for RawOwner<T> {}
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1360,6 +1543,7 @@ pub mod c48 {
         pub delegated_from_safe_api: Vec<&'static str>,
     }
 
+    /// Checks recorded premise states; it cannot prove the supplied claims.
     // SOLUTION: C48-E05
     pub fn audit_unsafe_boundary(
         boundary: AuditBoundary,
@@ -1409,8 +1593,8 @@ pub mod c48 {
             if self.remaining == 0 {
                 None
             } else {
-                // SAFETY: el constructor liga el cursor al slice vivo; una
-                // longitud no nula implica que `pointer` señala su primer T.
+                // SAFETY: the constructor ties the cursor to the live slice;
+                // a non-zero length means `pointer` addresses its first T.
                 Some(unsafe { self.pointer.as_ref() })
             }
         }
@@ -1431,12 +1615,15 @@ pub mod c48 {
 
     impl<T> Drop for LengthGuard<'_, T> {
         fn drop(&mut self) {
-            // SAFETY: cada incremento de `initialized` ocurre después de
-            // escribir un T válido en un slot reservado distinto.
+            // SAFETY: each increment of `initialized` happens after writing a
+            // valid T into a distinct reserved slot.
             unsafe { self.vector.set_len(self.original_length + self.initialized) }
         }
     }
 
+    /// Appends each successfully initialized value, retaining the prefix on
+    /// error or unwinding. Capacity reservation can panic or abort before any
+    /// initializer runs; only initializer errors are returned as E.
     // SOLUTION: C48-E07
     pub fn try_extend_prefix<T, E, F>(
         vector: &mut Vec<T>,
@@ -1456,8 +1643,8 @@ pub mod c48 {
 
         for offset in 0..amount {
             let value = initialize(offset)?;
-            // SAFETY: `reserve` garantizó espacio hasta `original_length +
-            // amount`; este slot aún no pertenece al prefijo inicializado.
+            // SAFETY: `reserve` guaranteed space through `original_length +
+            // amount`; this slot is not yet part of the initialized prefix.
             unsafe {
                 guard
                     .vector
@@ -1501,6 +1688,16 @@ pub mod c48 {
             );
             assert_eq!(
                 audit_buffer(BufferSnapshot {
+                    length: 0,
+                    capacity: 0,
+                    initialized_prefix: 0,
+                    element_size: size_of::<u32>(),
+                    allocation_live: true,
+                }),
+                Err(vec![BufferInvariantError::UnexpectedAllocation]),
+            );
+            assert_eq!(
+                audit_buffer(BufferSnapshot {
                     length: 8,
                     capacity: usize::MAX,
                     initialized_prefix: 8,
@@ -1531,7 +1728,7 @@ pub mod c48 {
         }
 
         #[test]
-        fn error_drops_only_initialized_elements() {
+        fn error_and_panic_drop_only_initialized_elements() {
             let drops = Rc::new(Cell::new(0));
             let result = try_init_array::<_, &'static str, _, 4>(|index| {
                 if index == 2 {
@@ -1542,6 +1739,18 @@ pub mod c48 {
             });
             assert!(result.is_err());
             assert_eq!(drops.get(), 2);
+
+            let panic_drops = Rc::new(Cell::new(0));
+            let panic = catch_unwind(AssertUnwindSafe(|| {
+                let _ = try_init_array::<_, (), _, 4>(|index| {
+                    if index == 3 {
+                        panic!("stop")
+                    }
+                    Ok(DropSpy(Rc::clone(&panic_drops)))
+                });
+            }));
+            assert!(panic.is_err());
+            assert_eq!(panic_drops.get(), 3);
         }
 
         #[test]
@@ -1574,7 +1783,7 @@ pub mod c48 {
         fn safe_boundaries_cannot_delegate_unsafe_premises() {
             let premises = [
                 AuditPremise {
-                    name: "alineación",
+                    name: "alignment",
                     state: PremiseState::Proven,
                 },
                 AuditPremise {

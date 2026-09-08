@@ -1,4 +1,4 @@
-/// Suma dos cantidades comprobando overflow.
+/// Suma las cantidades y devuelve None si la suma desborda u64.
 ///
 /// ```
 /// # use catalog::checked_total;

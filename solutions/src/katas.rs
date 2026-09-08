@@ -1,4 +1,4 @@
-//! Soluciones ejecutables de referencia para las catorce katas del capítulo 56.
+//! Executable reference solutions for the fourteen katas in chapter 56.
 
 pub mod k01 {
     #[derive(Debug, Eq, PartialEq)]
@@ -8,6 +8,11 @@ pub mod k01 {
     }
 
     // SOLUTION: C56-K01
+    /// Moves ready jobs into a new vector while preserving the relative order
+    /// of both partitions.
+    ///
+    /// The operation is O(n), does not require `Job: Clone`, and replaces the
+    /// queue, so the original allocation and capacity are not guaranteed to remain.
     pub fn drain_ready(queue: &mut Vec<Job>) -> Vec<Job> {
         let (ready, pending): (Vec<_>, Vec<_>) =
             std::mem::take(queue).into_iter().partition(|job| job.ready);
@@ -72,6 +77,16 @@ pub mod k01 {
                 [2, 3]
             );
             assert!(ready.is_empty());
+
+            let mut duplicate_ids = vec![
+                Job { id: 7, ready: true },
+                Job {
+                    id: 7,
+                    ready: false,
+                },
+            ];
+            assert_eq!(drain_ready(&mut duplicate_ids)[0].id, 7);
+            assert_eq!(duplicate_ids[0].id, 7);
         }
 
         #[test]
@@ -108,6 +123,19 @@ pub mod k02 {
     }
 
     // SOLUTION: C56-K02
+    /// Returns borrowed names that match `prefix`.
+    ///
+    /// The output cannot outlive `users`:
+    ///
+    /// ```compile_fail
+    /// use course_solutions::katas::k02::{matching_names, User};
+    ///
+    /// let names = {
+    ///     let users = vec![User { name: "Ada".into() }];
+    ///     matching_names(&users, "A")
+    /// };
+    /// assert_eq!(names, ["Ada"]);
+    /// ```
     pub fn matching_names<'a>(users: &'a [User], prefix: &str) -> Vec<&'a str> {
         users
             .iter()
@@ -158,6 +186,8 @@ pub mod k02 {
                 ["Grace"]
             );
             assert_eq!(matching_names_owned(&users, "A"), ["Ada", "Alan"]);
+            assert_eq!(matching_names(&users, ""), ["Ada", "Alan", "Grace"]);
+            assert!(matching_names(&users, "Linus").is_empty());
         }
 
         #[test]
@@ -190,6 +220,19 @@ pub mod k02 {
                 matching_names_owned(&users, &prefix)
             };
             assert_eq!(owned, ["Ada"]);
+        }
+
+        #[test]
+        fn unicode_prefixes_follow_string_prefix_semantics() {
+            let users = vec![
+                User {
+                    name: String::from("Álvaro"),
+                },
+                User {
+                    name: String::from("Ada"),
+                },
+            ];
+            assert_eq!(matching_names(&users, "Ál"), ["Álvaro"]);
         }
     }
 }
@@ -248,21 +291,36 @@ pub mod k03 {
     mod tests {
         use super::*;
 
+        fn total(accounts: &[Account]) -> u128 {
+            accounts
+                .iter()
+                .map(|account| u128::from(account.balance))
+                .sum()
+        }
+
         #[test]
         fn failed_transfer_changes_neither_account() {
             let mut accounts = [Account { balance: 10 }, Account { balance: 20 }];
+            let initial_total = total(&accounts);
             assert_eq!(
                 transfer(&mut accounts, 0, 1, Money(11)),
                 Err(TransferError::InsufficientFunds)
             );
             assert_eq!(accounts, [Account { balance: 10 }, Account { balance: 20 }]);
+            assert_eq!(total(&accounts), initial_total);
             transfer(&mut accounts, 1, 0, Money(5)).unwrap();
             assert_eq!(accounts, [Account { balance: 15 }, Account { balance: 15 }]);
+            assert_eq!(total(&accounts), initial_total);
+
+            transfer(&mut accounts, 0, 1, Money(15)).unwrap();
+            assert_eq!(accounts, [Account { balance: 0 }, Account { balance: 30 }]);
+            assert_eq!(total(&accounts), initial_total);
         }
 
         #[test]
         fn invalid_indices_and_same_account_are_rejected_without_changes() {
             let mut accounts = [Account { balance: 10 }, Account { balance: 20 }];
+            let initial_total = total(&accounts);
             assert_eq!(
                 transfer(&mut accounts, 0, 0, Money(1)),
                 Err(TransferError::SameAccount)
@@ -271,12 +329,25 @@ pub mod k03 {
                 transfer(&mut accounts, 2, 0, Money(1)),
                 Err(TransferError::OutOfRange)
             );
+            assert_eq!(
+                transfer(&mut accounts, 0, 2, Money(1)),
+                Err(TransferError::OutOfRange)
+            );
+            assert_eq!(
+                transfer(&mut accounts, 2, 3, Money(1)),
+                Err(TransferError::OutOfRange)
+            );
             assert_eq!(accounts, [Account { balance: 10 }, Account { balance: 20 }]);
+
+            transfer(&mut accounts, 0, 1, Money(0)).unwrap();
+            assert_eq!(accounts, [Account { balance: 10 }, Account { balance: 20 }]);
+            assert_eq!(total(&accounts), initial_total);
         }
 
         #[test]
         fn destination_overflow_preserves_both_balances() {
             let mut accounts = [Account { balance: 1 }, Account { balance: u64::MAX }];
+            let initial_total = total(&accounts);
             assert_eq!(
                 transfer(&mut accounts, 0, 1, Money(1)),
                 Err(TransferError::Overflow)
@@ -285,6 +356,7 @@ pub mod k03 {
                 accounts,
                 [Account { balance: 1 }, Account { balance: u64::MAX }]
             );
+            assert_eq!(total(&accounts), initial_total);
         }
     }
 }
@@ -310,6 +382,10 @@ pub mod k04 {
     }
 
     // SOLUTION: C56-K04
+    /// Parses a command without copying its argument tokens.
+    ///
+    /// Error positions are byte offsets into `input`, matching Rust string
+    /// slicing conventions rather than character or display-column indices.
     pub fn parse_command(input: &str) -> Result<Command<'_>, ParseError<'_>> {
         let mut tokens = input.split_whitespace();
         let raw_verb = tokens.next().ok_or(ParseError::Empty)?;
@@ -339,6 +415,8 @@ pub mod k04 {
             let input = String::from("set language Rust");
             let command = parse_command(&input).unwrap();
             assert_eq!(command.arguments, ["language", "Rust"]);
+            assert_eq!(parse_command("get").unwrap().verb, Verb::Get);
+            assert_eq!(parse_command("delete key").unwrap().verb, Verb::Delete);
             assert_eq!(
                 parse_command("  unknown value"),
                 Err(ParseError::UnknownVerb {
@@ -351,9 +429,16 @@ pub mod k04 {
         #[test]
         fn empty_and_unicode_arguments_have_explicit_semantics() {
             assert_eq!(parse_command("   "), Err(ParseError::Empty));
-            let command = parse_command("set idioma Español").unwrap();
+            let command = parse_command("set label 🦀").unwrap();
             assert_eq!(command.verb, Verb::Set);
-            assert_eq!(command.arguments, ["idioma", "Español"]);
+            assert_eq!(command.arguments, ["label", "🦀"]);
+            assert_eq!(
+                parse_command("\u{2003}unknown value"),
+                Err(ParseError::UnknownVerb {
+                    position: 3,
+                    verb: "unknown"
+                })
+            );
         }
     }
 }
@@ -364,27 +449,45 @@ pub mod k05 {
 
     #[derive(Debug, Error)]
     pub enum ParseConfigError {
-        #[error("puerto inválido")]
-        InvalidPort(#[from] std::num::ParseIntError),
+        #[error("invalid port {value:?}")]
+        InvalidPort {
+            value: String,
+            #[source]
+            source: std::num::ParseIntError,
+        },
     }
 
     #[derive(Debug, Error)]
     pub enum LoadConfigError {
-        #[error("no se pudo leer la configuración")]
+        #[error("failed to read configuration")]
         Io(#[from] io::Error),
-        #[error("no se pudo interpretar la configuración")]
+        #[error("failed to parse configuration")]
         Parse(#[from] ParseConfigError),
     }
 
     #[derive(Clone, Debug, Error, Eq, PartialEq)]
     pub enum ApplyConfigError {
-        #[error("el puerto está reservado")]
+        #[error("the port is reserved")]
         ReservedPort,
+    }
+
+    #[derive(Debug, Error)]
+    pub enum ConfigurePortError {
+        #[error(transparent)]
+        Load(#[from] LoadConfigError),
+        #[error(transparent)]
+        Apply(#[from] ApplyConfigError),
     }
 
     // SOLUTION: C56-K05
     pub fn parse_port(input: &str) -> Result<u16, ParseConfigError> {
-        Ok(input.trim().parse()?)
+        let value = input.trim();
+        value
+            .parse()
+            .map_err(|source| ParseConfigError::InvalidPort {
+                value: value.to_owned(),
+                source,
+            })
     }
 
     pub fn load_port(mut reader: impl Read) -> Result<u16, LoadConfigError> {
@@ -400,6 +503,19 @@ pub mod k05 {
         Ok(port)
     }
 
+    pub fn configure_port(reader: impl Read) -> Result<u16, ConfigurePortError> {
+        let port = load_port(reader)?;
+        Ok(apply_port(port)?)
+    }
+
+    pub fn exit_code(error: &ConfigurePortError) -> u8 {
+        match error {
+            ConfigurePortError::Load(LoadConfigError::Io(_)) => 74,
+            ConfigurePortError::Load(LoadConfigError::Parse(_)) => 65,
+            ConfigurePortError::Apply(ApplyConfigError::ReservedPort) => 78,
+        }
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -408,6 +524,10 @@ pub mod k05 {
         #[test]
         fn errors_are_decided_by_variants_not_messages() {
             let parse = parse_port("not-a-port").unwrap_err();
+            assert!(matches!(
+                &parse,
+                ParseConfigError::InvalidPort { value, .. } if value == "not-a-port"
+            ));
             let load = LoadConfigError::from(parse);
             assert!(matches!(load, LoadConfigError::Parse(_)));
             assert!(load.source().is_some());
@@ -439,7 +559,8 @@ pub mod k05 {
 
             let parse_error = load_port("not-a-port".as_bytes()).unwrap_err();
             assert!(matches!(parse_error, LoadConfigError::Parse(_)));
-            assert!(parse_error.source().is_some());
+            let parse_source = parse_error.source().expect("parse source");
+            assert!(parse_source.source().is_some());
         }
 
         #[test]
@@ -447,6 +568,14 @@ pub mod k05 {
             assert_eq!(load_port("8080".as_bytes()).unwrap(), 8080);
             assert_eq!(apply_port(8080), Ok(8080));
             assert_eq!(apply_port(443), Err(ApplyConfigError::ReservedPort));
+            assert_eq!(configure_port("8080".as_bytes()).unwrap(), 8080);
+
+            let parse = configure_port("invalid".as_bytes()).unwrap_err();
+            assert_eq!(exit_code(&parse), 65);
+            let domain = configure_port("443".as_bytes()).unwrap_err();
+            assert_eq!(exit_code(&domain), 78);
+            let io = configure_port(FailingReader).unwrap_err();
+            assert_eq!(exit_code(&io), 74);
         }
     }
 }
@@ -459,7 +588,7 @@ pub mod k06 {
     }
 
     pub trait IdGenerator {
-        fn next_id(&mut self) -> u64;
+        fn next_id(&mut self) -> Option<u64>;
     }
 
     pub trait Repository {
@@ -468,15 +597,29 @@ pub mod k06 {
         fn save(&mut self, id: u64, created_at: u64) -> Result<(), Self::Error>;
     }
 
+    #[derive(Debug, Eq, PartialEq, thiserror::Error)]
+    pub enum CreateError<E> {
+        #[error("identifier sequence exhausted")]
+        IdsExhausted,
+        #[error("repository failed: {0}")]
+        Repository(#[source] E),
+    }
+
     // SOLUTION: C56-K06
-    pub fn create<R, C, I>(repository: &mut R, clock: &C, ids: &mut I) -> Result<u64, R::Error>
+    pub fn create<R, C, I>(
+        repository: &mut R,
+        clock: &C,
+        ids: &mut I,
+    ) -> Result<u64, CreateError<R::Error>>
     where
         R: Repository,
         C: Clock,
         I: IdGenerator,
     {
-        let id = ids.next_id();
-        repository.save(id, clock.now())?;
+        let id = ids.next_id().ok_or(CreateError::IdsExhausted)?;
+        repository
+            .save(id, clock.now())
+            .map_err(CreateError::Repository)?;
         Ok(id)
     }
 
@@ -484,14 +627,16 @@ pub mod k06 {
         repository: &mut R,
         clock: &C,
         next_id: &mut F,
-    ) -> Result<u64, R::Error>
+    ) -> Result<u64, CreateError<R::Error>>
     where
         R: Repository,
         C: Clock,
-        F: FnMut() -> u64,
+        F: FnMut() -> Option<u64>,
     {
-        let id = next_id();
-        repository.save(id, clock.now())?;
+        let id = next_id().ok_or(CreateError::IdsExhausted)?;
+        repository
+            .save(id, clock.now())
+            .map_err(CreateError::Repository)?;
         Ok(id)
     }
 
@@ -503,19 +648,28 @@ pub mod k06 {
         }
     }
 
-    pub struct Sequence(pub u64);
+    pub struct Sequence {
+        next: Option<u64>,
+    }
+
+    impl Sequence {
+        pub const fn new(first: u64) -> Self {
+            Self { next: Some(first) }
+        }
+    }
 
     impl IdGenerator for Sequence {
-        fn next_id(&mut self) -> u64 {
-            let current = self.0;
-            self.0 += 1;
-            current
+        fn next_id(&mut self) -> Option<u64> {
+            let current = self.next?;
+            self.next = current.checked_add(1);
+            Some(current)
         }
     }
 
     #[derive(Default)]
     pub struct MemoryRepository(pub HashMap<u64, u64>);
 
+    /// Test-double law: saving the same ID again replaces its timestamp.
     impl Repository for MemoryRepository {
         type Error = std::convert::Infallible;
 
@@ -532,7 +686,7 @@ pub mod k06 {
         #[test]
         fn three_minimal_fakes_make_the_use_case_deterministic() {
             let mut repository = MemoryRepository::default();
-            let mut ids = Sequence(10);
+            let mut ids = Sequence::new(10);
             assert_eq!(create(&mut repository, &FixedClock(99), &mut ids), Ok(10));
             assert_eq!(repository.0.get(&10), Some(&99));
         }
@@ -540,11 +694,11 @@ pub mod k06 {
         #[test]
         fn id_capability_can_be_a_closure_when_no_named_contract_is_needed() {
             let mut repository = MemoryRepository::default();
-            let mut next = 20;
+            let mut next: Option<u64> = Some(20);
             let mut ids = || {
-                let id = next;
-                next += 1;
-                id
+                let id = next?;
+                next = id.checked_add(1);
+                Some(id)
             };
             assert_eq!(
                 create_with_id_fn(&mut repository, &FixedClock(7), &mut ids),
@@ -574,9 +728,22 @@ pub mod k06 {
         #[test]
         fn repository_error_keeps_its_concrete_type() {
             assert_eq!(
-                create(&mut FailingRepository, &FixedClock(1), &mut Sequence(1)),
-                Err(SaveFailed)
+                create(
+                    &mut FailingRepository,
+                    &FixedClock(1),
+                    &mut Sequence::new(1)
+                ),
+                Err(CreateError::Repository(SaveFailed))
             );
+        }
+
+        #[test]
+        fn memory_repository_obeys_last_write_wins() {
+            let mut repository = MemoryRepository::default();
+            repository.save(7, 10).unwrap();
+            repository.save(7, 20).unwrap();
+            assert_eq!(repository.0.len(), 1);
+            assert_eq!(repository.0.get(&7), Some(&20));
         }
     }
 }
@@ -701,8 +868,10 @@ pub mod k08 {
 
     // SOLUTION: C56-K08
     impl<'a, T> ChunksExact<'a, T> {
+        /// # Panics
+        /// Panics when `size` is zero.
         pub fn new(values: &'a [T], size: usize) -> Self {
-            assert!(size > 0, "el tamaño del chunk no puede ser cero");
+            assert!(size > 0, "chunk size must be greater than zero");
             let complete_length = values.len() - values.len() % size;
             let (remaining, remainder) = values.split_at(complete_length);
             Self {
@@ -773,10 +942,22 @@ pub mod k08 {
             let mut chunks = ChunksExact::new(&values, 3);
             assert_eq!(chunks.next(), None);
             assert_eq!(chunks.remainder(), &[1, 2]);
+
+            let mut empty = ChunksExact::<u8>::new(&[], 1);
+            assert_eq!(empty.next(), None);
+            assert!(empty.remainder().is_empty());
+
+            let values = [1, 2, 3];
+            let chunks = ChunksExact::new(&values, 1).collect::<Vec<_>>();
+            assert_eq!(chunks, [&[1][..], &[2][..], &[3][..]]);
+
+            let values = [1, 2, 3, 4];
+            let chunks = ChunksExact::new(&values, 2);
+            assert!(chunks.remainder().is_empty());
         }
 
         #[test]
-        #[should_panic(expected = "el tamaño del chunk no puede ser cero")]
+        #[should_panic(expected = "chunk size must be greater than zero")]
         fn zero_chunk_size_is_rejected() {
             let _ = ChunksExact::new(&[1, 2], 0);
         }
@@ -793,7 +974,7 @@ pub mod k09 {
     }
 
     enum Command {
-        Apply(i64),
+        Apply(i64, mpsc::Sender<Result<(), WorkerError>>),
         Snapshot(mpsc::Sender<StateSnapshot>),
         Shutdown,
         #[cfg(test)]
@@ -805,6 +986,7 @@ pub mod k09 {
         Closed,
         NoResponse,
         Panicked,
+        Overflow,
     }
 
     #[derive(Clone)]
@@ -818,10 +1000,13 @@ pub mod k09 {
     }
 
     impl WorkerClient {
+        /// Waits for the worker to apply the change or reject it without mutation.
         pub fn apply(&self, change: i64) -> Result<(), WorkerError> {
+            let (reply, answer) = mpsc::channel();
             self.sender
-                .send(Command::Apply(change))
-                .map_err(|_| WorkerError::Closed)
+                .send(Command::Apply(change, reply))
+                .map_err(|_| WorkerError::Closed)?;
+            answer.recv().map_err(|_| WorkerError::NoResponse)?
         }
 
         pub fn snapshot(&self) -> Result<StateSnapshot, WorkerError> {
@@ -845,10 +1030,19 @@ pub mod k09 {
         pub fn start(capacity: usize) -> Self {
             let (sender, receiver) = mpsc::sync_channel(capacity);
             let handle = thread::spawn(move || {
-                let mut value = 0;
+                let mut value: i64 = 0;
                 while let Ok(command) = receiver.recv() {
                     match command {
-                        Command::Apply(change) => value += change,
+                        Command::Apply(change, reply) => {
+                            let result = match value.checked_add(change) {
+                                Some(next) => {
+                                    value = next;
+                                    Ok(())
+                                }
+                                None => Err(WorkerError::Overflow),
+                            };
+                            let _ = reply.send(result);
+                        }
                         Command::Snapshot(reply) => {
                             let _ = reply.send(StateSnapshot { value });
                         }
@@ -876,6 +1070,8 @@ pub mod k09 {
             self.client.snapshot()
         }
 
+        /// Joins without a deadline. `Drop` uses the same blocking cleanup,
+        /// but cannot return a worker error to the caller.
         pub fn shutdown(mut self) -> Result<(), WorkerError> {
             let send_failed = self.client.sender.send(Command::Shutdown).is_err();
             let joined = self.handle.take().expect("worker handle present").join();
@@ -941,6 +1137,7 @@ pub mod k10 {
             Self(AtomicU64::new(0))
         }
 
+        /// Counts modulo 2^64; it does not publish unrelated state.
         pub fn increment(&self) {
             self.0.fetch_add(1, Ordering::Relaxed);
         }
@@ -1008,6 +1205,8 @@ pub mod k10 {
     #[cfg(test)]
     mod tests {
         use super::*;
+        use std::sync::Arc;
+        use std::thread;
 
         #[test]
         fn metric_is_independent_but_balance_invariant_is_grouped() {
@@ -1018,6 +1217,25 @@ pub mod k10 {
             let balances = Balances::new(10, 20);
             assert!(balances.transfer(4));
             assert_eq!(balances.snapshot(), (6, 24));
+        }
+
+        #[test]
+        fn relaxed_metric_counts_concurrent_independent_events() {
+            let metrics = Arc::new(Metrics::new());
+            let handles = (0..4)
+                .map(|_| {
+                    let metrics = Arc::clone(&metrics);
+                    thread::spawn(move || {
+                        for _ in 0..1_000 {
+                            metrics.increment();
+                        }
+                    })
+                })
+                .collect::<Vec<_>>();
+            for handle in handles {
+                handle.join().expect("metric worker");
+            }
+            assert_eq!(metrics.value(), 4_000);
         }
 
         #[test]
@@ -1038,25 +1256,42 @@ pub mod k10 {
             assert!(!balances.transfer(1));
             assert_eq!(balances.snapshot(), (1, u64::MAX));
         }
+
+        #[test]
+        fn metric_wraparound_is_part_of_the_declared_policy() {
+            let metrics = Metrics(AtomicU64::new(u64::MAX));
+            metrics.increment();
+            assert_eq!(metrics.value(), 0);
+        }
     }
 }
 
 pub mod k11 {
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::{Arc, Mutex};
     use std::time::Duration;
-    use tokio::sync::Semaphore;
+    use tokio::sync::{Notify, Semaphore};
+
+    struct AdmissionState {
+        accepting: bool,
+        active: usize,
+    }
+
+    struct ImportState {
+        admission: Mutex<AdmissionState>,
+        idle: Notify,
+    }
 
     #[derive(Clone)]
     pub struct Importer {
         downloads: Arc<Semaphore>,
         persists: Arc<Semaphore>,
-        accepting: Arc<AtomicBool>,
+        state: Arc<ImportState>,
     }
 
     pub struct AdmittedImport {
         downloads: Arc<Semaphore>,
         persists: Arc<Semaphore>,
+        state: Arc<ImportState>,
     }
 
     #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1064,31 +1299,79 @@ pub mod k11 {
         Closed,
         Invalid,
         NotAccepting,
+        TooManyActive,
         Deadline,
     }
 
     // SOLUTION: C56-K11
     impl Importer {
+        /// # Panics
+        /// Panics if a limit exceeds `Semaphore::MAX_PERMITS`.
+        /// Zero permits intentionally block that stage until cancellation.
         pub fn new(download_limit: usize, persist_limit: usize) -> Self {
             Self {
                 downloads: Arc::new(Semaphore::new(download_limit)),
                 persists: Arc::new(Semaphore::new(persist_limit)),
-                accepting: Arc::new(AtomicBool::new(true)),
+                state: Arc::new(ImportState {
+                    admission: Mutex::new(AdmissionState {
+                        accepting: true,
+                        active: 0,
+                    }),
+                    idle: Notify::new(),
+                }),
             }
         }
 
         pub fn admit(&self) -> Result<AdmittedImport, ImportError> {
-            if !self.accepting.load(Ordering::Acquire) {
+            let mut admission = self
+                .state
+                .admission
+                .lock()
+                .expect("import admission state poisoned");
+            if !admission.accepting {
                 return Err(ImportError::NotAccepting);
             }
+            admission.active = admission
+                .active
+                .checked_add(1)
+                .ok_or(ImportError::TooManyActive)?;
+            drop(admission);
             Ok(AdmittedImport {
                 downloads: Arc::clone(&self.downloads),
                 persists: Arc::clone(&self.persists),
+                state: Arc::clone(&self.state),
             })
         }
 
         pub fn close_admission(&self) {
-            self.accepting.store(false, Ordering::Release);
+            self.state
+                .admission
+                .lock()
+                .expect("import admission state poisoned")
+                .accepting = false;
+        }
+
+        pub fn active_imports(&self) -> usize {
+            self.state
+                .admission
+                .lock()
+                .expect("import admission state poisoned")
+                .active
+        }
+
+        /// Waits for all admitted tokens to be dropped; does not abort tasks.
+        /// Retaining an unused token can prevent this future from completing.
+        pub async fn shutdown(self) {
+            self.close_admission();
+            loop {
+                let notified = self.state.idle.notified();
+                tokio::pin!(notified);
+                notified.as_mut().enable();
+                if self.active_imports() == 0 {
+                    return;
+                }
+                notified.await;
+            }
         }
 
         pub async fn import(&self, input: &str) -> Result<String, ImportError> {
@@ -1108,6 +1391,7 @@ pub mod k11 {
     }
 
     impl AdmittedImport {
+        /// Simulates download and persistence; no network or durable write occurs.
         pub async fn run(self, input: &str) -> Result<String, ImportError> {
             let download = self
                 .downloads
@@ -1134,6 +1418,26 @@ pub mod k11 {
         }
     }
 
+    impl Drop for AdmittedImport {
+        fn drop(&mut self) {
+            let became_idle = {
+                let mut admission = self
+                    .state
+                    .admission
+                    .lock()
+                    .expect("import admission state poisoned");
+                admission.active = admission
+                    .active
+                    .checked_sub(1)
+                    .expect("active import count underflow");
+                admission.active == 0
+            };
+            if became_idle {
+                self.state.idle.notify_waiters();
+            }
+        }
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -1141,6 +1445,8 @@ pub mod k11 {
         #[tokio::test]
         async fn stages_have_separate_concurrency_budgets() {
             let importer = Importer::new(4, 2);
+            assert_eq!(importer.downloads.available_permits(), 4);
+            assert_eq!(importer.persists.available_permits(), 2);
             assert_eq!(
                 importer.import("  record ").await,
                 Ok(String::from("record"))
@@ -1156,6 +1462,30 @@ pub mod k11 {
 
             assert_eq!(importer.import("new").await, Err(ImportError::NotAccepting));
             assert_eq!(admitted.run("accepted").await, Ok("accepted".to_owned()));
+            assert_eq!(importer.active_imports(), 0);
+        }
+
+        #[tokio::test]
+        async fn shutdown_waits_until_admitted_work_has_finished() {
+            let importer = Importer::new(1, 1);
+            let held = Arc::clone(&importer.downloads)
+                .acquire_owned()
+                .await
+                .unwrap();
+            let admitted = importer.admit().unwrap();
+            let work = tokio::spawn(admitted.run("accepted"));
+            tokio::task::yield_now().await;
+
+            let first_shutdown = tokio::spawn(importer.clone().shutdown());
+            let second_shutdown = tokio::spawn(importer.shutdown());
+            tokio::task::yield_now().await;
+            assert!(!first_shutdown.is_finished());
+            assert!(!second_shutdown.is_finished());
+
+            drop(held);
+            first_shutdown.await.unwrap();
+            second_shutdown.await.unwrap();
+            assert_eq!(work.await.unwrap(), Ok("accepted".to_owned()));
         }
 
         #[tokio::test(start_paused = true)]
@@ -1168,8 +1498,16 @@ pub mod k11 {
                     .await,
                 Err(ImportError::Deadline)
             );
+            assert_eq!(importer.active_imports(), 0);
             drop(held);
             assert_eq!(importer.import("record").await, Ok("record".to_owned()));
+        }
+
+        #[tokio::test]
+        async fn a_closed_stage_reports_closed_without_leaking_admission() {
+            let importer = Importer::new(1, 1);
+            importer.downloads.close();
+            assert_eq!(importer.import("record").await, Err(ImportError::Closed));
         }
     }
 }
@@ -1179,7 +1517,7 @@ pub mod k12 {
     use std::rc::Rc;
 
     // SOLUTION: C56-K12
-    pub fn owned_send_future(value: &str) -> impl Future<Output = String> + Send + 'static {
+    pub fn owned_send_future(value: &str) -> impl Future<Output = String> + Send + 'static + use<> {
         let owned = value.to_owned();
         async move {
             tokio::task::yield_now().await;
@@ -1196,13 +1534,13 @@ pub mod k12 {
         copied
     }
 
-    /// Conserva `Rc` a través del punto de suspensión y por ello es local.
+    /// Keeps `Rc` across the suspension point, so the future is local.
     ///
     /// ```compile_fail
     /// let future = course_solutions::katas::k12::local_future("local");
     /// tokio::spawn(future);
     /// ```
-    pub fn local_future(value: &str) -> impl Future<Output = String> + 'static {
+    pub fn local_future(value: &str) -> impl Future<Output = String> + 'static + use<> {
         let local = Rc::new(value.to_owned());
         async move {
             tokio::task::yield_now().await;
@@ -1214,7 +1552,7 @@ pub mod k12 {
     mod tests {
         use super::*;
 
-        #[tokio::test]
+        #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
         async fn owned_data_can_be_spawned_on_a_multithread_runtime() {
             let handle = tokio::spawn(owned_send_future("Send"));
             assert_eq!(handle.await.unwrap(), "Send");
@@ -1249,12 +1587,30 @@ pub mod k13 {
     use std::sync::Arc;
     use std::sync::atomic::AtomicUsize;
 
-    /// El wrapper conserva afinidad local mientras el contrato nativo no
-    /// demuestre que el handle puede viajar entre threads.
+    /// The wrapper remains thread-affine until the native contract proves
+    /// that its handle may cross thread boundaries.
     ///
     /// ```compile_fail
     /// fn require_send<T: Send>() {}
     /// require_send::<course_solutions::katas::k13::DemonstrationBuffer>();
+    /// ```
+    ///
+    /// The borrowed view cannot outlive its wrapper:
+    ///
+    /// ```compile_fail
+    /// use course_solutions::katas::k13::DemonstrationBuffer;
+    /// let bytes = {
+    ///     let buffer = DemonstrationBuffer::new(vec![1]);
+    ///     buffer.as_slice()
+    /// };
+    /// assert_eq!(bytes, [1]);
+    /// ```
+    ///
+    /// Shared references cannot be sent to other threads either:
+    ///
+    /// ```compile_fail
+    /// fn require_sync<T: Sync>() {}
+    /// require_sync::<course_solutions::katas::k13::DemonstrationBuffer>();
     /// ```
     pub struct DemonstrationBuffer {
         inner: crate::unsafe_low_level::c47::Buffer,
@@ -1327,19 +1683,19 @@ pub mod k13 {
 }
 
 pub mod k14 {
-    /// Retorna pronto desde el caller y evalúa condición y error como máximo
-    /// una vez.
+    /// Returns early from the caller and evaluates the condition and error at
+    /// most once.
     ///
     /// ```
     /// use course_solutions::ensure_course;
     ///
     /// fn positive(value: i64) -> Result<i64, &'static str> {
-    ///     ensure_course!(value > 0, "debe ser positivo",);
+    ///     ensure_course!(value > 0, "must be positive",);
     ///     Ok(value)
     /// }
     ///
     /// assert_eq!(positive(2), Ok(2));
-    /// assert_eq!(positive(0), Err("debe ser positivo"));
+    /// assert_eq!(positive(0), Err("must be positive"));
     /// ```
     ///
     /// ```compile_fail
@@ -1351,7 +1707,7 @@ pub mod k14 {
     macro_rules! ensure_course {
         ($condition:expr, $error:expr $(,)?) => {{
             if !$condition {
-                return Err($error);
+                return ::core::result::Result::Err($error);
             }
         }};
     }
@@ -1360,13 +1716,13 @@ pub mod k14 {
     macro_rules! ensure_with_context_course {
         ($condition:expr, $error:expr, $context:expr $(,)?) => {{
             if !$condition {
-                return Err(format!("{}: {}", $context, $error));
+                return ::core::result::Result::Err(::std::format!("{}: {}", $context, $error));
             }
         }};
     }
 
     pub fn positive(value: i64) -> Result<i64, &'static str> {
-        crate::ensure_course!(value > 0, "debe ser positivo",);
+        crate::ensure_course!(value > 0, "must be positive",);
         Ok(value)
     }
 

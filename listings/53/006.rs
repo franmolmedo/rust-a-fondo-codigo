@@ -12,9 +12,9 @@ pub enum LoadError {
 impl fmt::Display for LoadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::NotFound { key } => write!(f, "no existe {key}"),
-            Self::InvalidFormat { line } => write!(f, "formato inválido en línea {line}"),
-            Self::Backend { .. } => f.write_str("falló el backend"),
+            Self::NotFound { key } => write!(f, "key not found: {key}"),
+            Self::InvalidFormat { line } => write!(f, "invalid format at line {line}"),
+            Self::Backend { .. } => f.write_str("storage backend failed"),
         }
     }
 }

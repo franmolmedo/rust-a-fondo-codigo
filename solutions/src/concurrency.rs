@@ -5,18 +5,39 @@ pub mod c30 {
     use std::thread::{self, JoinHandle};
     use std::time::Duration;
 
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum SumError {
+        NoWorkers,
+        Overflow,
+        WorkerPanicked,
+    }
+
     // SOLUTION: C30-E01
-    pub fn scoped_sum(values: &[u64], workers: usize) -> u64 {
-        assert!(workers > 0, "se necesita al menos un worker");
+    /// Sum borrowed chunks, checking both partial sums and their combined total.
+    pub fn scoped_sum(values: &[u64], workers: usize) -> Result<u64, SumError> {
+        if workers == 0 {
+            return Err(SumError::NoWorkers);
+        }
         let chunk_size = values.len().max(1).div_ceil(workers);
         thread::scope(|scope| {
             values
                 .chunks(chunk_size)
-                .map(|chunk| scope.spawn(move || chunk.iter().sum::<u64>()))
+                .map(|chunk| {
+                    scope.spawn(move || {
+                        chunk
+                            .iter()
+                            .try_fold(0_u64, |total, &value| total.checked_add(value))
+                    })
+                })
                 .collect::<Vec<_>>()
                 .into_iter()
-                .map(|handle| handle.join().expect("scoped worker panicked"))
-                .sum()
+                .try_fold(0_u64, |total, handle| {
+                    let partial = handle
+                        .join()
+                        .map_err(|_| SumError::WorkerPanicked)?
+                        .ok_or(SumError::Overflow)?;
+                    total.checked_add(partial).ok_or(SumError::Overflow)
+                })
         })
     }
 
@@ -27,18 +48,33 @@ pub mod c30 {
     }
 
     // SOLUTION: C30-E03
+    /// Delay each consumer explicitly, without depending on sleep or scheduling.
     pub fn compare_channel_capacity() -> ChannelComparison {
         let (unbounded_tx, unbounded_rx) = mpsc::channel();
+        let (resume_unbounded, unbounded_start) = mpsc::channel();
+        let unbounded_worker = thread::spawn(move || {
+            unbounded_start.recv().expect("consumer released");
+            unbounded_rx.into_iter().count()
+        });
         unbounded_tx.send(1_u8).unwrap();
         unbounded_tx.send(2_u8).unwrap();
         drop(unbounded_tx);
-        let unbounded_queued = unbounded_rx.into_iter().count();
+        resume_unbounded.send(()).unwrap();
+        let unbounded_queued = unbounded_worker
+            .join()
+            .expect("unbounded consumer panicked");
 
         let (bounded_tx, bounded_rx) = mpsc::sync_channel(1);
+        let (resume_bounded, bounded_start) = mpsc::channel();
+        let bounded_worker = thread::spawn(move || {
+            bounded_start.recv().expect("consumer released");
+            bounded_rx.recv().expect("first value queued")
+        });
         bounded_tx.send(1_u8).unwrap();
         let bounded_second_send_was_full =
             matches!(bounded_tx.try_send(2), Err(TrySendError::Full(2)));
-        assert_eq!(bounded_rx.recv().unwrap(), 1);
+        resume_bounded.send(()).unwrap();
+        assert_eq!(bounded_worker.join().expect("bounded consumer panicked"), 1);
 
         ChannelComparison {
             unbounded_queued,
@@ -64,6 +100,8 @@ pub mod c30 {
         handle.join().map_err(|_| WorkerError::Panicked)
     }
 
+    /// An in-memory batch worker; call `shutdown` to wait for its completion.
+    /// Dropping this value closes its command sender but detaches its thread.
     pub struct Worker {
         sender: SyncSender<Command>,
         handle: Option<JoinHandle<()>>,
@@ -74,15 +112,18 @@ pub mod c30 {
         pub fn start(capacity: usize) -> Self {
             let (sender, receiver) = mpsc::sync_channel(capacity);
             let handle = thread::spawn(move || {
-                let mut values = Vec::new();
+                let mut pending = Vec::new();
+                let mut stored = Vec::new();
                 while let Ok(command) = receiver.recv() {
                     match command {
-                        Command::Store(value) => values.push(value),
+                        Command::Store(value) => pending.push(value),
                         Command::Flush(reply) => {
-                            let _ = reply.send(values.len());
+                            stored.append(&mut pending);
+                            let _ = reply.send(stored.len());
                         }
                         Command::Shutdown(reply) => {
-                            let _ = reply.send(values);
+                            stored.append(&mut pending);
+                            let _ = reply.send(stored);
                             break;
                         }
                     }
@@ -100,6 +141,7 @@ pub mod c30 {
                 .map_err(|_| WorkerError::Closed)
         }
 
+        /// Commit pending values to the in-memory collection, not to a file.
         pub fn flush(&self) -> Result<usize, WorkerError> {
             let (reply, answer) = mpsc::channel();
             self.sender
@@ -133,6 +175,8 @@ pub mod c30 {
     }
 
     // SOLUTION: C30-E05
+    /// A single-owner metric counter that saturates at `u64::MAX`.
+    /// Call `shutdown` to wait for completion; dropping it only detaches the thread.
     pub struct CounterWorker {
         sender: SyncSender<CounterCommand>,
         handle: Option<JoinHandle<()>>,
@@ -143,10 +187,10 @@ pub mod c30 {
         pub fn start(capacity: usize) -> Self {
             let (sender, receiver) = mpsc::sync_channel(capacity);
             let handle = thread::spawn(move || {
-                let mut value = 0;
+                let mut value = 0_u64;
                 while let Ok(command) = receiver.recv() {
                     match command {
-                        CounterCommand::Add(amount) => value += amount,
+                        CounterCommand::Add(amount) => value = value.saturating_add(amount),
                         CounterCommand::Reset(reply) => {
                             let previous = std::mem::replace(&mut value, 0);
                             let _ = reply.send(previous);
@@ -167,12 +211,21 @@ pub mod c30 {
                 .map_err(|_| WorkerError::Closed)
         }
 
-        pub fn reset(&self) -> Result<u64, WorkerError> {
+        /// Enqueue a reset and return its dedicated reply receiver.
+        /// Waiting for the reply can time out without cancelling the reset.
+        /// Enqueuing itself may block; a reply timeout is not an end-to-end deadline.
+        pub fn request_reset(&self) -> Result<Receiver<u64>, WorkerError> {
             let (reply, answer) = mpsc::channel();
             self.sender
                 .send(CounterCommand::Reset(reply))
                 .map_err(|_| WorkerError::Closed)?;
-            answer.recv().map_err(|_| WorkerError::NoResponse)
+            Ok(answer)
+        }
+
+        pub fn reset(&self) -> Result<u64, WorkerError> {
+            self.request_reset()?
+                .recv()
+                .map_err(|_| WorkerError::NoResponse)
         }
 
         pub fn shutdown(mut self) -> Result<(), WorkerError> {
@@ -198,6 +251,7 @@ pub mod c30 {
     }
 
     // SOLUTION: C30-E07
+    /// Limit this receive operation, without cancelling an already sent command.
     pub fn receive_with_timeout<T>(
         receiver: &Receiver<T>,
         timeout: Duration,
@@ -214,7 +268,7 @@ pub mod c30 {
 
         #[test]
         fn scoped_threads_can_borrow_the_input() {
-            assert_eq!(scoped_sum(&[1, 2, 3, 4, 5, 6], 3), 21);
+            assert_eq!(scoped_sum(&[1, 2, 3, 4, 5, 6], 3), Ok(21));
         }
 
         #[test]
@@ -294,11 +348,12 @@ pub mod c31 {
     pub fn assert_sync_type<T: Sync>() {}
 
     // SOLUTION: C31-E02
+    /// Increment a metric, saturating at the type's maximum value.
     pub fn increment_cell_behind_mutex(state: Arc<Mutex<Cell<u32>>>) -> u32 {
         let worker_state = Arc::clone(&state);
         std::thread::spawn(move || {
             let cell = worker_state.lock().expect("state poisoned");
-            cell.set(cell.get() + 1);
+            cell.set(cell.get().saturating_add(1));
         })
         .join()
         .expect("worker panicked");
@@ -337,6 +392,8 @@ pub mod c31 {
         std::thread::spawn(move || value.len())
     }
 
+    /// Checklist for the hypothetical uniquely owned handle in exercise 5.
+    /// These asserted facts record a review; booleans cannot prove memory safety.
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct SendSafetyAudit {
         pub unique_ownership: bool,
@@ -351,14 +408,27 @@ pub mod c31 {
     }
 
     pub const fn justifies_sync(audit: SendSafetyAudit) -> bool {
-        justifies_send(audit) && audit.synchronized_shared_access
+        audit.synchronized_shared_access
     }
 
     // SOLUTION: C31-E06
+    /// Release the synchronous guard before yielding. The metric saturates.
+    /// A guard kept across an await would prevent the future from being Send:
+    ///
+    /// ```compile_fail
+    /// async fn broken(counter: &std::sync::Mutex<u64>) -> u64 {
+    ///     let guard = counter.lock().unwrap();
+    ///     std::future::ready(()).await;
+    ///     *guard
+    /// }
+    /// fn require_send<T: Send>(_: T) {}
+    /// let counter = std::sync::Mutex::new(0);
+    /// require_send(broken(&counter));
+    /// ```
     pub async fn increment_then_yield(counter: Arc<Mutex<u64>>) -> u64 {
         let after_increment = {
             let mut guard = counter.lock().expect("counter poisoned");
-            *guard += 1;
+            *guard = guard.saturating_add(1);
             *guard
         };
         tokio::task::yield_now().await;
@@ -367,22 +437,22 @@ pub mod c31 {
 
     pub async fn increment_with_async_mutex(counter: Arc<tokio::sync::Mutex<u64>>) -> u64 {
         let mut guard = counter.lock().await;
-        *guard += 1;
+        *guard = guard.saturating_add(1);
         tokio::task::yield_now().await;
         *guard
     }
 
     // SOLUTION: C31-E07
-    /// Testigos de dos combinaciones no simétricas de auto traits.
+    /// Witnesses for the two asymmetric combinations of auto traits.
     ///
-    /// `Cell<u32>` puede moverse, pero no compartirse mediante `&Cell<_>`:
+    /// `Cell<u32>` can be moved but not shared through `&Cell<_>`:
     ///
     /// ```compile_fail
     /// fn assert_sync<T: Sync>() {}
     /// assert_sync::<std::cell::Cell<u32>>();
     /// ```
     ///
-    /// `MutexGuard` puede ser `Sync` si su contenido lo es, pero nunca `Send`:
+    /// `MutexGuard` can be `Sync` when its contents are, but is never `Send`:
     ///
     /// ```compile_fail
     /// fn assert_send<T: Send>() {}
@@ -465,7 +535,7 @@ pub mod c31 {
 }
 
 pub mod c32 {
-    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+    use std::sync::atomic::{AtomicU8, AtomicU64, Ordering};
     use std::sync::{Barrier, Mutex};
     use std::thread;
 
@@ -477,7 +547,16 @@ pub mod c32 {
     // SOLUTION: C32-E01
     impl Metrics {
         pub fn record_request(&self) {
-            self.requests.fetch_add(1, Ordering::Relaxed);
+            self.record_requests(1);
+        }
+
+        /// Record a batch without wrapping the metric back to zero.
+        pub fn record_requests(&self, count: u64) {
+            let _ = self
+                .requests
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |current| {
+                    Some(current.saturating_add(count))
+                });
         }
 
         pub fn requests(&self) -> u64 {
@@ -488,20 +567,26 @@ pub mod c32 {
     #[derive(Default)]
     pub struct PublishedValue {
         data: AtomicU64,
-        ready: AtomicBool,
+        state: AtomicU8,
     }
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub struct AlreadyPublished;
 
     // SOLUTION: C32-E02
     impl PublishedValue {
-        pub fn publish(&self, value: u64) {
+        /// Publish exactly once: state 0 is empty, 1 is writing, 2 is ready.
+        pub fn publish(&self, value: u64) -> Result<(), AlreadyPublished> {
+            self.state
+                .compare_exchange(0, 1, Ordering::Relaxed, Ordering::Relaxed)
+                .map_err(|_| AlreadyPublished)?;
             self.data.store(value, Ordering::Relaxed);
-            self.ready.store(true, Ordering::Release);
+            self.state.store(2, Ordering::Release);
+            Ok(())
         }
 
         pub fn read(&self) -> Option<u64> {
-            self.ready
-                .load(Ordering::Acquire)
-                .then(|| self.data.load(Ordering::Relaxed))
+            (self.state.load(Ordering::Acquire) == 2).then(|| self.data.load(Ordering::Relaxed))
         }
     }
 
@@ -548,6 +633,12 @@ pub mod c32 {
 
     pub struct AtomicStampedIndex(AtomicU64);
 
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum ReplaceError {
+        Changed(StampedIndex),
+        GenerationExhausted,
+    }
+
     // SOLUTION: C32-E04
     impl AtomicStampedIndex {
         pub const fn new(index: u32) -> Self {
@@ -568,9 +659,12 @@ pub mod c32 {
             &self,
             expected: StampedIndex,
             new_index: u32,
-        ) -> Result<StampedIndex, StampedIndex> {
+        ) -> Result<StampedIndex, ReplaceError> {
             let next = StampedIndex {
-                generation: expected.generation.wrapping_add(1),
+                generation: expected
+                    .generation
+                    .checked_add(1)
+                    .ok_or(ReplaceError::GenerationExhausted)?,
                 index: new_index,
             };
             self.0
@@ -581,12 +675,13 @@ pub mod c32 {
                     Ordering::Acquire,
                 )
                 .map(|_| next)
-                .map_err(StampedIndex::unpack)
+                .map_err(|observed| ReplaceError::Changed(StampedIndex::unpack(observed)))
         }
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct Quota {
+        pub total: u64,
         pub available: u64,
         pub reserved: u64,
     }
@@ -597,6 +692,7 @@ pub mod c32 {
     impl QuotaBook {
         pub const fn new(total: u64) -> Self {
             Self(Mutex::new(Quota {
+                total,
                 available: total,
                 reserved: 0,
             }))
@@ -684,7 +780,7 @@ pub mod c32 {
         fn release_acquire_publishes_the_payload() {
             let published = PublishedValue::default();
             assert_eq!(published.read(), None);
-            published.publish(42);
+            published.publish(42).unwrap();
             assert_eq!(published.read(), Some(42));
         }
 
@@ -704,7 +800,21 @@ pub mod c32 {
             let back_at_a = top.replace(at_b, 7).unwrap();
             assert_eq!(back_at_a.index, stale.index);
             assert_ne!(back_at_a.generation, stale.generation);
-            assert_eq!(top.replace(stale, 11), Err(back_at_a));
+            assert_eq!(
+                top.replace(stale, 11),
+                Err(ReplaceError::Changed(back_at_a))
+            );
+        }
+
+        #[test]
+        fn exhausted_generations_cannot_reintroduce_an_old_stamp() {
+            let last = StampedIndex {
+                generation: u32::MAX,
+                index: 7,
+            };
+            let top = AtomicStampedIndex(AtomicU64::new(last.pack()));
+            assert_eq!(top.replace(last, 9), Err(ReplaceError::GenerationExhausted));
+            assert_eq!(top.load(), last);
         }
 
         #[test]
@@ -715,6 +825,7 @@ pub mod c32 {
             assert_eq!(
                 quota.snapshot(),
                 Quota {
+                    total: 10,
                     available: 3,
                     reserved: 7,
                 }

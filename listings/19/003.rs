@@ -63,4 +63,17 @@ fn main() {
 
     assert_eq!(basic.dispatch(event).records, ["all:login"]);
     assert_eq!(audited.dispatch(event).records, ["all:login", "audit:login"]);
+
+    struct FailingSink;
+    impl Sink for FailingSink {
+        fn write(&mut self, _event: Event) -> Result<Option<String>, &'static str> {
+            Err("sink unavailable")
+        }
+    }
+    let mut partial = Pipeline {
+        sinks: vec![Box::new(FailingSink), Box::new(AllEvents), Box::new(AuditOnly)],
+    };
+    let report = partial.dispatch(Event { kind: "debug", payload: "trace" });
+    assert_eq!(report.records, ["all:trace"]);
+    assert_eq!(report.failures, 1);
 }

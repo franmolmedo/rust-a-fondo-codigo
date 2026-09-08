@@ -1,2 +1,2 @@
-String  -> texto owned, growable
-&str    -> vista prestada de texto UTF-8
+String  -> posee el texto UTF-8 y permite modificarlo
+&str    -> permite consultar texto UTF-8 prestado

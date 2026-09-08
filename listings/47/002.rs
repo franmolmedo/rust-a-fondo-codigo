@@ -1,5 +1,5 @@
-// SAFETY: la biblioteca publica una única definición de este símbolo y su
-// header declara exactamente `uint32_t course_abi_version(void)`.
+// SAFETY: the library publishes a single definition of this symbol, and its
+// header declares exactly `uint32_t course_abi_version(void)`.
 #[unsafe(no_mangle)]
 pub extern "C" fn course_abi_version() -> u32 {
     1

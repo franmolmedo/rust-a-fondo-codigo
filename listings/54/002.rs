@@ -1,6 +1,9 @@
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct Email(String);
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct EmailError;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Role {
     Member,
@@ -14,11 +17,11 @@ struct User {
 }
 
 impl Email {
-    fn parse(value: String) -> Result<Self, String> {
+    fn parse(value: String) -> Result<Self, EmailError> {
         value
             .contains('@')
             .then_some(Self(value))
-            .ok_or_else(|| "invalid email".to_owned())
+            .ok_or(EmailError)
     }
 }
 

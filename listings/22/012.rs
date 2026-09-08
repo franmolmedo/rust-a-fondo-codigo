@@ -9,7 +9,7 @@ impl Dispatcher {
         {
             let mut events = self.events.borrow_mut();
             events.push("emit");
-        } // RefMut destruido antes de la callback
+        } // RefMut se destruye antes de ejecutar la closure
 
         callback(self);
     }

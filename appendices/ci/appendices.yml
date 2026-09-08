@@ -1,0 +1,77 @@
+name: Appendix labs
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'code/appendices/**'
+      - 'docs/*.Apendice-*.md'
+      - '.github/workflows/appendices.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: code/appendices
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned Rust tools
+        run: rustup toolchain install 1.95.0 --profile minimal --component clippy,rustfmt,rust-src
+      - name: Check manuscript examples
+        run: python verify.py --check-docs
+      - name: Verify native workspace
+        run: python verify.py
+      - name: Check the no_std target
+        run: |
+          rustup target add thumbv7em-none-eabihf --toolchain 1.95.0
+          python advanced.py --cross
+      - name: Build native application package
+        run: python package.py --version 0.1.0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appendix-apps-${{ runner.os }}
+          path: |
+            code/appendices/target/packages/*
+            code/appendices/reports/verification.json
+            code/appendices/reports/advanced-cross.json
+          if-no-files-found: error
+
+  advanced:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: code/appendices
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned audit tools
+        run: |
+          rustup toolchain install nightly-2026-04-15 --profile minimal --component miri,rust-src
+          cargo +nightly-2026-04-15 install cargo-fuzz --version 0.13.1 --locked
+      - name: Miri positive and negative controls
+        run: python advanced.py --miri
+      - name: Short instrumented fuzzing campaign
+        run: python advanced.py --fuzz
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: appendix-advanced-reports
+          path: |
+            code/appendices/reports/advanced-*.json
+            code/appendices/fuzz/artifacts/
+          if-no-files-found: warn

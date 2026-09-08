@@ -1,0 +1,11 @@
+[
+  {
+    "label": "Debug first-steps",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "cargo",
+      "args": ["build", "-p", "first-steps"]
+    },
+    "sourceLanguages": ["rust"]
+  }
+]

@@ -11,6 +11,6 @@ fn main() {
     {
         let _cache = ConnectionGuard("cache");
         println!("trabajando con ambas");
-    } // la cache se cierra exactamente aquí
+    } // aquí se destruye `_cache` y se imprime su mensaje de cierre
     println!("solo queda la base de datos");
-} // la base de datos se cierra al final
+} // al final se destruye `_database` y se imprime su mensaje de cierre

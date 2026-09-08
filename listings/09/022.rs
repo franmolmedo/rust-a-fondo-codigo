@@ -12,7 +12,7 @@ enum Severity {
 
 fn severity(error: &ServiceError) -> Severity {
     match error {
-        ServiceError::Http { status, .. } if *status >= 500 => Severity::Severe,
+        ServiceError::Http { status, .. } if (500..=599).contains(status) => Severity::Severe,
         ServiceError::Http { .. } | ServiceError::Timeout => Severity::Normal,
     }
 }
@@ -23,4 +23,9 @@ fn main() {
         path: String::from("/users"),
     };
     assert_eq!(severity(&error), Severity::Severe);
+    let outside_5xx = ServiceError::Http {
+        status: 600,
+        path: String::from("/users"),
+    };
+    assert_eq!(severity(&outside_5xx), Severity::Normal);
 }

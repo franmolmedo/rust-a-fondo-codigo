@@ -1,7 +1,7 @@
 // build.rs
 fn main() {
-    // Solo reejecutar si cambia el schema, no en cada build:
+    // Vigilar este archivo como entrada del script:
     println!("cargo::rerun-if-changed=schema/catalog.proto");
-    // Exponer un valor calculado al código:
+    // Hacer que esta constante esté disponible al compilar la crate:
     println!("cargo::rustc-env=CATALOG_SCHEMA_VERSION=3");
 }

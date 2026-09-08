@@ -10,7 +10,7 @@ let header = Header {
 };
 let pointer = &raw const header.sequence;
 
-// SAFETY: el puntero señala el campo inicializado; `read_unaligned` no exige
-// la alineación natural de `u32` que una referencia sí exigiría.
+// SAFETY: the pointer targets the initialized field; `read_unaligned` does
+// not require the natural `u32` alignment that a reference would require.
 let sequence = unsafe { pointer.read_unaligned() };
 assert_eq!(sequence, 0x1020_3040);

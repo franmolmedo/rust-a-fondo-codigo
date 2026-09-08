@@ -1,7 +1,7 @@
 entrada pública
 → validación / normalización
 → tipo o estado interno
-→ selección de backend
-→ efecto / syscall / await
-→ mapeo de error
+→ selección de implementación
+→ efecto / llamada al sistema / .await
+→ conversión del error
 → resultado observable

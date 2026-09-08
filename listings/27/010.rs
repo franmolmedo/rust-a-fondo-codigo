@@ -1,9 +1,11 @@
-#[cfg(feature = "json")]
-pub mod json;
+#[cfg_attr(feature = "json", derive(serde::Serialize))]
+pub struct Order {
+    pub id: u64,
+}
 
 #[cfg(feature = "json")]
 impl Order {
-    pub fn to_json(&self) -> String {
-        serde_json::to_string(self).expect("Order siempre serializa")
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(self)
     }
 }

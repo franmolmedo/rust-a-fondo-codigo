@@ -7,5 +7,5 @@ let (reply_tx, reply_rx) = mpsc::channel();
 commands.send(Command::Total(reply_tx)).unwrap();
 assert_eq!(reply_rx.recv().unwrap(), 7);
 
-drop(commands);                        // shutdown: cae el último sender
-assert_eq!(worker.join().unwrap(), 7); // join recoge el estado final
+drop(commands);                       // Drop the last command sender.
+assert_eq!(worker.join().unwrap(), 7); // Wait and read the final total.

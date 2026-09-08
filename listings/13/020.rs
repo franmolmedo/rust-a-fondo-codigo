@@ -2,7 +2,7 @@
 struct ReviewReport {
     accepted: Vec<u64>,
     rejected: Vec<u64>,
-    total_cents: u64,
+    total_cents: u128,
 }
 
 fn review(requests: &[(u64, u64)]) -> ReviewReport {
@@ -18,7 +18,7 @@ fn review(requests: &[(u64, u64)]) -> ReviewReport {
             continue;
         }
         report.accepted.push(id);
-        report.total_cents += amount;
+        report.total_cents += u128::from(amount);
     }
     report
 }

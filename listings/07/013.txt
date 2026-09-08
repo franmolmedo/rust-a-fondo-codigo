@@ -1,5 +1,5 @@
-field()       → observa una vista o valor Copy
-field_mut()   → presta acceso mutable directo
-as_*()        → vista barata
+field()       → devuelve una referencia o un valor Copy
+field_mut()   → devuelve acceso mutable directo
+as_*()        → ofrece una vista sin duplicar los datos
 to_*()        → crea una representación nueva
-into_*()      → consume y transfiere
+into_*()      → consume el valor y entrega su contenido

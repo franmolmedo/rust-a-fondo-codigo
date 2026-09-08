@@ -1,6 +1,6 @@
 macro_rules! vec_of_strings {
     ($($value:expr),* $(,)?) => {{
-        let mut output = Vec::new();
+        let mut output = ::std::vec::Vec::<String>::new();
         $(output.push($value.to_string());)*
         output
     }};

@@ -1,1 +1,1 @@
-Running -> AdmissionClosed -> Draining(buffer + permits) -> WorkersJoined -> Stopped
+EnEjecucion -> AdmisionCerrada -> Drenando(bufer + permisos) -> TrabajadoresEsperados -> Detenido

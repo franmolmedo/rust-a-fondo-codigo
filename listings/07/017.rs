@@ -17,7 +17,7 @@ impl Measurements {
             return None;
         }
 
-        let total: i64 = self.values.iter().map(|&value| i64::from(value)).sum();
+        let total: i128 = self.values.iter().map(|&value| i128::from(value)).sum();
         Some(total as f64 / self.values.len() as f64)
     }
 }

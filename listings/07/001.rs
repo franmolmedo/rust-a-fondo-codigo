@@ -1,5 +1,5 @@
-fn tuple_area(rectangle: (u32, u32)) -> u32 {
-    rectangle.0 * rectangle.1
+fn tuple_area(rectangle: (u32, u32)) -> u64 {
+    u64::from(rectangle.0) * u64::from(rectangle.1)
 }
 
 #[derive(Debug, PartialEq)]
@@ -9,8 +9,8 @@ struct Rectangle {
 }
 
 impl Rectangle {
-    fn area(&self) -> u32 {
-        self.width * self.height
+    fn area(&self) -> u64 {
+        u64::from(self.width) * u64::from(self.height)
     }
 }
 

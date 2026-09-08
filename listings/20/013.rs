@@ -10,6 +10,11 @@ fn identity(value: &str) -> &str {
     value
 }
 
+fn constant(_value: &str) -> &str {
+    "fallback"
+}
+
 fn main() {
     assert_eq!(require_identity(identity), "local");
+    assert_eq!(require_identity(constant), "fallback");
 }

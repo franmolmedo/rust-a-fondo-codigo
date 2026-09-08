@@ -20,9 +20,9 @@ REPORT_JSON = REPOSITORY_ROOT / "verification.json"
 REPORT_MD = REPOSITORY_ROOT / "VERIFICATION.md"
 SOLUTIONS_ROOT = REPOSITORY_ROOT / "solutions"
 
-EXPECTED_LISTINGS = 891
+EXPECTED_LISTINGS = 892
 EXPECTED_SOLUTIONS = 403
-EXPECTED_SOLUTION_TESTS = 447
+EXPECTED_SOLUTION_TESTS = 604
 SOLUTION_MARKER = re.compile(
     r"(?m)^\s*//\s*SOLUTION:\s*(C\d{2}-[EKPM]\d{2})\s*$"
 )
@@ -33,6 +33,7 @@ def run_command(args: list[str], timeout: int = 1200) -> dict[str, object]:
     """Ejecuta un comando desde la raíz y conserva un resultado serializable."""
 
     started = time.monotonic()
+    print("Running: " + " ".join(args), flush=True)
     try:
         process = subprocess.run(
             args,
@@ -282,10 +283,33 @@ def main() -> None:
             ]
         ),
         compiler_probe,
+        run_command(
+            ["cargo", "doc", "--workspace", "--no-deps", "--all-features", "--locked"]
+        ),
     ]
+    fixture_manifest = "fixtures/chapter26-workspace/Cargo.toml"
+    checks.extend([
+        run_command(["cargo", "test", "--manifest-path", fixture_manifest, "--workspace", "--locked"]),
+        run_command(["cargo", "fmt", "--manifest-path", fixture_manifest, "--all", "--check"]),
+        run_command([
+            "cargo", "clippy", "--manifest-path", fixture_manifest,
+            "--workspace", "--all-targets", "--locked", "--", "-D", "warnings",
+        ]),
+    ])
+    if "--msrv" in sys.argv:
+        package = tomllib.loads((REPOSITORY_ROOT / "Cargo.toml").read_text(encoding="utf-8"))["package"]
+        msrv = package["rust-version"]
+        toolchain = f"+{msrv}.0" if msrv.count(".") == 1 else f"+{msrv}"
+        checks.extend([
+            run_command(["cargo", toolchain, "check", "--workspace", "--all-targets", "--all-features", "--locked"]),
+            run_command(["cargo", toolchain, "test", "--workspace", "--all-targets", "--locked"]),
+            run_command(["cargo", toolchain, "test", "--workspace", "--all-targets", "--all-features", "--locked"]),
+            run_command(["cargo", toolchain, "test", "--workspace", "--doc", "--all-features", "--locked"]),
+        ])
     for check in checks:
         if not check["ok"]:
             failures.append(f"comando fallido: {check['command']}")
+            print(str(check["stdout"]) + str(check["stderr"]), flush=True)
 
     rustc = run_command(["rustc", "--version"])
     report: dict[str, object] = {

@@ -1,3 +1,5 @@
+use std::thread;
+
 let values = [10, 20, 30, 40];
 
 thread::scope(|scope| {

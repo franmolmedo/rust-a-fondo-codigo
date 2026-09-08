@@ -1,4 +1,4 @@
-//! Capítulos de organización, testing, macros y diseño de librerías.
+//! Solutions for the chapters about organization, testing, macros, and library design.
 
 pub mod c25 {
     use std::error::Error;
@@ -87,6 +87,13 @@ pub mod c25 {
     // SOLUTION: C25-E05
     pub use audited::Service as AuditedService;
 
+    /// A teaching example that only checks for the presence of `@`.
+    /// This is not a complete email-address validator.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::organization::c25::Email;
+    /// let email = Email(String::from("invalid")); // private field
+    /// ```
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub struct Email(String);
 
@@ -115,7 +122,7 @@ pub mod c25 {
 
     impl Display for PortParseError {
         fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-            formatter.write_str("puerto inválido")
+            formatter.write_str("invalid port")
         }
     }
 
@@ -186,7 +193,7 @@ pub mod c25 {
         fn a_public_error_hides_the_dependency_specific_type() {
             assert_eq!(parse_port("8080").unwrap(), 8080);
             let error = parse_port("not-a-port").unwrap_err();
-            assert_eq!(error.to_string(), "puerto inválido");
+            assert_eq!(error.to_string(), "invalid port");
             assert!(error.source().is_some());
         }
     }
@@ -210,6 +217,8 @@ pub mod c26 {
                 ("adapters", "application"),
                 ("adapters", "domain"),
                 ("server", "adapters"),
+                ("server", "application"),
+                ("server", "domain"),
             ],
         }
     }
@@ -323,6 +332,8 @@ pub mod c26 {
     #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct BoundaryEvidence {
         pub enforces_dependency_direction: bool,
+        /// Whether build targets need separately managed dependencies or features,
+        /// not merely whether the product has more than one executable.
         pub has_independent_targets: bool,
         pub is_reused_independently: bool,
         pub is_published_independently: bool,
@@ -335,6 +346,7 @@ pub mod c26 {
     }
 
     // SOLUTION: C26-E05
+    /// A simplified decision aid; concrete project constraints still matter.
     pub fn choose_boundary(evidence: BoundaryEvidence) -> BoundaryChoice {
         if evidence.enforces_dependency_direction
             || evidence.has_independent_targets
@@ -348,6 +360,7 @@ pub mod c26 {
     }
 
     // SOLUTION: C26-E06
+    /// Filters an already collected list; it does not invoke Cargo or parse its graph.
     pub fn architecture_violations(dependencies: &[&str], forbidden: &[&str]) -> Vec<String> {
         dependencies
             .iter()
@@ -508,6 +521,7 @@ pub mod c27 {
     }
 
     // SOLUTION: C27-E04
+    /// Checks recorded configuration only; actual MSRV verification runs Cargo.
     pub fn msrv_is_verified(policy: &MsrvPolicy<'_>) -> bool {
         policy.tested_toolchains.contains(&policy.declared)
     }
@@ -516,12 +530,22 @@ pub mod c27 {
     pub struct ProfileMeasurement {
         pub build_millis: u64,
         pub binary_bytes: u64,
+        pub run_nanos: u64,
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct ProfileComparison {
         pub faster_build: &'static str,
         pub smaller_binary: &'static str,
+        pub faster_run: &'static str,
+    }
+
+    fn lower_measurement(baseline: u64, optimized: u64) -> &'static str {
+        match baseline.cmp(&optimized) {
+            std::cmp::Ordering::Less => "baseline",
+            std::cmp::Ordering::Equal => "tie",
+            std::cmp::Ordering::Greater => "optimized",
+        }
     }
 
     // SOLUTION: C27-E05
@@ -530,16 +554,9 @@ pub mod c27 {
         optimized: ProfileMeasurement,
     ) -> ProfileComparison {
         ProfileComparison {
-            faster_build: if baseline.build_millis <= optimized.build_millis {
-                "baseline"
-            } else {
-                "optimized"
-            },
-            smaller_binary: if baseline.binary_bytes <= optimized.binary_bytes {
-                "baseline"
-            } else {
-                "optimized"
-            },
+            faster_build: lower_measurement(baseline.build_millis, optimized.build_millis),
+            smaller_binary: lower_measurement(baseline.binary_bytes, optimized.binary_bytes),
+            faster_run: lower_measurement(baseline.run_nanos, optimized.run_nanos),
         }
     }
 
@@ -644,14 +661,17 @@ pub mod c27 {
                 ProfileMeasurement {
                     build_millis: 900,
                     binary_bytes: 2_000,
+                    run_nanos: 1_000,
                 },
                 ProfileMeasurement {
                     build_millis: 1_400,
                     binary_bytes: 1_200,
+                    run_nanos: 700,
                 },
             );
             assert_eq!(comparison.faster_build, "baseline");
             assert_eq!(comparison.smaller_binary, "optimized");
+            assert_eq!(comparison.faster_run, "optimized");
         }
 
         #[test]
@@ -693,7 +713,7 @@ pub mod c28 {
     }
 
     // SOLUTION: C28-E02
-    /// Identificador que solo puede construirse mediante su API pública.
+    /// An identifier constructed through its checked public API.
     ///
     /// ```
     /// use course_solutions::organization::c28::OpaqueId;
@@ -703,7 +723,7 @@ pub mod c28 {
     ///
     /// ```compile_fail
     /// use course_solutions::organization::c28::OpaqueId;
-    /// let _id = OpaqueId(7); // el campo es privado fuera de la crate
+    /// let _id = OpaqueId(7); // the field is private outside its module
     /// ```
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct OpaqueId(u64);
@@ -767,13 +787,14 @@ pub mod c28 {
     pub struct TestBoundary {
         pub crosses_public_api: bool,
         pub uses_real_external_adapter: bool,
+        pub covers_complete_workflow: bool,
     }
 
     // SOLUTION: C28-E05
     pub const fn classify_test(boundary: TestBoundary) -> TestLayer {
-        if boundary.uses_real_external_adapter {
+        if boundary.covers_complete_workflow {
             TestLayer::EndToEnd
-        } else if boundary.crosses_public_api {
+        } else if boundary.crosses_public_api || boundary.uses_real_external_adapter {
             TestLayer::Integration
         } else {
             TestLayer::Unit
@@ -782,29 +803,31 @@ pub mod c28 {
 
     // SOLUTION: C28-E06
     pub fn parse_key_value(input: &str) -> Result<(&str, &str), &'static str> {
-        let (key, value) = input.split_once('=').ok_or("falta =")?;
+        let (key, value) = input.split_once('=').ok_or("missing =")?;
         if key.is_empty() {
-            return Err("clave vacía");
+            return Err("empty key");
         }
         Ok((key, value))
     }
 
-    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
+    #[error("storage backend unavailable")]
     pub struct BackendFailure;
 
     pub trait RegistrationPort {
         fn store(&mut self, id: u64) -> Result<(), BackendFailure>;
     }
 
-    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    #[derive(Clone, Copy, Debug, Eq, PartialEq, thiserror::Error)]
     pub enum RegistrationError {
-        RepositoryUnavailable,
+        #[error("registration could not access the repository")]
+        RepositoryUnavailable(#[source] BackendFailure),
     }
 
     // SOLUTION: C28-E07
     pub fn register(port: &mut impl RegistrationPort, id: u64) -> Result<(), RegistrationError> {
         port.store(id)
-            .map_err(|BackendFailure| RegistrationError::RepositoryUnavailable)
+            .map_err(RegistrationError::RepositoryUnavailable)
     }
 
     pub struct FailingRegistrationPort;
@@ -852,6 +875,7 @@ pub mod c28 {
                 classify_test(TestBoundary {
                     crosses_public_api: true,
                     uses_real_external_adapter: false,
+                    covers_complete_workflow: false,
                 }),
                 TestLayer::Integration
             );
@@ -868,7 +892,7 @@ pub mod c28 {
         #[test]
         fn known_cases_are_structural() {
             assert_eq!(parse_key_value("language=Rust"), Ok(("language", "Rust")));
-            assert_eq!(parse_key_value("missing"), Err("falta ="));
+            assert_eq!(parse_key_value("missing"), Err("missing ="));
         }
 
         #[test]
@@ -876,7 +900,7 @@ pub mod c28 {
             let mut port = FailingRegistrationPort;
             assert_eq!(
                 register(&mut port, 7),
-                Err(RegistrationError::RepositoryUnavailable)
+                Err(RegistrationError::RepositoryUnavailable(BackendFailure))
             );
         }
     }
@@ -890,15 +914,15 @@ pub mod c29 {
 
     #[derive(Clone, Debug, Error, Eq, PartialEq)]
     pub enum PortError {
-        #[error("el puerto cero está reservado")]
+        #[error("this configuration requires a nonzero port")]
         Zero,
-        #[error("el puerto no es un entero de 16 bits")]
+        #[error("port must be a valid unsigned 16-bit integer")]
         Invalid,
     }
 
     // SOLUTION: C29-E01
     impl Port {
-        /// Construye un puerto validado.
+        /// Constructs a nonzero port for this application's configuration.
         ///
         /// # Examples
         ///
@@ -911,7 +935,8 @@ pub mod c29 {
         ///
         /// # Errors
         ///
-        /// Devuelve [`PortError::Zero`] cuando el valor es cero.
+        /// Returns [`PortError::Zero`] for zero. Other APIs may accept zero to
+        /// request an automatically assigned port; this type intentionally does not.
         pub fn new(value: u16) -> Result<Self, PortError> {
             (value != 0).then_some(Self(value)).ok_or(PortError::Zero)
         }
@@ -921,12 +946,12 @@ pub mod c29 {
         }
 
         // SOLUTION: C29-E02
-        /// Convierte texto en un [`Port`] o devuelve [`PortError`].
+        /// Parses a [`Port`] or returns [`PortError`].
         ///
         /// # Errors
         ///
-        /// Devuelve [`PortError::Invalid`] si el texto no es numérico y
-        /// [`PortError::Zero`] si representa el puerto reservado cero.
+        /// Returns [`PortError::Invalid`] if the text cannot be parsed as u16,
+        /// including out-of-range values, and [`PortError::Zero`] for zero.
         pub fn parse(value: &str) -> Result<Self, PortError> {
             let value = value.parse::<u16>().map_err(|_| PortError::Invalid)?;
             Self::new(value)
@@ -956,9 +981,9 @@ pub mod c29 {
     }
 
     // SOLUTION: C29-E04
-    /// Error de protocolo abierto a variantes futuras.
+    /// A protocol error that may gain variants in future versions.
     ///
-    /// Los consumidores externos deben conservar un caso comodín:
+    /// External consumers must retain a wildcard case:
     ///
     /// ```compile_fail
     /// use course_solutions::organization::c29::ProtocolError;
@@ -977,13 +1002,14 @@ pub mod c29 {
     }
 
     // SOLUTION: C29-E05
-    pub const CI_COMMANDS: [&str; 6] = [
+    pub const CI_COMMANDS: [&str; 7] = [
         "cargo fmt --all -- --check",
-        "cargo clippy --all-targets --all-features -- -D warnings",
-        "cargo test --workspace --all-targets",
-        "cargo test --workspace --all-targets --all-features",
-        "cargo test --workspace --doc",
-        "cargo test --workspace --doc --all-features",
+        "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
+        "cargo test --workspace --all-targets --locked",
+        "cargo test --workspace --all-targets --all-features --locked",
+        "cargo test --workspace --doc --locked",
+        "cargo test --workspace --doc --all-features --locked",
+        "cargo doc --workspace --no-deps --all-features --locked",
     ];
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -999,17 +1025,17 @@ pub mod c29 {
             LintPolicy {
                 name: "unsafe_op_in_unsafe_fn",
                 level: "deny",
-                reason: "cada operación unsafe debe quedar localizada y visible",
+                reason: "each unsafe operation must have an explicit unsafe block",
             },
             LintPolicy {
                 name: "unused_must_use",
                 level: "deny",
-                reason: "no se pueden ignorar resultados ni futures importantes",
+                reason: "diagnose implicit discard of must-use values",
             },
             LintPolicy {
                 name: "clippy::dbg_macro",
                 level: "deny",
-                reason: "evita trazas accidentales en entregas",
+                reason: "avoid accidental debug output in delivered code",
             },
         ]
     }
@@ -1022,6 +1048,7 @@ pub mod c29 {
     }
 
     // SOLUTION: C29-E07
+    /// Checks prefixes for this exercise, not the implementation's actual cost.
     pub fn name_matches_cost(name: &str, cost: OperationCost) -> bool {
         match cost {
             OperationCost::BorrowedView => name.starts_with("as_"),
@@ -1135,14 +1162,14 @@ pub mod c49 {
             $crate::organization::c49::port_from_literal($value)
         };
         ($($other:tt)*) => {
-            compile_error!("checked_port! espera un único literal entero entre 0 y 65535")
+            ::core::compile_error!("checked_port! expects one integer literal in 0..=65535")
         };
     }
 
     #[macro_export]
     // SOLUTION: C49-E05
     macro_rules! classify_edition_expression {
-        (const $value:expr) => {
+        (const $value:block) => {
             $crate::organization::c49::EditionExpressionKind::ConstBlock
         };
         (_) => {
@@ -1178,12 +1205,12 @@ pub mod c49 {
             let mut output = ::std::vec::Vec::new();
             $(
                 let evaluated_once = $value;
-                output.push((stringify!($name), evaluated_once));
+                output.push((::core::stringify!($name), evaluated_once));
             )+
             output
         }};
         ($($other:tt)*) => {
-            compile_error!("command_values! espera `nombre => expresión;` una o más veces")
+            ::core::compile_error!("command_values! expects one or more `name => expression;` entries")
         };
     }
 
@@ -1191,7 +1218,7 @@ pub mod c49 {
     mod tests {
         use std::cell::Cell;
 
-        crate::make_newtypes!(UserId(u64), OrderId(u64));
+        crate::make_newtypes!(UserId(u64), OrderId(u64),);
 
         #[test]
         fn variadic_macro_evaluates_each_expression_once() {
@@ -1217,7 +1244,9 @@ pub mod c49 {
 
         #[test]
         fn diagnostic_macro_accepts_its_documented_literal_form() {
+            assert_eq!(crate::checked_port!(0), 0_u16);
             assert_eq!(crate::checked_port!(8080), 8080_u16);
+            assert_eq!(crate::checked_port!(65_535), 65_535_u16);
         }
 
         #[test]
@@ -1301,7 +1330,7 @@ pub mod c50 {
             Ok(())
         } else {
             Err(MacroDiagnostic {
-                message: format!("el campo `{requested}` no existe en esta struct"),
+                message: format!("field `{requested}` does not exist in this struct"),
                 span: attribute_span,
             })
         }
@@ -1407,7 +1436,7 @@ pub mod c50 {
             assert_eq!(
                 validate_id_field(&["id", "name"], "missing", span),
                 Err(MacroDiagnostic {
-                    message: String::from("el campo `missing` no existe en esta struct"),
+                    message: String::from("field `missing` does not exist in this struct"),
                     span,
                 }),
             );
@@ -1452,10 +1481,50 @@ pub mod c50 {
             assert_eq!(
                 assess_proc_macro_risk(ProcMacroRisk {
                     reads_files: false,
+                    reads_environment: true,
+                    uses_network: false,
+                    dependency_unpinned: false,
+                    source_unaudited: false,
+                }),
+                SupplyDecision::Review,
+            );
+            assert_eq!(
+                assess_proc_macro_risk(ProcMacroRisk {
+                    reads_files: false,
+                    reads_environment: false,
+                    uses_network: false,
+                    dependency_unpinned: true,
+                    source_unaudited: false,
+                }),
+                SupplyDecision::Review,
+            );
+            assert_eq!(
+                assess_proc_macro_risk(ProcMacroRisk {
+                    reads_files: false,
+                    reads_environment: false,
+                    uses_network: false,
+                    dependency_unpinned: false,
+                    source_unaudited: true,
+                }),
+                SupplyDecision::Review,
+            );
+            assert_eq!(
+                assess_proc_macro_risk(ProcMacroRisk {
+                    reads_files: false,
                     reads_environment: false,
                     uses_network: true,
                     dependency_unpinned: false,
                     source_unaudited: false,
+                }),
+                SupplyDecision::Reject,
+            );
+            assert_eq!(
+                assess_proc_macro_risk(ProcMacroRisk {
+                    reads_files: false,
+                    reads_environment: false,
+                    uses_network: false,
+                    dependency_unpinned: true,
+                    source_unaudited: true,
                 }),
                 SupplyDecision::Reject,
             );
@@ -1473,6 +1542,10 @@ pub mod c50 {
             );
             assert_eq!(
                 choose_metaprogramming_tool(MetaprogrammingNeed::CustomGrammarWithPreciseSpans),
+                MetaprogrammingTool::ProceduralMacro,
+            );
+            assert_eq!(
+                choose_metaprogramming_tool(MetaprogrammingNeed::TransformWholeItem),
                 MetaprogrammingTool::ProceduralMacro,
             );
         }
@@ -1743,31 +1816,31 @@ pub mod c51 {
                 Ok(MigrationPhase::BaselineGreen)
             }
             MigrationPhase::BaselinePending => Err(MigrationGateError::MissingEvidence(
-                "baseline verde y reproducible",
+                "reproducible green baseline",
             )),
             MigrationPhase::BaselineGreen if evidence.lints_applied => {
                 Ok(MigrationPhase::CompatibilityFixesApplied)
             }
             MigrationPhase::BaselineGreen => Err(MigrationGateError::MissingEvidence(
-                "lints de compatibilidad aplicados",
+                "compatibility lints applied",
             )),
             MigrationPhase::CompatibilityFixesApplied if evidence.fixes_reviewed => {
                 Ok(MigrationPhase::FixesReviewed)
             }
             MigrationPhase::CompatibilityFixesApplied => Err(MigrationGateError::MissingEvidence(
-                "diff automático revisado semánticamente",
+                "automatic changes reviewed for semantics",
             )),
             MigrationPhase::FixesReviewed if evidence.manifest_switched => {
                 Ok(MigrationPhase::ManifestSwitched)
             }
             MigrationPhase::FixesReviewed => Err(MigrationGateError::MissingEvidence(
-                "edition cambiada en el manifiesto",
+                "edition updated in the manifest",
             )),
             MigrationPhase::ManifestSwitched if evidence.matrix_green => {
                 Ok(MigrationPhase::MatrixGreen)
             }
             MigrationPhase::ManifestSwitched => Err(MigrationGateError::MissingEvidence(
-                "matriz completa en verde",
+                "complete test matrix is green",
             )),
             MigrationPhase::MatrixGreen => Err(MigrationGateError::AlreadyComplete),
         }
@@ -1798,17 +1871,19 @@ pub mod c51 {
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct ResolverAudit {
-        pub newest_proven_compatible: Option<PackageVersion>,
+        pub newest_declared_compatible: Option<PackageVersion>,
         pub newer_incompatible_releases: usize,
         pub undeclared_rust_versions: usize,
     }
 
+    /// Compares declared MSRVs, without compiling packages or resolving a
+    /// dependency graph. Callers supply releases allowed by their requirements.
     // SOLUTION: C51-E07
     pub fn audit_dependency_releases(
         project_msrv: RustVersion,
         releases: &[DependencyRelease],
     ) -> ResolverAudit {
-        let newest_proven_compatible = releases
+        let newest_declared_compatible = releases
             .iter()
             .filter(|release| {
                 release
@@ -1824,13 +1899,13 @@ pub mod c51 {
                 release
                     .rust_version
                     .is_some_and(|required| required > project_msrv)
-                    && newest_proven_compatible
+                    && newest_declared_compatible
                         .is_none_or(|compatible| release.version > compatible)
             })
             .count();
 
         ResolverAudit {
-            newest_proven_compatible,
+            newest_declared_compatible,
             newer_incompatible_releases,
             undeclared_rust_versions: releases
                 .iter()
@@ -1843,12 +1918,27 @@ pub mod c51 {
     mod tests {
         use super::*;
 
+        const RUST_184: RustVersion = RustVersion::new(1, 84, 0);
         const RUST_185: RustVersion = RustVersion::new(1, 85, 0);
         const RUST_186: RustVersion = RustVersion::new(1, 86, 0);
         const RUST_190: RustVersion = RustVersion::new(1, 90, 0);
 
         #[test]
         fn edition_toolchain_and_msrv_are_distinct_but_consistent_contracts() {
+            assert_eq!(
+                Edition::Rust2015.minimum_compiler(),
+                RustVersion::new(1, 0, 0),
+            );
+            assert_eq!(
+                Edition::Rust2018.minimum_compiler(),
+                RustVersion::new(1, 31, 0),
+            );
+            assert_eq!(
+                Edition::Rust2021.minimum_compiler(),
+                RustVersion::new(1, 56, 0),
+            );
+            assert_eq!(Edition::Rust2024.minimum_compiler(), RUST_185);
+
             assert_eq!(
                 validate_toolchain_contract(ToolchainContract {
                     edition: Edition::Rust2024,
@@ -1865,56 +1955,134 @@ pub mod c51 {
                 }),
                 Err(ContractError::MsrvBeforeEdition),
             );
+            assert_eq!(
+                validate_toolchain_contract(ToolchainContract {
+                    edition: Edition::Rust2024,
+                    toolchain: RUST_184,
+                    msrv: RUST_185,
+                }),
+                Err(ContractError::ToolchainBeforeEdition),
+            );
+            assert_eq!(
+                validate_toolchain_contract(ToolchainContract {
+                    edition: Edition::Rust2024,
+                    toolchain: RUST_185,
+                    msrv: RUST_186,
+                }),
+                Err(ContractError::ToolchainBeforeMsrv),
+            );
         }
 
         #[test]
         fn migration_matrix_covers_and_deduplicates_supported_dimensions() {
             let cells = migration_matrix(
                 &[RUST_185, RUST_190, RUST_185],
-                &[FeatureProfile::Default, FeatureProfile::NoDefault],
+                &[
+                    FeatureProfile::Default,
+                    FeatureProfile::NoDefault,
+                    FeatureProfile::AllFeatures,
+                ],
                 &["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"],
             );
 
-            assert_eq!(cells.len(), 8);
+            assert_eq!(cells.len(), 12);
             assert!(cells.contains(&MigrationCell {
                 compiler: RUST_185,
                 features: FeatureProfile::NoDefault,
                 target: String::from("wasm32-unknown-unknown"),
             }));
+            assert!(cells.contains(&MigrationCell {
+                compiler: RUST_190,
+                features: FeatureProfile::AllFeatures,
+                target: String::from("x86_64-unknown-linux-gnu"),
+            }));
         }
 
         #[test]
         fn expr_2024_can_shadow_later_const_and_placeholder_arms() {
-            assert_eq!(
-                first_matching_macro_arm(ExprGrammar::Edition2021Expr, MacroInput::ConstBlock,),
-                SelectedMacroArm::LaterConstSpecific,
-            );
-            assert_eq!(
-                first_matching_macro_arm(ExprGrammar::Edition2024Expr, MacroInput::ConstBlock,),
-                SelectedMacroArm::FirstGeneralExpression,
-            );
-            assert_eq!(
-                first_matching_macro_arm(ExprGrammar::Edition2024Expr2021, MacroInput::Placeholder,),
-                SelectedMacroArm::LaterPlaceholderSpecific,
-            );
+            let cases = [
+                (
+                    ExprGrammar::Edition2021Expr,
+                    MacroInput::OrdinaryExpression,
+                    SelectedMacroArm::FirstGeneralExpression,
+                ),
+                (
+                    ExprGrammar::Edition2021Expr,
+                    MacroInput::ConstBlock,
+                    SelectedMacroArm::LaterConstSpecific,
+                ),
+                (
+                    ExprGrammar::Edition2021Expr,
+                    MacroInput::Placeholder,
+                    SelectedMacroArm::LaterPlaceholderSpecific,
+                ),
+                (
+                    ExprGrammar::Edition2024Expr,
+                    MacroInput::OrdinaryExpression,
+                    SelectedMacroArm::FirstGeneralExpression,
+                ),
+                (
+                    ExprGrammar::Edition2024Expr,
+                    MacroInput::ConstBlock,
+                    SelectedMacroArm::FirstGeneralExpression,
+                ),
+                (
+                    ExprGrammar::Edition2024Expr,
+                    MacroInput::Placeholder,
+                    SelectedMacroArm::FirstGeneralExpression,
+                ),
+                (
+                    ExprGrammar::Edition2024Expr2021,
+                    MacroInput::OrdinaryExpression,
+                    SelectedMacroArm::FirstGeneralExpression,
+                ),
+                (
+                    ExprGrammar::Edition2024Expr2021,
+                    MacroInput::ConstBlock,
+                    SelectedMacroArm::LaterConstSpecific,
+                ),
+                (
+                    ExprGrammar::Edition2024Expr2021,
+                    MacroInput::Placeholder,
+                    SelectedMacroArm::LaterPlaceholderSpecific,
+                ),
+            ];
+
+            for (grammar, input, expected) in cases {
+                assert_eq!(first_matching_macro_arm(grammar, input), expected);
+            }
         }
 
         #[test]
         fn semver_classification_preserves_the_possibly_breaking_category() {
-            assert_eq!(
-                classify_public_change(PublicChange::TightenGenericBound),
-                SemverImpact::Major,
-            );
-            assert_eq!(
-                classify_public_change(PublicChange::AddEnumVariant {
-                    non_exhaustive: true,
-                }),
-                SemverImpact::Minor,
-            );
-            assert_eq!(
-                classify_public_change(PublicChange::RaiseMsrv),
-                SemverImpact::PossiblyBreaking,
-            );
+            let cases = [
+                (PublicChange::RemoveOrRenameItem, SemverImpact::Major),
+                (PublicChange::TightenGenericBound, SemverImpact::Major),
+                (
+                    PublicChange::AddEnumVariant {
+                        non_exhaustive: false,
+                    },
+                    SemverImpact::Major,
+                ),
+                (
+                    PublicChange::AddEnumVariant {
+                        non_exhaustive: true,
+                    },
+                    SemverImpact::Minor,
+                ),
+                (PublicChange::AddPublicItem, SemverImpact::Minor),
+                (PublicChange::LoosenGenericBound, SemverImpact::Minor),
+                (
+                    PublicChange::AddDefaultedTraitItem,
+                    SemverImpact::PossiblyBreaking,
+                ),
+                (PublicChange::RaiseMsrv, SemverImpact::PossiblyBreaking),
+                (PublicChange::BehaviorOnlyFix, SemverImpact::BehaviorReview),
+            ];
+
+            for (change, expected) in cases {
+                assert_eq!(classify_public_change(change), expected);
+            }
         }
 
         #[test]
@@ -1935,6 +2103,30 @@ pub mod c51 {
                     PolicyIssue::StableMissingFromCi,
                     PolicyIssue::UndocumentedMsrvRaise,
                 ],
+            );
+
+            assert_eq!(
+                audit_toolchain_policy(ToolchainPolicy {
+                    declared_msrv: RUST_185,
+                    stable_current: RUST_190,
+                    development_toolchain: RUST_184,
+                    ci_toolchains: &[RUST_185, RUST_190],
+                    proposed_msrv: None,
+                    msrv_raise_documented: false,
+                }),
+                [PolicyIssue::DevelopmentBeforeMsrv],
+            );
+
+            assert!(
+                audit_toolchain_policy(ToolchainPolicy {
+                    declared_msrv: RUST_185,
+                    stable_current: RUST_190,
+                    development_toolchain: RUST_190,
+                    ci_toolchains: &[RUST_185, RUST_190],
+                    proposed_msrv: Some(RUST_186),
+                    msrv_raise_documented: true,
+                })
+                .is_empty()
             );
         }
 
@@ -1959,7 +2151,7 @@ pub mod c51 {
             assert_eq!(
                 advance_migration(MigrationPhase::CompatibilityFixesApplied, evidence),
                 Err(MigrationGateError::MissingEvidence(
-                    "diff automático revisado semánticamente",
+                    "automatic changes reviewed for semantics",
                 )),
             );
 
@@ -1983,10 +2175,37 @@ pub mod c51 {
                 advance_migration(MigrationPhase::MatrixGreen, reviewed),
                 Err(MigrationGateError::AlreadyComplete),
             );
+
+            let no_evidence = MigrationEvidence::default();
+            let missing_cases = [
+                (
+                    MigrationPhase::BaselinePending,
+                    "reproducible green baseline",
+                ),
+                (MigrationPhase::BaselineGreen, "compatibility lints applied"),
+                (
+                    MigrationPhase::CompatibilityFixesApplied,
+                    "automatic changes reviewed for semantics",
+                ),
+                (
+                    MigrationPhase::FixesReviewed,
+                    "edition updated in the manifest",
+                ),
+                (
+                    MigrationPhase::ManifestSwitched,
+                    "complete test matrix is green",
+                ),
+            ];
+            for (phase, expected) in missing_cases {
+                assert_eq!(
+                    advance_migration(phase, no_evidence),
+                    Err(MigrationGateError::MissingEvidence(expected)),
+                );
+            }
         }
 
         #[test]
-        fn resolver_audit_separates_proof_incompatibility_and_missing_metadata() {
+        fn resolver_audit_separates_declared_msrv_and_missing_metadata() {
             let audit = audit_dependency_releases(
                 RUST_185,
                 &[
@@ -2008,7 +2227,28 @@ pub mod c51 {
             assert_eq!(
                 audit,
                 ResolverAudit {
-                    newest_proven_compatible: Some(PackageVersion::new(2, 0, 0)),
+                    newest_declared_compatible: Some(PackageVersion::new(2, 0, 0)),
+                    newer_incompatible_releases: 1,
+                    undeclared_rust_versions: 1,
+                },
+            );
+
+            assert_eq!(
+                audit_dependency_releases(
+                    RUST_185,
+                    &[
+                        DependencyRelease {
+                            version: PackageVersion::new(3, 0, 0),
+                            rust_version: Some(RUST_186),
+                        },
+                        DependencyRelease {
+                            version: PackageVersion::new(3, 1, 0),
+                            rust_version: None,
+                        },
+                    ],
+                ),
+                ResolverAudit {
+                    newest_declared_compatible: None,
                     newer_incompatible_releases: 1,
                     undeclared_rust_versions: 1,
                 },
@@ -2044,9 +2284,9 @@ pub mod c53 {
 
     #[derive(Clone, Debug, Error, Eq, PartialEq)]
     pub enum ConfigError {
-        #[error("falta la fuente de configuración")]
+        #[error("configuration source is missing")]
         MissingSource,
-        #[error("falta la clave {0}")]
+        #[error("missing configuration key: {0}")]
         MissingKey(String),
     }
 
@@ -2104,21 +2344,32 @@ pub mod c53 {
     }
 
     #[derive(Debug)]
-    struct DependencyParseError {
-        detail: String,
+    enum DependencyParseError {
+        MissingSeparator,
+        InvalidValue(std::num::ParseIntError),
     }
 
     impl fmt::Display for DependencyParseError {
         fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str(&self.detail)
+            match self {
+                Self::MissingSeparator => formatter.write_str("missing '=' separator"),
+                Self::InvalidValue(source) => write!(formatter, "invalid value: {source}"),
+            }
         }
     }
 
-    impl std::error::Error for DependencyParseError {}
+    impl std::error::Error for DependencyParseError {
+        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+            match self {
+                Self::MissingSeparator => None,
+                Self::InvalidValue(source) => Some(source),
+            }
+        }
+    }
 
     #[derive(Debug, Error)]
     pub enum LibraryError {
-        #[error("entrada inválida en la línea {line}")]
+        #[error("invalid entry at line {line}")]
         InvalidEntry {
             line: usize,
             #[source]
@@ -2129,12 +2380,12 @@ pub mod c53 {
     fn dependency_parse_entry(
         input: &str,
     ) -> std::result::Result<(&str, u16), DependencyParseError> {
-        let (key, raw_value) = input.split_once('=').ok_or_else(|| DependencyParseError {
-            detail: "falta el separador '='".to_owned(),
-        })?;
-        let value = raw_value.parse().map_err(|error| DependencyParseError {
-            detail: format!("valor inválido: {error}"),
-        })?;
+        let (key, raw_value) = input
+            .split_once('=')
+            .ok_or(DependencyParseError::MissingSeparator)?;
+        let value = raw_value
+            .parse()
+            .map_err(DependencyParseError::InvalidValue)?;
         Ok((key, value))
     }
 
@@ -2177,11 +2428,11 @@ pub mod c53 {
 
     // SOLUTION: C53-E04
     pub fn feature_matrix(features: &[LibraryFeature]) -> Vec<FeatureSet> {
+        let unique = features.iter().copied().collect::<BTreeSet<_>>();
         let mut cells = vec![FeatureSet::default()];
-        cells.extend(features.iter().copied().map(FeatureSet::singleton));
-        let all = features
-            .iter()
-            .copied()
+        cells.extend(unique.iter().copied().map(FeatureSet::singleton));
+        let all = unique
+            .into_iter()
             .fold(FeatureSet::default(), |set, feature| {
                 set.union(&FeatureSet::singleton(feature))
             });
@@ -2197,7 +2448,7 @@ pub mod c53 {
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub enum ApiChange {
-        AddItem,
+        AddPublicTypeOrFunction,
         RemoveItem,
         AddEnumVariant { non_exhaustive: bool },
         TightenBound,
@@ -2218,7 +2469,9 @@ pub mod c53 {
     // SOLUTION: C53-E06
     pub fn classify_change(change: ApiChange) -> ReleaseImpact {
         match change {
-            ApiChange::AddItem | ApiChange::AddAdditiveFeature => ReleaseImpact::Minor,
+            ApiChange::AddPublicTypeOrFunction | ApiChange::AddAdditiveFeature => {
+                ReleaseImpact::Minor
+            }
             ApiChange::RemoveItem
             | ApiChange::TightenBound
             | ApiChange::RemoveAutoTrait
@@ -2227,8 +2480,8 @@ pub mod c53 {
             } => ReleaseImpact::Major,
             ApiChange::AddEnumVariant {
                 non_exhaustive: true,
-            }
-            | ApiChange::EnableDefaultFeature => ReleaseImpact::PossiblyBreaking,
+            } => ReleaseImpact::Minor,
+            ApiChange::EnableDefaultFeature => ReleaseImpact::PossiblyBreaking,
             ApiChange::ChangeDocumentedBehavior => ReleaseImpact::BehaviorReview,
         }
     }
@@ -2278,38 +2531,65 @@ pub mod c53 {
         use std::error::Error as _;
 
         #[test]
-        fn five_type_facade_covers_the_primary_use_case() {
-            let config = ConfigBuilder::default()
-                .source(Source::Defaults)
+        fn five_type_facade_covers_success_and_validation_errors() {
+            let result: Result<Config> = ConfigBuilder::default()
+                .source(Source::Named(String::from("project")))
                 .value("port", "8080")
-                .build()
-                .unwrap();
+                .build();
+            let config = result.unwrap();
             assert_eq!(config.get("port"), Ok("8080"));
-            assert_eq!(config.source(), &Source::Defaults);
+            assert_eq!(config.source(), &Source::Named(String::from("project")),);
+            assert_eq!(
+                config.get("host"),
+                Err(ConfigError::MissingKey(String::from("host"))),
+            );
+            assert_eq!(
+                ConfigBuilder::default().build(),
+                Err(ConfigError::MissingSource),
+            );
         }
 
         #[test]
         fn labels_require_only_display() {
-            let local = String::from("prestado");
+            let local = String::from("borrowed");
             let values = [DisplayOnly {
                 label: &local,
                 _not_send_or_sync: Rc::new(()),
             }];
-            assert_eq!(labels(&values), ["prestado"]);
+            assert_eq!(labels(&values), ["borrowed"]);
         }
 
         #[test]
-        fn public_error_preserves_a_private_dependency_cause() {
+        fn public_error_preserves_each_private_dependency_cause() {
+            assert_eq!(parse_entry(1, "port=8080").unwrap(), ("port", 8080));
+
             let error = parse_entry(7, "port=not-a-number").unwrap_err();
-            assert_eq!(error.to_string(), "entrada inválida en la línea 7");
-            assert!(error.source().is_some());
+            assert_eq!(error.to_string(), "invalid entry at line 7");
+            assert!(
+                error
+                    .source()
+                    .is_some_and(|source| source.to_string().starts_with("invalid value:"))
+            );
+
+            let missing_separator = parse_entry(9, "port").unwrap_err();
+            assert!(
+                missing_separator
+                    .source()
+                    .is_some_and(|source| source.to_string() == "missing '=' separator")
+            );
         }
 
         #[test]
-        fn feature_matrix_covers_absence_individuals_and_union() {
-            let matrix = feature_matrix(&[LibraryFeature::Serde, LibraryFeature::Tokio]);
+        fn feature_matrix_covers_unique_absence_individuals_and_union() {
+            let matrix = feature_matrix(&[
+                LibraryFeature::Tokio,
+                LibraryFeature::Serde,
+                LibraryFeature::Tokio,
+            ]);
             assert_eq!(matrix.len(), 4);
             assert_eq!(matrix[0], FeatureSet::default());
+            assert_eq!(matrix[1], FeatureSet::singleton(LibraryFeature::Serde),);
+            assert_eq!(matrix[2], FeatureSet::singleton(LibraryFeature::Tokio),);
             let all = matrix.last().unwrap();
             assert!(all.contains(LibraryFeature::Serde));
             assert!(all.contains(LibraryFeature::Tokio));
@@ -2319,29 +2599,60 @@ pub mod c53 {
             let union = serde.union(&tokio);
             assert!(union.contains(LibraryFeature::Serde));
             assert!(union.contains(LibraryFeature::Tokio));
+            assert_eq!(feature_matrix(&[]), [FeatureSet::default()]);
+            assert_eq!(
+                feature_matrix(&[LibraryFeature::Serde, LibraryFeature::Serde]),
+                [FeatureSet::default(), serde],
+            );
         }
 
         #[test]
-        fn compatibility_classification_keeps_risky_categories_visible() {
-            assert_eq!(classify_change(ApiChange::AddItem), ReleaseImpact::Minor);
-            assert_eq!(
-                classify_change(ApiChange::AddEnumVariant {
-                    non_exhaustive: false,
-                }),
-                ReleaseImpact::Major
-            );
-            assert_eq!(
-                classify_change(ApiChange::EnableDefaultFeature),
-                ReleaseImpact::PossiblyBreaking
-            );
-            assert_eq!(
-                classify_change(ApiChange::ChangeDocumentedBehavior),
-                ReleaseImpact::BehaviorReview
-            );
+        fn compatibility_classification_covers_every_change_kind() {
+            let cases = [
+                (ApiChange::AddPublicTypeOrFunction, ReleaseImpact::Minor),
+                (ApiChange::RemoveItem, ReleaseImpact::Major),
+                (
+                    ApiChange::AddEnumVariant {
+                        non_exhaustive: false,
+                    },
+                    ReleaseImpact::Major,
+                ),
+                (
+                    ApiChange::AddEnumVariant {
+                        non_exhaustive: true,
+                    },
+                    ReleaseImpact::Minor,
+                ),
+                (ApiChange::TightenBound, ReleaseImpact::Major),
+                (ApiChange::RemoveAutoTrait, ReleaseImpact::Major),
+                (ApiChange::AddAdditiveFeature, ReleaseImpact::Minor),
+                (
+                    ApiChange::EnableDefaultFeature,
+                    ReleaseImpact::PossiblyBreaking,
+                ),
+                (
+                    ApiChange::ChangeDocumentedBehavior,
+                    ReleaseImpact::BehaviorReview,
+                ),
+            ];
+            for (change, expected) in cases {
+                assert_eq!(classify_change(change), expected);
+            }
         }
 
         #[test]
         fn release_gate_reports_every_missing_piece_of_evidence() {
+            assert_eq!(
+                release_blockers(ReleaseEvidence::default()),
+                [
+                    ReleaseBlocker::PublicDocs,
+                    ReleaseBlocker::Doctests,
+                    ReleaseBlocker::DownstreamTests,
+                    ReleaseBlocker::MsrvMatrix,
+                    ReleaseBlocker::FeatureMatrix,
+                    ReleaseBlocker::PackageInspection,
+                ],
+            );
             let incomplete = ReleaseEvidence {
                 public_docs: true,
                 doctests: true,
@@ -2400,13 +2711,13 @@ pub mod c54 {
 
     #[derive(Debug, Error)]
     pub enum StorageError {
-        #[error("valor inválido")]
+        #[error("invalid stored value")]
         InvalidValue(#[from] std::num::ParseIntError),
     }
 
     #[derive(Debug, Error)]
     pub enum ApplicationError {
-        #[error("fallo al cargar la configuración")]
+        #[error("failed to load configuration")]
         Load(#[source] StorageError),
     }
 
@@ -2531,6 +2842,8 @@ pub mod c54 {
         Published(String),
     }
 
+    /// Describes expected events using the exercise's minimal '@' check.
+    /// It does not persist data, publish events, or validate real email syntax.
     // SOLUTION: C54-E06
     pub fn characterize_registration(email: &str, already_exists: bool) -> Vec<RegistrationEvent> {
         if !email.contains('@') {
@@ -2596,22 +2909,32 @@ pub mod c54 {
         use std::error::Error;
 
         #[test]
-        fn enums_make_call_sites_self_describing() {
-            assert_eq!(
-                copy_policy(Overwrite::Deny, Recursion::Recursive),
-                "safe-recursive"
-            );
+        fn enums_make_every_copy_policy_self_describing() {
+            let cases = [
+                (Overwrite::Deny, Recursion::Shallow, "safe-shallow"),
+                (Overwrite::Deny, Recursion::Recursive, "safe-recursive"),
+                (Overwrite::Allow, Recursion::Shallow, "replace-shallow"),
+                (Overwrite::Allow, Recursion::Recursive, "replace-recursive"),
+            ];
+            for (overwrite, recursion, expected) in cases {
+                assert_eq!(copy_policy(overwrite, recursion), expected);
+            }
         }
 
         #[test]
-        fn layered_error_preserves_its_source() {
+        fn layered_error_preserves_its_complete_source_chain() {
+            assert_eq!(load_number("42").unwrap(), 42);
             let error = load_number("not-a-number").unwrap_err();
-            assert!(error.source().is_some());
+            assert_eq!(error.to_string(), "failed to load configuration");
+            let storage = error.source().expect("storage source");
+            assert_eq!(storage.to_string(), "invalid stored value");
+            assert!(storage.source().is_some());
         }
 
         #[test]
         fn atomic_insert_contract_rejects_the_second_attempt() {
             let mut store = InMemoryEmailStore::default();
+            assert!(store.is_empty());
             assert_eq!(
                 store.insert_unique("ada@example.test"),
                 InsertOutcome::Inserted
@@ -2621,6 +2944,12 @@ pub mod c54 {
                 InsertOutcome::Duplicate
             );
             assert_eq!(store.len(), 1);
+            assert!(!store.is_empty());
+            assert_eq!(
+                store.insert_unique("grace@example.test"),
+                InsertOutcome::Inserted
+            );
+            assert_eq!(store.len(), 2);
         }
 
         #[test]
@@ -2652,10 +2981,19 @@ pub mod c54 {
         fn six_commit_plan_is_ordered_green_and_single_purpose() {
             let plan = reversible_plan();
             assert!(is_reversible_plan(&plan));
+            assert!(!is_reversible_plan(&plan[..5]));
 
-            let mut invalid = plan;
-            invalid[2].green = false;
-            assert!(!is_reversible_plan(&invalid));
+            let mut not_green = plan;
+            not_green[2].green = false;
+            assert!(!is_reversible_plan(&not_green));
+
+            let mut wrong_order = plan;
+            wrong_order.swap(1, 2);
+            assert!(!is_reversible_plan(&wrong_order));
+
+            let mut multiple_intentions = plan;
+            multiple_intentions[4].intentions = 2;
+            assert!(!is_reversible_plan(&multiple_intentions));
         }
 
         #[test]
@@ -2678,10 +3016,21 @@ pub mod c54 {
         }
 
         #[test]
-        fn refactor_gate_requires_measurement_only_for_a_cost_claim() {
-            let missing = RefactorEvidence {
+        fn refactor_gate_reports_all_contracts_and_conditional_measurement() {
+            assert_eq!(
+                refactor_blockers(RefactorEvidence::default()),
+                [
+                    RefactorBlocker::Behavior,
+                    RefactorBlocker::PublicApi,
+                    RefactorBlocker::Concurrency,
+                    RefactorBlocker::Msrv,
+                    RefactorBlocker::Reversibility,
+                ]
+            );
+
+            let measurement_missing = RefactorEvidence {
                 behavior_preserved: true,
-                public_api_reviewed: false,
+                public_api_reviewed: true,
                 concurrency_reviewed: true,
                 msrv_green: true,
                 reversible_commit: true,
@@ -2689,14 +3038,13 @@ pub mod c54 {
                 measurement_passed: false,
             };
             assert_eq!(
-                refactor_blockers(missing),
-                [RefactorBlocker::PublicApi, RefactorBlocker::Measurement]
+                refactor_blockers(measurement_missing),
+                [RefactorBlocker::Measurement]
             );
 
             let complete = RefactorEvidence {
-                public_api_reviewed: true,
                 measurement_passed: true,
-                ..missing
+                ..measurement_missing
             };
             assert!(refactor_blockers(complete).is_empty());
         }
@@ -2721,6 +3069,7 @@ pub mod c55 {
     }
 
     // SOLUTION: C55-E01
+    /// Filters pre-audited public routes, not raw `pub` declarations.
     pub fn effective_facade(
         items: &[ApiItem],
         enabled_features: &BTreeSet<&str>,
@@ -2773,13 +3122,18 @@ pub mod c55 {
         observations
             .iter()
             .fold(TraceSummary::default(), |mut summary, observation| {
-                match observation.event {
-                    TraceEvent::Move => summary.moves += 1,
-                    TraceEvent::Clone => summary.clones += 1,
-                    TraceEvent::Allocation => summary.allocations += 1,
-                    TraceEvent::Borrow | TraceEvent::DynamicDispatch | TraceEvent::Effect => {}
+                let inferred_cost = observation.evidence == Evidence::Inference
+                    || (observation.event == TraceEvent::Allocation
+                        && observation.evidence != Evidence::Measurement);
+                if !inferred_cost {
+                    match observation.event {
+                        TraceEvent::Move => summary.moves += 1,
+                        TraceEvent::Clone => summary.clones += 1,
+                        TraceEvent::Allocation => summary.allocations += 1,
+                        TraceEvent::Borrow | TraceEvent::DynamicDispatch | TraceEvent::Effect => {}
+                    }
                 }
-                if observation.evidence == Evidence::Inference
+                if inferred_cost
                     && matches!(
                         observation.event,
                         TraceEvent::Clone | TraceEvent::Allocation | TraceEvent::DynamicDispatch
@@ -2802,17 +3156,24 @@ pub mod c55 {
     pub struct SafetyPremise {
         pub name: &'static str,
         pub status: PremiseStatus,
+        pub evidence: Option<&'static str>,
+        pub history_reviewed: bool,
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub enum UnsafeAudit {
         Verified,
+        MissingPremises,
         Incomplete { pending: usize },
         Blocked { contradicted: usize },
     }
 
     // SOLUTION: C55-E03
+    /// Checks record completeness, not the truth of memory-safety arguments.
     pub fn audit_unsafe(premises: &[SafetyPremise]) -> UnsafeAudit {
+        if premises.is_empty() {
+            return UnsafeAudit::MissingPremises;
+        }
         let contradicted = premises
             .iter()
             .filter(|premise| premise.status == PremiseStatus::Contradicted)
@@ -2822,7 +3183,13 @@ pub mod c55 {
         }
         let pending = premises
             .iter()
-            .filter(|premise| premise.status == PremiseStatus::Pending)
+            .filter(|premise| {
+                premise.status != PremiseStatus::Proven
+                    || premise
+                        .evidence
+                        .is_none_or(|evidence| evidence.trim().is_empty())
+                    || !premise.history_reviewed
+            })
             .count();
         if pending > 0 {
             UnsafeAudit::Incomplete { pending }
@@ -2834,6 +3201,7 @@ pub mod c55 {
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub enum ShutdownEvent {
         CloseAdmission,
+        /// Gives accepted tasks time to finish; the grace period may expire.
         DrainAccepted,
         AbortRemaining,
         JoinAll,
@@ -2841,20 +3209,20 @@ pub mod c55 {
     }
 
     // SOLUTION: C55-E04
+    /// Checks event order only; it neither runs nor joins actual tasks.
     pub fn valid_shutdown_trace(events: &[ShutdownEvent]) -> bool {
-        let position = |event| events.iter().position(|candidate| *candidate == event);
-        let (Some(close), Some(drain), Some(join), Some(report)) = (
-            position(ShutdownEvent::CloseAdmission),
-            position(ShutdownEvent::DrainAccepted),
-            position(ShutdownEvent::JoinAll),
-            position(ShutdownEvent::Report),
-        ) else {
-            return false;
-        };
-        if !(close < drain && drain < join && join < report) {
-            return false;
-        }
-        position(ShutdownEvent::AbortRemaining).is_none_or(|abort| drain < abort && abort < join)
+        use ShutdownEvent::{AbortRemaining, CloseAdmission, DrainAccepted, JoinAll, Report};
+        matches!(
+            events,
+            [CloseAdmission, DrainAccepted, JoinAll, Report]
+                | [
+                    CloseAdmission,
+                    DrainAccepted,
+                    AbortRemaining,
+                    JoinAll,
+                    Report
+                ]
+        )
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -2864,6 +3232,7 @@ pub mod c55 {
         Full,
     }
 
+    /// Limits distinct values, not the total number of allocated bytes.
     #[derive(Clone, Debug)]
     pub struct BoundedDeduper<T> {
         capacity: usize,
@@ -2883,7 +3252,7 @@ pub mod c55 {
             if self.values.contains(&value) {
                 return DedupInsert::Duplicate;
             }
-            if self.values.len() == self.capacity {
+            if self.values.len() >= self.capacity {
                 return DedupInsert::Full;
             }
             self.values.insert(value);
@@ -2988,6 +3357,16 @@ pub mod c55 {
         plan
     }
 
+    pub fn valid_reading_plan(question: ResearchQuestion, plan: &[ReadingStep]) -> bool {
+        if plan.first() != Some(&ReadingStep::FixRevision) {
+            return false;
+        }
+        let mut remaining = plan.iter();
+        reading_plan(question)
+            .iter()
+            .all(|required| remaining.any(|step| step == required))
+    }
+
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -3010,6 +3389,16 @@ pub mod c55 {
                     visibility: Visibility::Crate,
                     required_feature: None,
                 },
+                ApiItem {
+                    path: "crate::internal::Token",
+                    visibility: Visibility::Private,
+                    required_feature: None,
+                },
+                ApiItem {
+                    path: "crate::tracing::Span",
+                    visibility: Visibility::Public,
+                    required_feature: Some("tracing"),
+                },
             ];
             assert_eq!(
                 effective_facade(&items, &BTreeSet::new()),
@@ -3025,12 +3414,24 @@ pub mod c55 {
         fn trace_summary_keeps_inferences_visible() {
             let summary = summarize_trace(&[
                 TraceObservation {
+                    event: TraceEvent::Borrow,
+                    evidence: Evidence::Signature,
+                },
+                TraceObservation {
                     event: TraceEvent::Move,
                     evidence: Evidence::Signature,
                 },
                 TraceObservation {
+                    event: TraceEvent::Move,
+                    evidence: Evidence::Inference,
+                },
+                TraceObservation {
                     event: TraceEvent::Clone,
                     evidence: Evidence::Source,
+                },
+                TraceObservation {
+                    event: TraceEvent::Clone,
+                    evidence: Evidence::Inference,
                 },
                 TraceObservation {
                     event: TraceEvent::Allocation,
@@ -3040,44 +3441,82 @@ pub mod c55 {
                     event: TraceEvent::Allocation,
                     evidence: Evidence::Inference,
                 },
+                TraceObservation {
+                    event: TraceEvent::DynamicDispatch,
+                    evidence: Evidence::Inference,
+                },
+                TraceObservation {
+                    event: TraceEvent::Effect,
+                    evidence: Evidence::Source,
+                },
             ]);
             assert_eq!(
                 summary,
                 TraceSummary {
                     moves: 1,
                     clones: 1,
-                    allocations: 2,
-                    inferred_cost_claims: 1,
+                    allocations: 1,
+                    inferred_cost_claims: 3,
                 }
             );
         }
 
         #[test]
-        fn unsafe_audit_distinguishes_pending_from_contradicted() {
+        fn unsafe_audit_requires_premises_evidence_and_history() {
+            assert_eq!(audit_unsafe(&[]), UnsafeAudit::MissingPremises);
+            assert_eq!(
+                audit_unsafe(&[SafetyPremise {
+                    name: "aligned",
+                    status: PremiseStatus::Proven,
+                    evidence: Some("slice::as_ptr preserves alignment"),
+                    history_reviewed: true,
+                }]),
+                UnsafeAudit::Verified
+            );
             assert_eq!(
                 audit_unsafe(&[
                     SafetyPremise {
                         name: "aligned",
                         status: PremiseStatus::Proven,
+                        evidence: None,
+                        history_reviewed: true,
                     },
                     SafetyPremise {
                         name: "initialized",
                         status: PremiseStatus::Pending,
+                        evidence: Some("constructor check"),
+                        history_reviewed: false,
                     },
                 ]),
-                UnsafeAudit::Incomplete { pending: 1 }
+                UnsafeAudit::Incomplete { pending: 2 }
             );
             assert_eq!(
-                audit_unsafe(&[SafetyPremise {
-                    name: "exclusive",
-                    status: PremiseStatus::Contradicted,
-                }]),
+                audit_unsafe(&[
+                    SafetyPremise {
+                        name: "exclusive",
+                        status: PremiseStatus::Contradicted,
+                        evidence: Some("overlapping exclusive references remain in use"),
+                        history_reviewed: true,
+                    },
+                    SafetyPremise {
+                        name: "initialized",
+                        status: PremiseStatus::Pending,
+                        evidence: None,
+                        history_reviewed: false,
+                    },
+                ]),
                 UnsafeAudit::Blocked { contradicted: 1 }
             );
         }
 
         #[test]
         fn shutdown_closes_drains_optionally_aborts_and_then_joins() {
+            assert!(valid_shutdown_trace(&[
+                ShutdownEvent::CloseAdmission,
+                ShutdownEvent::DrainAccepted,
+                ShutdownEvent::JoinAll,
+                ShutdownEvent::Report,
+            ]));
             assert!(valid_shutdown_trace(&[
                 ShutdownEvent::CloseAdmission,
                 ShutdownEvent::DrainAccepted,
@@ -3092,16 +3531,35 @@ pub mod c55 {
                 ShutdownEvent::JoinAll,
                 ShutdownEvent::Report,
             ]));
+            assert!(!valid_shutdown_trace(&[
+                ShutdownEvent::CloseAdmission,
+                ShutdownEvent::DrainAccepted,
+                ShutdownEvent::JoinAll,
+                ShutdownEvent::JoinAll,
+                ShutdownEvent::Report,
+            ]));
+            assert!(!valid_shutdown_trace(&[
+                ShutdownEvent::CloseAdmission,
+                ShutdownEvent::DrainAccepted,
+                ShutdownEvent::Report,
+            ]));
         }
 
         #[test]
         fn bounded_deduper_reconstructs_success_duplicate_and_pressure() {
             let mut values = BoundedDeduper::new(2);
+            assert!(values.is_empty());
             assert_eq!(values.insert("a"), DedupInsert::Inserted);
             assert_eq!(values.insert("a"), DedupInsert::Duplicate);
             assert_eq!(values.insert("b"), DedupInsert::Inserted);
             assert_eq!(values.insert("c"), DedupInsert::Full);
+            assert_eq!(values.insert("a"), DedupInsert::Duplicate);
             assert_eq!(values.len(), 2);
+            assert!(!values.is_empty());
+
+            let mut empty = BoundedDeduper::new(0);
+            assert_eq!(empty.insert("a"), DedupInsert::Full);
+            assert!(empty.is_empty());
         }
 
         #[test]
@@ -3137,16 +3595,73 @@ pub mod c55 {
         }
 
         #[test]
-        fn reading_plan_is_driven_by_the_question() {
-            let features = reading_plan(ResearchQuestion::FeatureOrigin);
-            assert_eq!(features[0], ReadingStep::FixRevision);
-            assert!(features.contains(&ReadingStep::ReadManifest));
-            assert!(features.contains(&ReadingStep::InspectDependencyTree));
-            assert!(!features.contains(&ReadingStep::RunBenchmark));
+        fn every_reading_plan_is_minimal_ordered_and_question_specific() {
+            let cases = [
+                (
+                    ResearchQuestion::PublicApi,
+                    vec![
+                        ReadingStep::FixRevision,
+                        ReadingStep::ReadDocs,
+                        ReadingStep::ReadFacade,
+                        ReadingStep::TraceVerticalFlow,
+                        ReadingStep::ReadTests,
+                    ],
+                ),
+                (
+                    ResearchQuestion::FeatureOrigin,
+                    vec![
+                        ReadingStep::FixRevision,
+                        ReadingStep::ReadManifest,
+                        ReadingStep::InspectMetadata,
+                        ReadingStep::InspectDependencyTree,
+                        ReadingStep::TraceVerticalFlow,
+                    ],
+                ),
+                (
+                    ResearchQuestion::UnsafeInvariant,
+                    vec![
+                        ReadingStep::FixRevision,
+                        ReadingStep::ReadFacade,
+                        ReadingStep::TraceVerticalFlow,
+                        ReadingStep::AuditUnsafe,
+                        ReadingStep::ReadTests,
+                        ReadingStep::ReadHistory,
+                    ],
+                ),
+                (
+                    ResearchQuestion::AsyncShutdown,
+                    vec![
+                        ReadingStep::FixRevision,
+                        ReadingStep::ReadDocs,
+                        ReadingStep::TraceVerticalFlow,
+                        ReadingStep::ReadTests,
+                        ReadingStep::ReadHistory,
+                    ],
+                ),
+                (
+                    ResearchQuestion::Performance,
+                    vec![
+                        ReadingStep::FixRevision,
+                        ReadingStep::ReadDocs,
+                        ReadingStep::TraceVerticalFlow,
+                        ReadingStep::RunBenchmark,
+                        ReadingStep::ReadHistory,
+                    ],
+                ),
+            ];
 
-            let unsafe_plan = reading_plan(ResearchQuestion::UnsafeInvariant);
-            assert!(unsafe_plan.contains(&ReadingStep::AuditUnsafe));
-            assert!(unsafe_plan.contains(&ReadingStep::ReadHistory));
+            for (question, expected) in cases {
+                assert_eq!(reading_plan(question), expected);
+                assert!(valid_reading_plan(question, &expected));
+
+                let mut incomplete = expected.clone();
+                incomplete.pop();
+                assert!(!valid_reading_plan(question, &incomplete));
+
+                let mut reordered = expected.clone();
+                reordered.swap(1, 2);
+                assert!(!valid_reading_plan(question, &reordered));
+            }
         }
     }
 }

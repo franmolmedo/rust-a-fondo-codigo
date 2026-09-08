@@ -1,8 +1,8 @@
-//! Núcleos ejecutables de los proyectos de consolidación del capítulo 57.
+//! Executable kernels for the consolidation projects in chapter 57.
 //!
-//! Cada módulo verifica la invariante central de un proyecto. No sustituye el
-//! entregable completo con sus crates, adaptadores, CI, documentación y pruebas
-//! de integración.
+//! Each module verifies one project's central invariant. It does not replace
+//! the complete deliverable with its crates, adapters, CI, documentation, and
+//! integration tests.
 
 pub mod p01_domain_ids {
     use std::fmt;
@@ -19,6 +19,7 @@ pub mod p01_domain_ids {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub enum IdError {
         NotANumber,
+        OutOfRange,
         Zero,
     }
 
@@ -50,7 +51,10 @@ pub mod p01_domain_ids {
                 fn from_str(value: &str) -> Result<Self, Self::Err> {
                     value
                         .parse::<u64>()
-                        .map_err(|_| IdError::NotANumber)?
+                        .map_err(|error| match error.kind() {
+                            std::num::IntErrorKind::PosOverflow => IdError::OutOfRange,
+                            _ => IdError::NotANumber,
+                        })?
                         .try_into()
                 }
             }
@@ -66,6 +70,7 @@ pub mod p01_domain_ids {
     numeric_id!(UserId);
     numeric_id!(OrderId);
 
+    /// Checks exactly one `@` and non-empty parts, not full email syntax.
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct Email(String);
 
@@ -159,6 +164,10 @@ pub mod p01_domain_ids {
         pub fn minor_units(self) -> i64 {
             self.minor_units
         }
+
+        pub fn currency(self) -> Currency {
+            self.currency
+        }
     }
 
     #[cfg(test)]
@@ -173,10 +182,13 @@ pub mod p01_domain_ids {
             assert_eq!(order.to_string().parse(), Ok(order));
             assert_eq!(user.get(), order.get());
             assert_eq!("0".parse::<UserId>(), Err(IdError::Zero));
+            assert_eq!("not-an-id".parse::<UserId>(), Err(IdError::NotANumber));
+            assert_eq!(UserId::try_from(u64::MAX).unwrap().get(), u64::MAX);
         }
 
         #[test]
-        fn value_objects_reject_their_boundaries() {
+        fn value_objects_define_inclusive_limits_and_unicode_behavior() {
+            assert_eq!(Percentage::try_from(0).map(Percentage::get), Ok(0));
             assert_eq!(Percentage::try_from(100).map(Percentage::get), Ok(100));
             assert_eq!(Percentage::try_from(101), Err(101));
             assert_eq!(
@@ -184,11 +196,17 @@ pub mod p01_domain_ids {
                 Err(EmailError::MissingLocalPart)
             );
             assert_eq!(Email::try_from("a@b@c"), Err(EmailError::MoreThanOneAtSign));
+            assert_eq!(Email::try_from("name@"), Err(EmailError::MissingDomain));
+            assert_eq!(
+                Email::try_from("ferris🦀@example.test").map(|email| email.to_string()),
+                Ok(String::from("ferris🦀@example.test"))
+            );
         }
 
         #[test]
         fn money_never_mix_currencies_or_wraps() {
             let euro = Money::new(80, Currency::Eur);
+            assert_eq!(euro.currency(), Currency::Eur);
             assert_eq!(
                 euro.checked_add(Money::new(20, Currency::Eur))
                     .unwrap()
@@ -226,6 +244,7 @@ pub mod p02_record_import {
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ImportError {
         pub line: usize,
+        /// One-based byte offset within the line.
         pub column: usize,
         pub kind: ImportErrorKind,
     }
@@ -259,6 +278,16 @@ pub mod p02_record_import {
         Ok(Record { key, value })
     }
 
+    /// Returns views into the UTF-8 input, stopping at the first rejected row.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::projects::p02_record_import::import_fail_fast;
+    /// let records = {
+    ///     let input = String::from("key=1");
+    ///     import_fail_fast(&input).unwrap()
+    /// };
+    /// assert_eq!(records[0].key, "key");
+    /// ```
     pub fn import_fail_fast(input: &str) -> Result<Vec<Record<'_>>, ImportError> {
         let mut seen = HashSet::new();
         input
@@ -284,6 +313,7 @@ pub mod p02_record_import {
         pub rejected: Vec<ImportError>,
     }
 
+    /// Keeps the first successfully parsed row for each exact key.
     pub fn import_all(input: &str) -> ImportReport {
         let mut seen = HashSet::new();
         let mut accepted = Vec::new();
@@ -355,12 +385,43 @@ pub mod p02_record_import {
             let borrowed = import_fail_fast(input).unwrap();
             let owned = import_all(input);
             assert!(owned.rejected.is_empty());
+            assert_eq!(borrowed.len(), owned.accepted.len());
             assert!(
                 borrowed
                     .iter()
                     .zip(&owned.accepted)
                     .all(|(left, right)| left.key == right.key && left.value == right.value)
             );
+        }
+
+        #[test]
+        fn empty_crlf_and_unicode_inputs_have_explicit_semantics() {
+            assert!(import_fail_fast("").unwrap().is_empty());
+            assert_eq!(
+                import_fail_fast("alpha=1\r\nbeta=2")
+                    .unwrap()
+                    .iter()
+                    .map(|record| record.key)
+                    .collect::<Vec<_>>(),
+                ["alpha", "beta"]
+            );
+            assert_eq!(
+                import_fail_fast("🦀=not-a-number").unwrap_err(),
+                ImportError {
+                    line: 1,
+                    column: 6,
+                    kind: ImportErrorKind::InvalidNumber
+                }
+            );
+        }
+
+        #[test]
+        fn accumulated_output_outlives_its_input_buffer() {
+            let report = {
+                let input = String::from("alpha=1");
+                import_all(&input)
+            };
+            assert_eq!(report.accepted[0].key, "alpha");
         }
     }
 }
@@ -421,6 +482,8 @@ pub mod p03_ledger_core {
     }
 
     impl Ledger {
+        /// Sets up or replaces an account. Conservation applies to `transfer`,
+        /// not to this explicit state-initialization operation.
         pub fn insert(&mut self, id: AccountId, account: Account) {
             self.accounts.insert(id, account);
         }
@@ -465,6 +528,10 @@ pub mod p03_ledger_core {
                 .checked_add(amount)
                 .ok_or(TransferError::Overflow)?;
 
+            // Reserve before changing balances, so a capacity panic cannot leave
+            // a successful transfer without its event. Both IDs were checked,
+            // and exclusive access prevents changes between lookup and update.
+            self.events.reserve(1);
             self.accounts.get_mut(&from).unwrap().balance = source_after;
             self.accounts.get_mut(&to).unwrap().balance = destination_after;
             let event = TransferRecorded { from, to, amount };
@@ -484,6 +551,20 @@ pub mod p03_ledger_core {
             ledger
         }
 
+        fn assert_failure_is_atomic(
+            mut ledger: Ledger,
+            from: AccountId,
+            to: AccountId,
+            amount: u64,
+            expected: TransferError,
+        ) {
+            let accounts_before = ledger.accounts.clone();
+            let events_before = ledger.events.clone();
+            assert_eq!(ledger.transfer(from, to, amount), Err(expected));
+            assert_eq!(ledger.accounts, accounts_before);
+            assert_eq!(ledger.events, events_before);
+        }
+
         #[test]
         fn transfer_conserves_the_total_and_records_one_event() {
             let mut ledger = ledger(70, 30);
@@ -499,31 +580,65 @@ pub mod p03_ledger_core {
 
         #[test]
         fn every_failed_transfer_is_atomic() {
-            let cases = [
-                (ledger(3, 4), AccountId(1), AccountId(2), 5),
-                (ledger(3, u64::MAX), AccountId(1), AccountId(2), 1),
-                (ledger(3, 4), AccountId(1), AccountId(1), 1),
-            ];
-            for (mut ledger, from, to, amount) in cases {
-                let before = ledger.accounts.clone();
-                assert!(ledger.transfer(from, to, amount).is_err());
-                assert_eq!(ledger.accounts, before);
-                assert!(ledger.events.is_empty());
-            }
+            assert_failure_is_atomic(
+                ledger(3, 4),
+                AccountId(1),
+                AccountId(2),
+                5,
+                TransferError::InsufficientFunds,
+            );
+            assert_failure_is_atomic(
+                ledger(3, u64::MAX),
+                AccountId(1),
+                AccountId(2),
+                1,
+                TransferError::Overflow,
+            );
+            assert_failure_is_atomic(
+                ledger(3, 4),
+                AccountId(1),
+                AccountId(1),
+                1,
+                TransferError::SameAccount,
+            );
         }
 
         #[test]
         fn blocked_and_missing_accounts_are_distinct_domain_errors() {
-            let mut ledger = Ledger::default();
-            ledger.insert(AccountId(1), Account::blocked(20));
-            ledger.insert(AccountId(2), Account::active(0));
-            assert_eq!(
-                ledger.transfer(AccountId(1), AccountId(2), 1),
-                Err(TransferError::Blocked(AccountId(1)))
+            let mut blocked_source = Ledger::default();
+            blocked_source.insert(AccountId(1), Account::blocked(20));
+            blocked_source.insert(AccountId(2), Account::active(0));
+            assert_failure_is_atomic(
+                blocked_source,
+                AccountId(1),
+                AccountId(2),
+                1,
+                TransferError::Blocked(AccountId(1)),
             );
-            assert_eq!(
-                ledger.transfer(AccountId(9), AccountId(2), 1),
-                Err(TransferError::MissingAccount(AccountId(9)))
+
+            let mut blocked_destination = Ledger::default();
+            blocked_destination.insert(AccountId(1), Account::active(20));
+            blocked_destination.insert(AccountId(2), Account::blocked(0));
+            assert_failure_is_atomic(
+                blocked_destination,
+                AccountId(1),
+                AccountId(2),
+                1,
+                TransferError::Blocked(AccountId(2)),
+            );
+            assert_failure_is_atomic(
+                ledger(3, 4),
+                AccountId(9),
+                AccountId(2),
+                1,
+                TransferError::MissingAccount(AccountId(9)),
+            );
+            assert_failure_is_atomic(
+                ledger(3, 4),
+                AccountId(1),
+                AccountId(9),
+                1,
+                TransferError::MissingAccount(AccountId(9)),
             );
         }
     }
@@ -549,16 +664,28 @@ pub mod p04_job_engine {
         Panicked(JobId),
     }
 
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct JobReport {
+        pub accepted: usize,
+        pub completed: usize,
+        pub failed: usize,
+        pub rejected: usize,
+        pub pending: usize,
+    }
+
     #[derive(Debug)]
     pub struct Coordinator {
         capacity: usize,
         accepting: bool,
         queued: VecDeque<JobId>,
         accepted: usize,
+        rejected: usize,
         completed: Vec<Completion>,
     }
 
     impl Coordinator {
+        /// # Panics
+        /// Panics if `capacity` is zero.
         pub fn new(capacity: usize) -> Self {
             assert!(capacity > 0, "the queue must have positive capacity");
             Self {
@@ -566,15 +693,26 @@ pub mod p04_job_engine {
                 accepting: true,
                 queued: VecDeque::new(),
                 accepted: 0,
+                rejected: 0,
                 completed: Vec::new(),
             }
         }
 
+        /// # Panics
+        /// Panics if the lifetime rejection counter is exhausted.
         pub fn submit(&mut self, id: JobId) -> Submit {
             if !self.accepting {
+                self.rejected = self
+                    .rejected
+                    .checked_add(1)
+                    .expect("rejection counter exhausted");
                 return Submit::Closed;
             }
             if self.queued.len() == self.capacity {
+                self.rejected = self
+                    .rejected
+                    .checked_add(1)
+                    .expect("rejection counter exhausted");
                 return Submit::Full;
             }
             self.queued.push_back(id);
@@ -586,9 +724,9 @@ pub mod p04_job_engine {
             self.accepting = false;
         }
 
-        pub fn run_next(&mut self, panic: bool) -> Option<Completion> {
+        pub fn run_next(&mut self, panics: bool) -> Option<Completion> {
             let id = self.queued.pop_front()?;
-            let result = if panic {
+            let result = if panics {
                 Completion::Panicked(id)
             } else {
                 Completion::Ok(id)
@@ -601,8 +739,28 @@ pub mod p04_job_engine {
             while self.run_next(false).is_some() {}
         }
 
-        pub fn is_reconciled(&self) -> bool {
+        pub fn is_accounted_for(&self) -> bool {
             self.queued.len() + self.completed.len() == self.accepted
+        }
+
+        pub fn is_reconciled(&self) -> bool {
+            self.queued.is_empty() && self.completed.len() == self.accepted
+        }
+
+        pub fn report(&self) -> JobReport {
+            let completed = self
+                .completed
+                .iter()
+                .filter(|completion| matches!(completion, Completion::Ok(_)))
+                .count();
+            let failed = self.completed.len() - completed;
+            JobReport {
+                accepted: self.accepted,
+                completed,
+                failed,
+                rejected: self.rejected,
+                pending: self.queued.len(),
+            }
         }
 
         pub fn completed(&self) -> &[Completion] {
@@ -622,7 +780,18 @@ pub mod p04_job_engine {
             assert_eq!(engine.submit(JobId(3)), Submit::Full);
             engine.close_admission();
             assert_eq!(engine.submit(JobId(4)), Submit::Closed);
-            assert!(engine.is_reconciled());
+            assert!(engine.is_accounted_for());
+            assert!(!engine.is_reconciled());
+            assert_eq!(
+                engine.report(),
+                JobReport {
+                    accepted: 2,
+                    completed: 0,
+                    failed: 0,
+                    rejected: 2,
+                    pending: 2
+                }
+            );
         }
 
         #[test]
@@ -642,6 +811,7 @@ pub mod p04_job_engine {
                     Completion::Ok(JobId(4))
                 ]
             );
+            assert_eq!(engine.report().completed, 4);
             assert!(engine.is_reconciled());
         }
 
@@ -650,6 +820,7 @@ pub mod p04_job_engine {
             let mut engine = Coordinator::new(1);
             engine.submit(JobId(7));
             assert_eq!(engine.run_next(true), Some(Completion::Panicked(JobId(7))));
+            assert_eq!(engine.report().failed, 1);
             assert!(engine.is_reconciled());
         }
     }
@@ -691,8 +862,14 @@ pub mod p05_async_crawler {
     }
 
     impl CrawlCoordinator {
+        /// # Panics
+        /// Panics if `max_in_flight` is zero. Only active work is bounded;
+        /// pending requests and retained history need separate limits.
         pub fn new(max_in_flight: usize, max_retries: u8) -> Self {
-            assert!(max_in_flight > 0);
+            assert!(
+                max_in_flight > 0,
+                "the in-flight limit must be greater than zero"
+            );
             Self {
                 max_in_flight,
                 max_retries,
@@ -717,7 +894,7 @@ pub mod p05_async_crawler {
         }
 
         pub fn start_next(&mut self) -> Option<Request> {
-            if self.in_flight.len() == self.max_in_flight {
+            if self.in_flight.len() >= self.max_in_flight {
                 return None;
             }
             let request = self.pending.pop_front()?;
@@ -725,17 +902,19 @@ pub mod p05_async_crawler {
             Some(request)
         }
 
-        pub fn finish(&mut self, url: &str, outcome: Outcome) -> bool {
-            let Some(attempt) = self.in_flight.remove(url) else {
+        pub fn finish(&mut self, request: &Request, outcome: Outcome) -> bool {
+            if self.in_flight.get(&request.url) != Some(&request.attempt) {
                 return false;
-            };
+            }
+            let attempt = request.attempt;
+            self.in_flight.remove(&request.url);
             if outcome == Outcome::RetryableFailure && attempt < self.max_retries {
                 self.pending.push_back(Request {
-                    url: url.to_owned(),
+                    url: request.url.clone(),
                     attempt: attempt + 1,
                 });
             } else {
-                self.finished.push((url.to_owned(), outcome));
+                self.finished.push((request.url.clone(), outcome));
             }
             true
         }
@@ -750,6 +929,14 @@ pub mod p05_async_crawler {
 
         pub fn pending(&self) -> usize {
             self.pending.len()
+        }
+
+        pub fn finished(&self) -> &[(String, Outcome)] {
+            &self.finished
+        }
+
+        pub fn is_drained(&self) -> bool {
+            self.pending.is_empty() && self.in_flight.is_empty()
         }
     }
 
@@ -775,7 +962,7 @@ pub mod p05_async_crawler {
             let first = crawl.start_next().unwrap();
             assert_eq!(crawl.in_flight(), 1);
             assert!(crawl.start_next().is_none());
-            assert!(crawl.finish(&first.url, Outcome::RetryableFailure));
+            assert!(crawl.finish(&first, Outcome::RetryableFailure));
             assert_eq!(crawl.start_next().unwrap().url, "b");
             assert_eq!(crawl.pending(), 1);
         }
@@ -784,9 +971,35 @@ pub mod p05_async_crawler {
         fn unknown_completion_cannot_corrupt_accounting() {
             let mut crawl = CrawlCoordinator::new(2, 2);
             crawl.enqueue("a");
-            assert!(!crawl.finish("a", Outcome::Success));
+            assert!(!crawl.finish(
+                &Request {
+                    url: "a".into(),
+                    attempt: 0
+                },
+                Outcome::Success
+            ));
             assert_eq!(crawl.pending(), 1);
             assert_eq!(crawl.in_flight(), 0);
+        }
+
+        #[test]
+        fn retry_budget_counts_retries_and_records_exhaustion() {
+            let mut crawl = CrawlCoordinator::new(1, 1);
+            assert_eq!(crawl.enqueue("a"), Enqueue::Accepted);
+
+            let first = crawl.start_next().unwrap();
+            assert_eq!(first.attempt, 0);
+            assert!(crawl.finish(&first, Outcome::RetryableFailure));
+
+            let retry = crawl.start_next().unwrap();
+            assert_eq!(retry.attempt, 1);
+            assert!(crawl.finish(&retry, Outcome::RetryableFailure));
+
+            assert!(crawl.is_drained());
+            assert_eq!(
+                crawl.finished(),
+                &[(String::from("a"), Outcome::RetryableFailure)]
+            );
         }
     }
 }
@@ -820,6 +1033,8 @@ pub mod p06_catalog_service {
         pub body: T,
     }
 
+    pub type ItemHttpResponse = HttpResponse<Result<ItemDto, &'static str>>;
+
     #[derive(Debug, Default)]
     pub struct Catalog {
         items: HashMap<u64, CatalogItem>,
@@ -842,10 +1057,24 @@ pub mod p06_catalog_service {
         }
     }
 
-    pub fn get_item_http(
-        catalog: &Catalog,
-        id: u64,
-    ) -> HttpResponse<Result<ItemDto, &'static str>> {
+    pub fn application_error_http(error: ApplicationError) -> ItemHttpResponse {
+        match error {
+            ApplicationError::NotFound => HttpResponse {
+                status: 404,
+                body: Err("catalog.item_not_found"),
+            },
+            ApplicationError::InvalidName => HttpResponse {
+                status: 422,
+                body: Err("catalog.invalid_name"),
+            },
+            ApplicationError::Unavailable => HttpResponse {
+                status: 503,
+                body: Err("catalog.unavailable"),
+            },
+        }
+    }
+
+    pub fn get_item_http(catalog: &Catalog, id: u64) -> ItemHttpResponse {
         match catalog.get(id) {
             Ok(item) => HttpResponse {
                 status: 200,
@@ -854,18 +1083,7 @@ pub mod p06_catalog_service {
                     display_name: item.name,
                 }),
             },
-            Err(ApplicationError::NotFound) => HttpResponse {
-                status: 404,
-                body: Err("catalog.item_not_found"),
-            },
-            Err(ApplicationError::InvalidName) => HttpResponse {
-                status: 422,
-                body: Err("catalog.invalid_name"),
-            },
-            Err(ApplicationError::Unavailable) => HttpResponse {
-                status: 503,
-                body: Err("catalog.unavailable"),
-            },
+            Err(error) => application_error_http(error),
         }
     }
 
@@ -903,6 +1121,20 @@ pub mod p06_catalog_service {
                 HttpResponse {
                     status: 404,
                     body: Err("catalog.item_not_found")
+                }
+            );
+            assert_eq!(
+                application_error_http(ApplicationError::InvalidName),
+                HttpResponse {
+                    status: 422,
+                    body: Err("catalog.invalid_name")
+                }
+            );
+            assert_eq!(
+                application_error_http(ApplicationError::Unavailable),
+                HttpResponse {
+                    status: 503,
+                    body: Err("catalog.unavailable")
                 }
             );
         }
@@ -953,6 +1185,7 @@ pub mod p07_catalog_desktop {
         NotFound,
         InvalidInput,
         Internal,
+        Unavailable,
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -961,6 +1194,8 @@ pub mod p07_catalog_desktop {
         pub retryable: bool,
     }
 
+    /// A retryable classification still requires an idempotent operation or
+    /// another protocol that makes repeating the request safe.
     pub fn to_ipc_error(error: ApplicationError) -> IpcError {
         match error {
             ApplicationError::NotFound => IpcError {
@@ -973,6 +1208,10 @@ pub mod p07_catalog_desktop {
             },
             ApplicationError::Internal => IpcError {
                 code: "catalog.internal",
+                retryable: false,
+            },
+            ApplicationError::Unavailable => IpcError {
+                code: "catalog.unavailable",
                 retryable: true,
             },
         }
@@ -1034,7 +1273,7 @@ pub mod p07_catalog_desktop {
                 to_ipc_error(ApplicationError::Internal),
                 IpcError {
                     code: "catalog.internal",
-                    retryable: true
+                    retryable: false
                 }
             );
         }
@@ -1043,9 +1282,12 @@ pub mod p07_catalog_desktop {
         fn closing_desktop_state_rejects_new_tasks_but_drains_owned_ones() {
             let mut tasks = TaskRegistry::open();
             assert!(tasks.admit(1));
+            assert!(!tasks.admit(1));
+            assert!(!tasks.finish(99));
             tasks.close();
             assert!(!tasks.admit(2));
             assert!(tasks.finish(1));
+            assert!(!tasks.finish(1));
             assert!(tasks.is_drained());
         }
     }
@@ -1055,12 +1297,17 @@ pub mod p08_native_checksum {
     use std::ffi::{CString, NulError};
 
     // SOLUTION: C57-P08
+    /// # Safety
+    /// For nonzero `len`, `bytes` must be non-null and readable for `len`
+    /// initialized bytes in one live allocation, with no writes during this
+    /// call. The region must not wrap the address space or exceed `isize::MAX`.
+    /// For zero `len`, the pointer is not used and may be null.
     unsafe extern "C" fn raw_checksum(bytes: *const u8, len: usize) -> u32 {
         if len == 0 {
             return 0;
         }
-        // SAFETY: el wrapper exige un puntero no nulo, alineado y legible para
-        // exactamente `len` bytes; la slice no escapa de esta llamada.
+        // SAFETY: the caller guarantees a valid shared region in one allocation,
+        // initialized bytes, and no concurrent writes. Alignment of u8 is one.
         let bytes = unsafe { std::slice::from_raw_parts(bytes, len) };
         bytes
             .iter()
@@ -1068,8 +1315,8 @@ pub mod p08_native_checksum {
     }
 
     pub fn checksum(bytes: &[u8]) -> u32 {
-        // SAFETY: `as_ptr` es válido para `len` bytes durante la llamada. Para
-        // una slice vacía la función raw no desreferencia el puntero.
+        // SAFETY: `as_ptr` is valid for `len` bytes during this call. The raw
+        // function does not dereference the pointer when the slice is empty.
         unsafe { raw_checksum(bytes.as_ptr(), bytes.len()) }
     }
 
@@ -1083,7 +1330,16 @@ pub mod p08_native_checksum {
     pub fn callback_firewall(
         callback: impl FnOnce() -> u32 + std::panic::UnwindSafe,
     ) -> Result<u32, CallbackPanicked> {
-        std::panic::catch_unwind(callback).map_err(|_| CallbackPanicked)
+        match std::panic::catch_unwind(callback) {
+            Ok(value) => Ok(value),
+            Err(payload) => {
+                // Match chapter 47's exceptional policy: leak the panic payload
+                // rather than run an arbitrary destructor at a non-unwinding
+                // boundary. This does not catch aborts or undo prior effects.
+                std::mem::forget(payload);
+                Err(CallbackPanicked)
+            }
+        }
     }
 
     #[cfg(test)]
@@ -1121,6 +1377,8 @@ pub mod p09_offline_first {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct ChangeId(pub u64);
 
+    /// Ordering assumes each (counter, replica) pair identifies one content.
+    /// This model neither generates unique versions nor authenticates them.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Version {
         pub counter: u64,
@@ -1157,10 +1415,22 @@ pub mod p09_offline_first {
     pub enum Apply {
         Applied,
         Duplicate,
+        InvalidVersion {
+            base: Version,
+            proposed: Version,
+        },
         Conflict {
             local: Version,
             incoming_base: Version,
         },
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum Resolution {
+        Applied,
+        KeptLocal,
+        Duplicate,
+        InvalidVersion { base: Version, proposed: Version },
     }
 
     #[derive(Debug)]
@@ -1173,7 +1443,10 @@ pub mod p09_offline_first {
 
     impl SyncState {
         pub fn new(document: Document, queue_capacity: usize) -> Self {
-            assert!(queue_capacity > 0);
+            assert!(
+                queue_capacity > 0,
+                "the pending queue capacity must be greater than zero"
+            );
             Self {
                 document,
                 applied: HashSet::new(),
@@ -1187,7 +1460,7 @@ pub mod p09_offline_first {
         }
 
         pub fn enqueue(&mut self, change: Change) -> Result<(), Change> {
-            if self.pending.len() == self.queue_capacity {
+            if self.pending.len() >= self.queue_capacity {
                 return Err(change);
             }
             self.pending.push_back(change);
@@ -1201,6 +1474,12 @@ pub mod p09_offline_first {
         pub fn apply(&mut self, change: &Change) -> Apply {
             if self.applied.contains(&change.id) {
                 return Apply::Duplicate;
+            }
+            if change.version <= change.base {
+                return Apply::InvalidVersion {
+                    base: change.base,
+                    proposed: change.version,
+                };
             }
             if self.document.version != change.base {
                 return Apply::Conflict {
@@ -1216,14 +1495,27 @@ pub mod p09_offline_first {
             Apply::Applied
         }
 
-        pub fn resolve_last_writer_wins(&mut self, change: &Change) {
+        pub fn resolve_last_writer_wins(&mut self, change: &Change) -> Resolution {
+            if self.applied.contains(&change.id) {
+                return Resolution::Duplicate;
+            }
+            if change.version <= change.base {
+                return Resolution::InvalidVersion {
+                    base: change.base,
+                    proposed: change.version,
+                };
+            }
             if change.version > self.document.version {
                 self.document = Document {
                     body: change.replacement.clone(),
                     version: change.version,
                 };
+                self.applied.insert(change.id);
+                Resolution::Applied
+            } else {
+                self.applied.insert(change.id);
+                Resolution::KeptLocal
             }
-            self.applied.insert(change.id);
         }
     }
 
@@ -1279,8 +1571,47 @@ pub mod p09_offline_first {
                 }
             );
             assert_eq!(state.document().body, "local");
-            state.resolve_last_writer_wins(&remote);
+            assert_eq!(state.resolve_last_writer_wins(&remote), Resolution::Applied);
             assert_eq!(state.document().body, "remote");
+        }
+
+        #[test]
+        fn conflict_resolution_is_deterministic_idempotent_and_monotonic() {
+            let local = version(3, 2);
+            let mut state = SyncState::new(
+                Document {
+                    body: "local".into(),
+                    version: local,
+                },
+                2,
+            );
+            let losing_remote = change(9, version(1, 1), version(2, 1), "remote");
+            assert!(matches!(
+                state.apply(&losing_remote),
+                Apply::Conflict { .. }
+            ));
+            assert_eq!(
+                state.resolve_last_writer_wins(&losing_remote),
+                Resolution::KeptLocal
+            );
+            assert_eq!(state.document().body, "local");
+
+            let reused_id = change(9, version(3, 2), version(4, 9), "forged retry");
+            assert_eq!(
+                state.resolve_last_writer_wins(&reused_id),
+                Resolution::Duplicate
+            );
+            assert_eq!(state.document().body, "local");
+
+            let invalid = change(10, local, local, "regression");
+            assert_eq!(
+                state.apply(&invalid),
+                Apply::InvalidVersion {
+                    base: local,
+                    proposed: local
+                }
+            );
+            assert_eq!(state.document().body, "local");
         }
 
         #[test]

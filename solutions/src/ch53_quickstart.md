@@ -1,4 +1,4 @@
-# Quickstart verificable
+# Verifiable quickstart
 
 ```rust
 use course_solutions::organization::c53::{ConfigBuilder, Source};

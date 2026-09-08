@@ -1,5 +1,5 @@
-Service
-├── task de admisión       — owner: supervisor
-├── N workers              — owner: JoinSet/grupo
-├── channel bounded        — cierre: sender principal
-└── shutdown deadline      — después: abort + join
+Servicio
+├── tarea de admisión      — responsable: supervisor
+├── N tareas de trabajo    — responsable: JoinSet/grupo
+├── canal con capacidad    — cierre: emisor principal
+└── límite para el cierre — después: abortar + esperar

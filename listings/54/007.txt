@@ -1,4 +1,4 @@
-actor A: contains(email) -> false
-actor B: contains(email) -> false
-actor A: insert(user)   -> éxito
-actor B: insert(user)   -> ¿duplicado?
+tarea A: contains(email) -> false
+tarea B: contains(email) -> false
+tarea A: insert(user)   -> éxito
+tarea B: insert(user)   -> ¿duplicado?

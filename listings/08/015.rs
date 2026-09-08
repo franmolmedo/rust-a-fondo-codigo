@@ -17,6 +17,12 @@ fn validate_username(value: &str) -> Result<(), UsernameError> {
             actual: length,
         });
     }
+    if length > 20 {
+        return Err(UsernameError::TooLong {
+            maximum: 20,
+            actual: length,
+        });
+    }
     if let Some((index, character)) = value
         .char_indices()
         .find(|(_, character)| !character.is_alphanumeric())
@@ -31,5 +37,16 @@ fn main() {
         validate_username("a!"),
         Err(UsernameError::TooShort { minimum: 3, actual: 2 })
     );
+    assert_eq!(
+        validate_username("abcdefghijklmnopqrstu"),
+        Err(UsernameError::TooLong {
+            maximum: 20,
+            actual: 21,
+        })
+    );
     assert_eq!(validate_username("ada"), Ok(()));
+    assert_eq!(
+        validate_username("éa!"),
+        Err(UsernameError::InvalidCharacter { index: 3, character: '!' })
+    );
 }

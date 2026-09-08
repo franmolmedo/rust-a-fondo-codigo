@@ -1,21 +1,21 @@
 {
   "ok": true,
   "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
-  "listings": 891,
+  "listings": 892,
   "languages": {
     "console": 7,
-    "rust": 759,
+    "rust": 760,
     "text": 100,
     "toml": 25
   },
   "modes": {
     "compile_fail": 82,
     "compile_only": 20,
-    "contextual": 82,
-    "illustrative": 32,
+    "contextual": 79,
+    "illustrative": 31,
     "parse": 24,
     "reference": 107,
-    "run": 541,
+    "run": 546,
     "should_panic": 2,
     "toml_composite": 1
   },
@@ -25,62 +25,110 @@
   },
   "solutions": {
     "implemented": 403,
-    "tests": 447
+    "tests": 604
   },
   "checks": [
     {
       "command": "cargo check --workspace --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 3.11
+      "seconds": 6.53
     },
     {
       "command": "cargo check --workspace --all-features --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.27
+      "seconds": 1.77
     },
     {
       "command": "cargo test --workspace --all-targets --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 4.64
+      "seconds": 20.92
     },
     {
       "command": "cargo test --workspace --all-targets --all-features --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 2.83
+      "seconds": 17.59
     },
     {
       "command": "cargo test --workspace --doc --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 9.03
+      "seconds": 7.55
     },
     {
       "command": "cargo test --workspace --doc --all-features --locked",
       "ok": true,
       "returncode": 0,
-      "seconds": 5.73
+      "seconds": 9.12
     },
     {
       "command": "cargo fmt --all --check",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.31
+      "seconds": 0.33
     },
     {
       "command": "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.45
+      "seconds": 4.61
     },
     {
       "command": "python tools/compiler_probe.py",
       "ok": true,
       "returncode": 0,
-      "seconds": 0.81
+      "seconds": 1.66
+    },
+    {
+      "command": "cargo doc --workspace --no-deps --all-features --locked",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 2.64
+    },
+    {
+      "command": "cargo test --manifest-path fixtures/chapter26-workspace/Cargo.toml --workspace --locked",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 1.27
+    },
+    {
+      "command": "cargo fmt --manifest-path fixtures/chapter26-workspace/Cargo.toml --all --check",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.11
+    },
+    {
+      "command": "cargo clippy --manifest-path fixtures/chapter26-workspace/Cargo.toml --workspace --all-targets --locked -- -D warnings",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 0.41
+    },
+    {
+      "command": "cargo +1.86.0 check --workspace --all-targets --all-features --locked",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 10.7
+    },
+    {
+      "command": "cargo +1.86.0 test --workspace --all-targets --locked",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 21.64
+    },
+    {
+      "command": "cargo +1.86.0 test --workspace --all-targets --all-features --locked",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 14.06
+    },
+    {
+      "command": "cargo +1.86.0 test --workspace --doc --all-features --locked",
+      "ok": true,
+      "returncode": 0,
+      "seconds": 6.47
     }
   ],
   "failures": []

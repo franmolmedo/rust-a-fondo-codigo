@@ -14,9 +14,9 @@ automated tests. The manuscript, PDF, and EPUB are not part of this repository.
 
 ## What's included
 
-- **891 code blocks** preserved under `listings/` and identified by chapter.
+- **892 code blocks** preserved under `listings/` and identified by chapter.
 - **403 executable reference solutions** under `solutions/`.
-- **447 tests** associated with those solutions.
+- **604 tests** associated with those solutions.
 - Doctests, `compile_fail` examples, and `should_panic` cases.
 - Real laboratories for procedural macros, MIR, LLVM IR, and assembly.
 - A manifest providing traceability and SHA-256 hashes for every listing.
@@ -31,7 +31,8 @@ exercise 6” and remains unchanged in every translation.
 - PowerShell 5.1 or later for `verify.ps1` on Windows.
 
 `rust-toolchain.toml` automatically installs Rust 1.95.0 with Clippy and
-rustfmt. The crates declare Rust 1.85 as their minimum supported version.
+rustfmt. The main corpus requires at least Rust 1.86; the separate appendix
+workspace requires Rust 1.95.
 
 ## Getting started
 
@@ -55,6 +56,21 @@ To run the same audit used by continuous integration:
 
 The audit checks hashes, TOML files, feature configurations, tests, doctests,
 formatting, Clippy, and the actual emission of MIR, LLVM IR, and assembly.
+Both launchers also run the appendix workspace's native verification.
+
+## Second edition (v2)
+
+This branch includes the corrected examples and regression tests for the
+second edition, plus the [appendix labs A–G](appendices/README.md) and the
+[chapter 26 workspace](fixtures/chapter26-workspace/README.md). Existing
+chapter and solution identifiers remain unchanged. The appendix labs have
+their own Cargo workspace, lockfile, doctests, and verification script.
+
+The [appendix workflow](.github/workflows/appendices.yml) checks Windows and
+Linux, cross-compilation, packaging, Miri, and a short fuzzing campaign.
+These advanced checks are separate from the native verification launchers.
+To check the main corpus's minimum compiler version locally, install Rust
+1.86.0 and run `python tools/verify.py --msrv`.
 
 ## Artificial intelligence disclosure
 
@@ -98,6 +114,8 @@ published code blocks verbatim.
 ```text
 .
 ├── solutions/         solutions, katas, and projects with tests
+├── appendices/        independent labs and applications for appendices A–G
+├── fixtures/          complete chapter 26 workspace
 ├── listings/          one file for each code block published in the book
 ├── doctests/          documentation harness and compile_fail cases
 ├── macro_lab/         procedural macro implementation

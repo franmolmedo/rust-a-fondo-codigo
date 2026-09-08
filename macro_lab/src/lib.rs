@@ -1,4 +1,4 @@
-//! Procedural macros reales usadas por el laboratorio verificable del capítulo 50.
+//! Real procedural macros used by the verifiable chapter 50 lab.
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -23,18 +23,18 @@ fn parse_entity_options(input: &DeriveInput) -> syn::Result<EntityOptions> {
         attribute.parse_nested_meta(|meta| {
             if meta.path.is_ident("id") {
                 if options.id.is_some() {
-                    return Err(meta.error("`id` solo puede declararse una vez"));
+                    return Err(meta.error("`id` can only be specified once"));
                 }
                 options.id = Some(meta.value()?.parse()?);
                 Ok(())
             } else if meta.path.is_ident("crate_path") {
                 if options.crate_path.is_some() {
-                    return Err(meta.error("`crate_path` solo puede declararse una vez"));
+                    return Err(meta.error("`crate_path` can only be specified once"));
                 }
                 options.crate_path = Some(meta.value()?.parse()?);
                 Ok(())
             } else {
-                Err(meta.error("opción desconocida; se esperaba `id` o `crate_path`"))
+                Err(meta.error("unknown option; expected `id` or `crate_path`"))
             }
         })?;
     }
@@ -45,7 +45,7 @@ fn parse_entity_options(input: &DeriveInput) -> syn::Result<EntityOptions> {
 fn expand_entity(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     let options = parse_entity_options(&input)?;
     let id = options.id.ok_or_else(|| {
-        syn::Error::new_spanned(&input.ident, "falta `#[entity(id = \"campo\")]`")
+        syn::Error::new_spanned(&input.ident, "missing `#[entity(id = \"field\")]`")
     })?;
     let crate_path = options
         .crate_path
@@ -57,14 +57,14 @@ fn expand_entity(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
             _ => {
                 return Err(syn::Error::new_spanned(
                     &input.ident,
-                    "`Entity` requiere una struct con campos nombrados",
+                    "`Entity` requires a struct with named fields",
                 ));
             }
         },
         _ => {
             return Err(syn::Error::new_spanned(
                 &input.ident,
-                "`Entity` solo puede derivarse para structs",
+                "`Entity` can only be derived for structs",
             ));
         }
     };
@@ -79,7 +79,7 @@ fn expand_entity(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     if !field_exists {
         return Err(syn::Error::new_spanned(
             &id,
-            format!("el campo `{id_name}` no existe en esta struct"),
+            format!("field `{id_name}` does not exist in this struct"),
         ));
     }
 
@@ -88,7 +88,7 @@ fn expand_entity(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     Ok(quote! {
         impl #impl_generics #crate_path::Entity for #name #type_generics #where_clause {
             fn entity_name() -> &'static str {
-                stringify!(#name)
+                ::core::stringify!(#name)
             }
 
             fn id_field() -> &'static str {
@@ -98,7 +98,7 @@ fn expand_entity(input: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
     })
 }
 
-/// Deriva el trait runtime `Entity` sin añadir bounds que la expansión no usa.
+/// Derives the `Entity` trait without adding bounds unused by the expansion.
 #[proc_macro_derive(Entity, attributes(entity))]
 pub fn derive_entity(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
@@ -108,7 +108,7 @@ pub fn derive_entity(input: TokenStream) -> TokenStream {
     }
 }
 
-/// Convierte una lista de identificadores en un slice estático de sus nombres.
+/// Converts a list of identifiers into a static slice containing their names.
 #[proc_macro]
 pub fn field_names(input: TokenStream) -> TokenStream {
     let parser = Punctuated::<Ident, Token![,]>::parse_terminated;
@@ -120,16 +120,67 @@ pub fn field_names(input: TokenStream) -> TokenStream {
     quote! { &[#(#names),*] }.into()
 }
 
-/// Attribute macro mínima que valida que no haya argumentos y preserva la función.
+/// Minimal attribute macro that rejects arguments and preserves the function.
 #[proc_macro_attribute]
 pub fn preserve_item(attribute: TokenStream, item: TokenStream) -> TokenStream {
     let attribute = proc_macro2::TokenStream::from(attribute);
     if !attribute.is_empty() {
-        return syn::Error::new_spanned(attribute, "`preserve_item` no acepta argumentos")
+        return syn::Error::new_spanned(attribute, "`preserve_item` does not accept arguments")
             .to_compile_error()
             .into();
     }
 
     let function = parse_macro_input!(item as ItemFn);
     quote!(#function).into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn c50_invalid_options_report_the_specific_problem() {
+        let cases = [
+            (
+                quote!(
+                    #[entity(id = "id", id = "other")]
+                    struct A {
+                        id: u64,
+                    }
+                ),
+                "`id` can only be specified once",
+            ),
+            (
+                quote!(
+                    #[entity(id = "id", crate_path = api, crate_path = other)]
+                    struct A {
+                        id: u64,
+                    }
+                ),
+                "`crate_path` can only be specified once",
+            ),
+            (
+                quote!(
+                    #[entity(id = "id", crate_paht = api)]
+                    struct A {
+                        id: u64,
+                    }
+                ),
+                "unknown option; expected `id` or `crate_path`",
+            ),
+            (
+                quote!(
+                    #[entity(id = "missing")]
+                    struct A {
+                        id: u64,
+                    }
+                ),
+                "field `missing` does not exist in this struct",
+            ),
+        ];
+        for (input, expected) in cases {
+            let error = expand_entity(syn::parse2(input).unwrap()).unwrap_err();
+            assert_eq!(error.to_string(), expected);
+        }
+    }
 }

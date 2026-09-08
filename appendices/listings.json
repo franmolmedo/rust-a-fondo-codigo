@@ -1,0 +1,633 @@
+{
+  "schema": 2,
+  "corpora": {
+    "lab/doctests.md": "5268bd52e3bd838eca8bc1c78a9b1c4eae45fa8fd33f4376fa1a34f0c2d08747",
+    "portable-core/doctests.md": "a1c08b4aac4fccc6f6079d84b85aa94f95529f4dc7c90ba34a8734e8beb39c2c"
+  },
+  "listings": [
+    {
+      "id": "AP-A-B001",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 56,
+      "tag": "powershell",
+      "sha256": "a1775041541f654a0c591604ba513d5b2e22fe6f0ed6377422d37158d95d38a9",
+      "body": "rustup --version\nrustc --version\ncargo --version\ngit --version\nGet-Command rustup, rustc, cargo, git\nrustup show\n"
+    },
+    {
+      "id": "AP-A-B002",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 73,
+      "tag": "console",
+      "sha256": "23199307b251d7871a36e95795fb9470836fa7211035f276e56a2518de8b51cf",
+      "body": "sudo apt update\nsudo apt install build-essential curl git python3\n"
+    },
+    {
+      "id": "AP-A-B003",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 80,
+      "tag": "console",
+      "sha256": "40a978c31bd7cd615af64c015ce9252391dcd6a1342d42a26a1ad4d836fe9c42",
+      "body": "sudo dnf install gcc gcc-c++ make curl git python3\n"
+    },
+    {
+      "id": "AP-A-B004",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 88,
+      "tag": "console",
+      "sha256": "5da34abb1ed96cb60e4848d3d5bc334e2ec829960e43be7263a0f4ad2e4a5513",
+      "body": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh\n"
+    },
+    {
+      "id": "AP-A-B005",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 96,
+      "tag": "console",
+      "sha256": "29f64758cfdc572039062da9e5226a83b76ae2895c83ae2b85fd7df84ce55e97",
+      "body": ". \"$HOME/.cargo/env\"\nrustc --version\ncargo --version\ngit --version\ncommand -v cargo\nrustup show\n"
+    },
+    {
+      "id": "AP-A-B006",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 113,
+      "tag": "console",
+      "sha256": "a4ac8591edb122450acb9f07389d4e61fc11ea3b2e7718f0c3c8c3230d0c7f5e",
+      "body": "rustup toolchain install 1.95.0 --profile minimal\nrustup component add --toolchain 1.95.0 rustfmt clippy rust-src\ncargo +1.95.0 --version\n"
+    },
+    {
+      "id": "AP-A-B007",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 121,
+      "tag": "toml",
+      "sha256": "30cf0fdaf648cec58e1f618fe36f29b6e2b9d97beca36e0560602ab055a9ff5b",
+      "body": "[toolchain]\nchannel = \"1.95.0\"\ncomponents = [\"clippy\", \"rustfmt\", \"rust-src\"]\nprofile = \"minimal\"\n"
+    },
+    {
+      "id": "AP-A-B008",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 136,
+      "tag": "console",
+      "sha256": "6568c06d0e4fcfd3f0094a6f48e23b7382e053b51bf8d0ad4e290ce9b6ad4588",
+      "body": "cargo +1.95.0 new first-steps --edition 2024\ncd first-steps\ncargo +1.95.0 run\n"
+    },
+    {
+      "id": "AP-A-B009",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 148,
+      "tag": "rust",
+      "sha256": "10dfb179c5a57cc3390042a836ab4cc3bb0b60aa9759e1d9e2d52592e3f7305f",
+      "body": "fn remaining(capacity: u32, occupied: u32) -> Option<u32> {\n    capacity.checked_sub(occupied)\n}\n\nfn main() {\n    let capacity = 12;\n    let occupied = 5;\n    match remaining(capacity, occupied) {\n        Some(free) => println!(\"Free spaces: {free}\"),\n        None => eprintln!(\"Occupied spaces exceed capacity\"),\n    }\n}\n"
+    },
+    {
+      "id": "AP-A-B010",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 171,
+      "tag": "powershell",
+      "sha256": "92ec138bffc46b6786b9cc35ed492ad49e2182a5aeeb7adf1f0d5c293ac9606e",
+      "body": "winget install -e --id ZedIndustries.Zed\n"
+    },
+    {
+      "id": "AP-A-B011",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 187,
+      "tag": "console",
+      "sha256": "b65764ddb8be1f1e451bea82afa1a552a94f6b11695bd530c77c6ca7a5bfc19d",
+      "body": "cargo +1.95.0 fmt\ncargo +1.95.0 clippy --all-targets\ncargo +1.95.0 test\n"
+    },
+    {
+      "id": "AP-A-B012",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 197,
+      "tag": "console",
+      "sha256": "d641352f63dc10550af141dbbe89ca9815bda257af336d83de92d7edda6d89a0",
+      "body": "cargo test -p first-steps --locked\n"
+    },
+    {
+      "id": "AP-A-B013",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 209,
+      "tag": "json",
+      "sha256": "07da0cb85263f3a715cffaafaea99f188a83acbef523c45c0ab11841cfa43223",
+      "body": "[\n  {\n    \"label\": \"Debug first-steps\",\n    \"adapter\": \"CodeLLDB\",\n    \"build\": {\n      \"command\": \"cargo\",\n      \"args\": [\"build\", \"-p\", \"first-steps\"]\n    },\n    \"sourceLanguages\": [\"rust\"]\n  }\n]\n"
+    },
+    {
+      "id": "AP-A-B014",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 233,
+      "tag": "console",
+      "sha256": "041e9008e0c9d52942b02958897a39f6fbbf88b7304f492f7d7b6d18df0ca5be",
+      "body": "git clone https://github.com/franmolmedo/rust-a-fondo-codigo.git\ncd rust-a-fondo-codigo\n"
+    },
+    {
+      "id": "AP-A-B015",
+      "source": "60.Apendice-A-Instalacion-en-Windows-Linux-y-Zed.md",
+      "line": 242,
+      "tag": "console",
+      "sha256": "8ce0615cef5640a184f40a02b4f9095122771c92eceb8ae4c24a2b44a93c7ec2",
+      "body": "cargo run -p first-steps --locked\ncargo test -p first-steps --locked\npython verify.py\n"
+    },
+    {
+      "id": "AP-B-B001",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 30,
+      "tag": "rust",
+      "sha256": "a58e0e5f50346af252421b0a93cce7eaca2771908d5a0a8857de82f6ead59321",
+      "body": "use std::collections::HashMap;\n\nfn main() {\n    let mut totals = HashMap::<&str, u64>::new();\n    for (name, quantity) in [(\"bolt\", 2_u64), (\"nut\", 3), (\"bolt\", 4)] {\n        let total = totals.entry(name).or_insert(0);\n        *total = total.checked_add(quantity).expect(\"small example totals\");\n    }\n    assert_eq!(totals.get(\"bolt\"), Some(&6));\n    assert_eq!(totals.get(\"missing\"), None);\n}\n"
+    },
+    {
+      "id": "AP-B-B002",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 50,
+      "tag": "rust",
+      "sha256": "0257250560c28219f6b20943e41a86b594f044695e09ec10ae6790d78149aeba",
+      "body": "use std::collections::HashMap;\n\nfn main() {\n    let users = HashMap::from([(String::from(\"ada\"), 7)]);\n    assert_eq!(users.get(\"ada\"), Some(&7));\n}\n"
+    },
+    {
+      "id": "AP-B-B003",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 65,
+      "tag": "rust",
+      "sha256": "b6007899dea66553663c7530a839419734f6b07591ce73d6ce05867c0c4621de",
+      "body": "use std::collections::BTreeMap;\n\nfn main() {\n    let totals = BTreeMap::from([(\"washer\", 6), (\"bolt\", 2), (\"nut\", 3)]);\n    let names: Vec<_> = totals.keys().copied().collect();\n    assert_eq!(names, [\"bolt\", \"nut\", \"washer\"]);\n    assert_eq!(totals.range(\"bolt\"..\"washer\").count(), 2);\n}\n"
+    },
+    {
+      "id": "AP-B-B004",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 84,
+      "tag": "rust",
+      "sha256": "a691d5695ad5d35f1229cf6aa119ee7272e1bc6079ee3e57b04a32c822e5d9f7",
+      "body": "use std::collections::HashSet;\n\nfn main() {\n    let mut seen = HashSet::new();\n    assert!(seen.insert(\"job-1\"));\n    assert!(!seen.insert(\"job-1\"));\n    assert_eq!(seen.len(), 1);\n}\n"
+    },
+    {
+      "id": "AP-B-B005",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 97,
+      "tag": "rust",
+      "sha256": "4a05af6bbc811351a189ff6b14261cdc2fe948ecd0ee2da676ff1bb321d8aa9d",
+      "body": "use std::collections::VecDeque;\n\nfn main() {\n    let mut pending = VecDeque::from([10, 20]);\n    pending.push_back(30);\n    assert_eq!(pending.pop_front(), Some(10));\n    assert_eq!(pending.into_iter().collect::<Vec<_>>(), [20, 30]);\n}\n"
+    },
+    {
+      "id": "AP-B-B006",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 112,
+      "tag": "rust",
+      "sha256": "3fd6268d5b054cc0cfa95ca3d22ffbc27226e7a836196fd89fa2ac2dddeed21b",
+      "body": "use std::cmp::Reverse;\nuse std::collections::BinaryHeap;\n\nfn main() {\n    let mut jobs = BinaryHeap::new();\n    jobs.push(Reverse((3_u32, 20_u64)));\n    jobs.push(Reverse((1, 30)));\n    jobs.push(Reverse((1, 10)));\n    assert_eq!(jobs.pop(), Some(Reverse((1, 10))));\n    assert_eq!(jobs.pop(), Some(Reverse((1, 30))));\n}\n"
+    },
+    {
+      "id": "AP-B-B007",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 134,
+      "tag": "rust",
+      "sha256": "d07ca560352d410844ae56e5a5fde6f74909b4e8f6afdb0f93a1c16ddbf2ceed",
+      "body": "use std::borrow::Cow;\n\nfn normalize_label(input: &str) -> Cow<'_, str> {\n    let trimmed = input.trim();\n    if trimmed.bytes().any(|byte| byte.is_ascii_uppercase()) {\n        Cow::Owned(trimmed.to_ascii_lowercase())\n    } else {\n        Cow::Borrowed(trimmed)\n    }\n}\n\nfn main() {\n    assert!(matches!(normalize_label(\" bolt \"), Cow::Borrowed(\"bolt\")));\n    assert_eq!(normalize_label(\" BOLT \"), \"bolt\");\n}\n"
+    },
+    {
+      "id": "AP-B-B008",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 160,
+      "tag": "rust",
+      "sha256": "275ffd046e7ecff07ce4d11508fdd61f4c4afbacb71377128dac074c3ff9b8c2",
+      "body": "use std::ffi::OsStr;\nuse std::path::Path;\n\nfn main() {\n    let path = Path::new(\"data\").join(\"inventory.csv\");\n    assert_eq!(path.file_name(), Some(OsStr::new(\"inventory.csv\")));\n    assert_eq!(path.extension(), Some(OsStr::new(\"csv\")));\n}\n"
+    },
+    {
+      "id": "AP-B-B009",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 181,
+      "tag": "rust",
+      "sha256": "b002f99c52c09f9667d147604da1d2e8a2e9d0fa2126b44aadd8b02cc68f8ee9",
+      "body": "use std::io::{Cursor, Read, Seek, SeekFrom};\n\nfn main() -> std::io::Result<()> {\n    let mut input = Cursor::new(b\"ABCD\");\n    input.seek(SeekFrom::Start(1))?;\n    let mut pair = [0_u8; 2];\n    input.read_exact(&mut pair)?;\n    assert_eq!(&pair, b\"BC\");\n    Ok(())\n}\n"
+    },
+    {
+      "id": "AP-B-B010",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 202,
+      "tag": "rust",
+      "sha256": "8bb1dab16d2e1326fe27a32c2c117cb48026e90b587bff9d1da493041c0d8fbe",
+      "body": "use std::io::{BufRead, Cursor};\n\nfn main() -> std::io::Result<()> {\n    let mut reader = Cursor::new(b\"one\\n\\ntwo\\n\");\n    let mut line = String::new();\n    let mut count = 0;\n    loop {\n        line.clear();\n        if reader.read_line(&mut line)? == 0 {\n            break;\n        }\n        if !line.trim().is_empty() {\n            count += 1;\n        }\n    }\n    assert_eq!(count, 2);\n    Ok(())\n}\n"
+    },
+    {
+      "id": "AP-B-B011",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 233,
+      "tag": "text",
+      "sha256": "08bfa05a4c6e578204d947d148c55c9e10232ef8b9abe443ad08c0d0685c54f9",
+      "body": "bolt,2\nnut,3\nbolt,4\n"
+    },
+    {
+      "id": "AP-B-B012",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 253,
+      "tag": "rust",
+      "sha256": "37d176ceb6934f7108f9c35705d0056376638696f8b79f58a6dfeb038f3a1ae3",
+      "body": "use rust_appendix_lab::data::{Limits, summarize, write_report};\nuse std::io::Cursor;\n\nfn main() -> Result<(), Box<dyn std::error::Error>> {\n    let input = Cursor::new(b\"bolt,2\\nnut,3\\nbolt,4\\n\");\n    let report = summarize(input, Limits::default())?;\n    let mut output = Vec::new();\n    write_report(&mut output, &report)?;\n    assert_eq!(output, b\"bolt,6\\nnut,3\\n\");\n    Ok(())\n}\n"
+    },
+    {
+      "id": "AP-B-B013",
+      "source": "61.Apendice-B-Biblioteca-estandar-en-la-practica.md",
+      "line": 285,
+      "tag": "console",
+      "sha256": "c4f6d62118277188f4cab81bf24681dec7c45d3c0748ddd0372bf6462697d8d5",
+      "body": "cargo test -p rust-appendix-lab data::tests --locked\ncargo test -p rust-appendix-lab --doc --locked\n"
+    },
+    {
+      "id": "AP-C-B001",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 25,
+      "tag": "rust",
+      "sha256": "ceaaa9e6769fbbcbd33694f262d9135028c3d46026b540b8aa4c9692b16915ff",
+      "body": "#[derive(Debug, Clone, Copy, PartialEq, Eq)]\nstruct Port(u16);\n\nimpl Port {\n    const fn new(value: u16) -> Option<Self> {\n        if value == 0 { None } else { Some(Self(value)) }\n    }\n}\n\nconst DEFAULT_PORT: Port = match Port::new(8042) {\n    Some(port) => port,\n    None => panic!(\"the default port must be nonzero\"),\n};\n\nlet supplied = \"8042\".parse::<u16>().unwrap();\nassert_eq!(Port::new(supplied), Some(DEFAULT_PORT));\nassert_eq!(Port::new(0), None);\n"
+    },
+    {
+      "id": "AP-C-B002",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 53,
+      "tag": "rust,compile_fail",
+      "sha256": "0e18a98a757cb5de8831989d2c30959e96de2c710aa84d3f5b849bb0eb37bd66",
+      "body": "use rust_appendix_lab::const_eval::Port;\n\nconst INVALID_PORT: Port = match Port::new(0) {\n    Some(port) => port,\n    None => panic!(\"the default port must be nonzero\"),\n};\n\nfn main() {\n    let _ = INVALID_PORT;\n}\n"
+    },
+    {
+      "id": "AP-C-B003",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 76,
+      "tag": "rust",
+      "sha256": "0192162cc0764f0903f1ecd0fbbf263f5968241ed282fdfd43e0c18cfae3b7c4",
+      "body": "const fn squares() -> [u16; 16] {\n    let mut table = [0; 16];\n    let mut index = 0;\n    while index < table.len() {\n        table[index] = (index as u16) * (index as u16);\n        index += 1;\n    }\n    table\n}\n\nconst SQUARES: [u16; 16] = squares();\nassert_eq!(SQUARES[0], 0);\nassert_eq!(SQUARES[15], 225);\n"
+    },
+    {
+      "id": "AP-C-B004",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 96,
+      "tag": "rust",
+      "sha256": "8ee50762d5a639bd566612e8603c492864953474ceebc8fa9a3cf4af8c489cef",
+      "body": "use rust_appendix_lab::const_eval::byte_sum;\n\nconst EXPECTED: u32 = byte_sum(b\"Rust\");\nlet received = Vec::from(b\"Rust\".as_slice());\nassert_eq!(byte_sum(&received), EXPECTED);\nassert_eq!(EXPECTED, 430);\n"
+    },
+    {
+      "id": "AP-C-B005",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 113,
+      "tag": "rust",
+      "sha256": "309b915bb7c6604a5afc182d8d99f471812375b786314b50e01c3cf7b68def4c",
+      "body": "use std::sync::atomic::{AtomicUsize, Ordering};\n\nstatic REQUESTS: AtomicUsize = AtomicUsize::new(0);\n\nREQUESTS.fetch_add(1, Ordering::Relaxed);\nassert_eq!(REQUESTS.load(Ordering::Relaxed), 1);\n"
+    },
+    {
+      "id": "AP-C-B006",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 132,
+      "tag": "rust",
+      "sha256": "dc8ed409717b9a9bfc102b796c3f7a433ff7de12d22f4d0bf1e1c7821dd7f640",
+      "body": "use std::collections::HashMap;\nuse std::sync::LazyLock;\n\nstatic LABELS: LazyLock<HashMap<u8, &'static str>> = LazyLock::new(|| {\n    HashMap::from([(1, \"queued\"), (2, \"finished\")])\n});\n\nassert_eq!(LABELS.get(&2), Some(&\"finished\"));\n"
+    },
+    {
+      "id": "AP-C-B007",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 151,
+      "tag": "rust",
+      "sha256": "0717e2dfa0d07bd81bbb789e2625cbf78a65ddd7483ee5420263349cb306ea3f",
+      "body": "use rust_appendix_lab::const_eval::Frame;\n\nconst HEADER: Option<Frame<4>> = Frame::new([1, 2, 3, 4]);\nassert_eq!(HEADER.unwrap().bytes(), &[1, 2, 3, 4]);\nassert!(Frame::new([0_u8; 65]).is_none());\n"
+    },
+    {
+      "id": "AP-C-B008",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 163,
+      "tag": "rust,compile_fail",
+      "sha256": "77ae3482d01b54d26a3520633892a2e205a7515ccd6938426d9d62915b911257",
+      "body": "struct Packet<const N: usize> {\n    bytes: [u8; N + 1],\n}\n\nfn main() {}\n"
+    },
+    {
+      "id": "AP-C-B009",
+      "source": "62.Apendice-C-Evaluacion-en-compilacion.md",
+      "line": 185,
+      "tag": "console",
+      "sha256": "077ce8a22499787031195fdb7a9a840c91c36e85d646505ab6b883ebc3b6d679",
+      "body": "cargo test -p rust-appendix-lab const_eval::tests --locked\ncargo test -p rust-appendix-lab --doc --locked\n"
+    },
+    {
+      "id": "AP-D-B001",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 11,
+      "tag": "rust,should_panic",
+      "sha256": "c35dba46f4001a740f020d3cefcc44ed43f8f8e6cefec2171fdf5b57d292895c",
+      "body": "let text = \"a€z\";\nlet limit = 2;\nlet preview = &text[..limit];\nprintln!(\"{preview}\");\n"
+    },
+    {
+      "id": "AP-D-B002",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 28,
+      "tag": "powershell",
+      "sha256": "334cf04c830c56ac64a09228cba7afeaa283f0b7a9e0aff6ba954a3302b5d1f1",
+      "body": "$env:RUST_BACKTRACE = \"1\"\ncargo run -p rust-appendix-lab --example debug_preview -- --broken\nRemove-Item Env:RUST_BACKTRACE\n"
+    },
+    {
+      "id": "AP-D-B003",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 36,
+      "tag": "bash",
+      "sha256": "ef97a5bcf541a8ee0f6f9b6a1ad7ad1aa2d04629259e4da4ec1188de510c15eb",
+      "body": "RUST_BACKTRACE=1 cargo run -p rust-appendix-lab --example debug_preview -- --broken\n"
+    },
+    {
+      "id": "AP-D-B004",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 48,
+      "tag": "json",
+      "sha256": "6ca02edba00c797cc8e05e2b2950dbfaf7a53758496121a388278d68a523e954",
+      "body": "{\n  \"label\": \"Debug Unicode preview\",\n  \"adapter\": \"CodeLLDB\",\n  \"build\": {\n    \"command\": \"cargo\",\n    \"args\": [\"build\", \"-p\", \"rust-appendix-lab\", \"--example\", \"debug_preview\"]\n  },\n  \"args\": [\"--broken\"],\n  \"sourceLanguages\": [\"rust\"]\n}\n"
+    },
+    {
+      "id": "AP-D-B005",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 69,
+      "tag": "rust",
+      "sha256": "0eea21d55a17a6ab8472c37eb7b8ee44a11ed61d590d7ada16da6c37ea77940b",
+      "body": "fn preview(text: &str, max_scalars: usize) -> &str {\n    let end = text.char_indices()\n        .nth(max_scalars)\n        .map_or(text.len(), |(offset, _)| offset);\n    &text[..end]\n}\n\nassert_eq!(preview(\"a€z\", 2), \"a€\");\nassert_eq!(preview(\"東京\", 1), \"東\");\nassert_eq!(preview(\"Rust\", 0), \"\");\nassert_eq!(preview(\"Rust\", 20), \"Rust\");\n"
+    },
+    {
+      "id": "AP-D-B006",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 91,
+      "tag": "console",
+      "sha256": "e41ef8d33e9165b0b117a6dda8131f81f205c146b74e0e7dd4c1ea3eb295e0ce",
+      "body": "cargo test -p rust-appendix-lab performance::tests --locked\ncargo run -p rust-appendix-lab --example debug_preview --locked\n"
+    },
+    {
+      "id": "AP-D-B007",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 102,
+      "tag": "rust",
+      "sha256": "9da07d052df7177e0c175e7644624f04181e9a44ca956b7aea2aefba0bf4f776",
+      "body": "use std::collections::HashSet;\nuse rust_appendix_lab::performance::{SortedIndex, count_hashed, count_linear};\n\nlet values = [8, 3, 3];\nlet queries = [3, 3, 7];\nlet hashed: HashSet<_> = values.into_iter().collect();\nassert_eq!(count_linear(&values, &queries), 2);\nassert_eq!(SortedIndex::new(&values).count(&queries), 2);\nassert_eq!(count_hashed(&hashed, &queries), 2);\n"
+    },
+    {
+      "id": "AP-D-B008",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 122,
+      "tag": "console",
+      "sha256": "d9910426736de3fdac3a96849af52a27e2a089d3da7d82ed9dcfba0ce34a6be6",
+      "body": "rustc --version --verbose\ncargo test -p rust-appendix-lab performance::tests --release --locked\ncargo run -p rust-appendix-lab --example measure_lookup --release --locked\n"
+    },
+    {
+      "id": "AP-D-B009",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 154,
+      "tag": "toml",
+      "sha256": "6391af1f3352510d49758bea7e2c02117631c7f160d6c69a96dd51261b77f1da",
+      "body": "[profile.profiling]\ninherits = \"release\"\ndebug = 2\nstrip = \"none\"\n"
+    },
+    {
+      "id": "AP-D-B010",
+      "source": "63.Apendice-D-Depuracion-y-rendimiento.md",
+      "line": 161,
+      "tag": "console",
+      "sha256": "7fb01b033a53416976caf189ee814060bc1b017b3ea3ea4f669b1c65610de01a",
+      "body": "cargo build -p rust-appendix-lab --example measure_lookup --profile profiling --locked\n"
+    },
+    {
+      "id": "AP-E-B001",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 20,
+      "tag": "rust",
+      "sha256": "8b112ec8c83d046eae97519b8046781f1c70f6f1fda498ca0e446d34b870343a",
+      "body": "fn read_u32_le(bytes: &[u8]) -> Option<u32> {\n    let prefix = bytes.get(..4)?;\n    // SAFETY: four initialized bytes in one live allocation; u32 permits\n    // every bit pattern, and read_unaligned does not require alignment.\n    let native = unsafe { prefix.as_ptr().cast::<u32>().read_unaligned() };\n    Some(u32::from_le(native))\n}\n\nassert_eq!(read_u32_le(&[0x78, 0x56, 0x34, 0x12]), Some(0x1234_5678));\nassert_eq!(read_u32_le(&[1, 2, 3]), None);\n"
+    },
+    {
+      "id": "AP-E-B002",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 37,
+      "tag": "rust",
+      "sha256": "a2da82d8559f3993afae56fb614e918c66e2146b618cb0a9a87dfe0fb14e232e",
+      "body": "fn read_u32_le(bytes: &[u8]) -> Option<u32> {\n    let array: [u8; 4] = bytes.get(..4)?.try_into().ok()?;\n    Some(u32::from_le_bytes(array))\n}\n\nassert_eq!(read_u32_le(&[0x78, 0x56, 0x34, 0x12]), Some(0x1234_5678));\n"
+    },
+    {
+      "id": "AP-E-B003",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 52,
+      "tag": "console",
+      "sha256": "db91bd9d8039f7659beffe86829af88fe8f15162205cc8cab0be61b3eb6d9954",
+      "body": "rustup toolchain install nightly-2026-04-15 --profile minimal --component miri,rust-src\ncargo +nightly-2026-04-15 miri setup\ncargo +nightly-2026-04-15 miri test -p rust-appendix-lab --lib --locked audits::tests\n"
+    },
+    {
+      "id": "AP-E-B004",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 66,
+      "tag": "console",
+      "sha256": "4ab4ec10a4249f7474002625f83663b259a42084d1901f872099fdd9bcf6e3c5",
+      "body": "cargo +nightly-2026-04-15 miri run -p rust-appendix-lab --example miri_bad_read --locked\n"
+    },
+    {
+      "id": "AP-E-B005",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 74,
+      "tag": "console",
+      "sha256": "4c23fd373b29fb19c850a5c3cc054bc783b88422a435176f00a7a4fafeb5fc90",
+      "body": "python advanced.py --miri\n"
+    },
+    {
+      "id": "AP-E-B006",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 84,
+      "tag": "rust",
+      "sha256": "25ed4c0fb2cc11f57517710c4bade2d09fa7a3e43fe2896e2de027a88b1a07e4",
+      "body": "use std::sync::atomic::{AtomicUsize, Ordering};\n\nlet counter = AtomicUsize::new(0);\nlet first = counter.load(Ordering::SeqCst);\nlet second = counter.load(Ordering::SeqCst);\ncounter.store(first + 1, Ordering::SeqCst);\ncounter.store(second + 1, Ordering::SeqCst);\nassert_eq!(counter.load(Ordering::SeqCst), 1);\n"
+    },
+    {
+      "id": "AP-E-B007",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 99,
+      "tag": "console",
+      "sha256": "926d95474e5729554fee79af138afd24b275e414d3f22a77c9801682d0cdc524",
+      "body": "cargo test -p appendix-loom-model --release --locked\n"
+    },
+    {
+      "id": "AP-E-B008",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 117,
+      "tag": "rust",
+      "sha256": "bd9c9cf78773f382541e1fedcc70c5f79c9ec869de4a63509bf98024af7be7a7",
+      "body": "use rust_appendix_lab::data::parse_record;\n\nlet record = parse_record(\" cable , 0007 \").unwrap();\nlet serialized = record.to_line();\nassert_eq!(serialized, \"cable,7\\n\");\nassert_eq!(parse_record(&serialized).unwrap(), record);\n"
+    },
+    {
+      "id": "AP-E-B009",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 134,
+      "tag": "console",
+      "sha256": "cdb315c6b5734276c4a8a68f58be4939caa9621034a132aa8287fef163b40be9",
+      "body": "rustup toolchain install nightly-2026-04-15 --profile minimal\ncargo +nightly-2026-04-15 install cargo-fuzz --version 0.13.1 --locked\ncargo +nightly-2026-04-15 fuzz run parse_record -- -max_total_time=30 -max_len=1024\n"
+    },
+    {
+      "id": "AP-E-B010",
+      "source": "64.Apendice-E-Miri-Loom-Fuzzing-y-FFI.md",
+      "line": 158,
+      "tag": "console",
+      "sha256": "3223e652a7e6b2b9974db0e8322f2e95f44c603a4ed57d55d3dfa6036df93e10",
+      "body": "cargo test -p native-checksum --locked\n"
+    },
+    {
+      "id": "AP-F-B001",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 24,
+      "tag": "console",
+      "sha256": "7516101746f309cb5f9fa686680ca3a0289393fd85dbfad8423d13c4f06a2e0f",
+      "body": "cargo new --lib lab --name rust-appendix-lab --vcs none\ncargo new --bin inventory-cli --vcs none\ncargo new --lib sum-service --vcs none\n"
+    },
+    {
+      "id": "AP-F-B002",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 32,
+      "tag": "toml",
+      "sha256": "ecb17b892710eedc04737b81f2c4fbbbccf7feefc661c810c0279dfdfcaf2ef3",
+      "body": "[workspace]\nmembers = [\"lab\", \"inventory-cli\", \"sum-service\"]\nresolver = \"3\"\n\n[workspace.package]\nversion = \"0.1.0\"\nedition = \"2024\"\nrust-version = \"1.95\"\nlicense = \"MIT\"\nauthors = [\"Francisco M. Olmedo Bueno\"]\npublish = false\n\n[workspace.lints.rust]\nunsafe_op_in_unsafe_fn = \"deny\"\nunused_must_use = \"deny\"\n\n[workspace.lints.clippy]\nundocumented_unsafe_blocks = \"deny\"\n"
+    },
+    {
+      "id": "AP-F-B003",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 84,
+      "tag": "console",
+      "sha256": "66d15108bacae0c69c5c6565e801e33a0d142f7d2e01d1b6d0291e74c5d2d662",
+      "body": "cargo run -p inventory-cli --locked -- inventory-cli/fixtures/inventory.csv\n"
+    },
+    {
+      "id": "AP-F-B004",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 90,
+      "tag": "text",
+      "sha256": "2a02ec3e726ab297e4d615177b918b7319689e37a1dcbb4cfdf5957348a6a930",
+      "body": "adaptador,4\ncable,7\n"
+    },
+    {
+      "id": "AP-F-B005",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 97,
+      "tag": "console",
+      "sha256": "9d58047910e46d39c05643cdaa2c75426e8bd807a0eece050eb44dedb01c6a79",
+      "body": "cargo run -p inventory-cli --locked -- inventory-cli/fixtures/invalid.csv\n"
+    },
+    {
+      "id": "AP-F-B006",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 113,
+      "tag": "console",
+      "sha256": "54dc9d217e38743343dd11f9d38650388a30e3f3ac5e880c26f7aa247789422a",
+      "body": "cargo test -p rust-appendix-lab data::tests --locked\ncargo test -p inventory-cli --locked\n"
+    },
+    {
+      "id": "AP-F-B007",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 137,
+      "tag": "rust",
+      "sha256": "f6a3956f364ed41131b33e84f68eebef5ce24678d47c1aae4df22c682ac401a2",
+      "body": "use rust_appendix_lab::protocol::{Reply, evaluate};\n\nassert_eq!(evaluate(b\"SUM 19 23\\n\"), Reply::Value(42));\nassert_eq!(evaluate(b\"SUM 18446744073709551615 1\\n\"), Reply::Overflow);\nassert_eq!(evaluate(b\"SUM -1 2\\n\"), Reply::InvalidRequest);\n"
+    },
+    {
+      "id": "AP-F-B008",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 151,
+      "tag": "console",
+      "sha256": "784e7be4fe97316c04a91f82faba58a0489f0c37b16d44b1d1279a7e6a685c61",
+      "body": "cargo run -p sum-service --bin sum-server --locked\n"
+    },
+    {
+      "id": "AP-F-B009",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 157,
+      "tag": "console",
+      "sha256": "e0e0915c4c205fa8ac1ba78d6800f25bc1cfdb24f86c8d02ec22aeae74996cf7",
+      "body": "cargo run -p sum-service --bin sum-client --locked -- 19 23\n"
+    },
+    {
+      "id": "AP-F-B010",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 163,
+      "tag": "console",
+      "sha256": "f3941ec4975be3cb5d930d9f906de3fc27487574d74cba15f5dfcf421a3d84b5",
+      "body": "cargo run -p sum-service --bin sum-client --locked -- 18446744073709551615 1\n"
+    },
+    {
+      "id": "AP-F-B011",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 193,
+      "tag": "console",
+      "sha256": "be8348044faa6a23fadc4f7a058284fbed89d28a46044dd6fae2ff51abfc9c9b",
+      "body": "cargo test -p sum-service --locked\n"
+    },
+    {
+      "id": "AP-F-B012",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 205,
+      "tag": "console",
+      "sha256": "1f80a416a8456f51adfe9594137895377506505b6d550cdef5816903246962bd",
+      "body": "cargo test --workspace --release --locked\ncargo build -p inventory-cli -p sum-service --bins --release --locked\n"
+    },
+    {
+      "id": "AP-F-B013",
+      "source": "65.Apendice-F-Dos-aplicaciones-completas.md",
+      "line": 214,
+      "tag": "console",
+      "sha256": "0d0a928f157d12014a9469a74f7f73ae9b1ab44add4041799c71671dab21a1a8",
+      "body": "python package.py --version 0.1.0\n"
+    },
+    {
+      "id": "AP-G-B001",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 29,
+      "tag": "rust",
+      "sha256": "1f81d9c09e138274ebf0469194922fd479799c0d1d06670735e29ac36dc58d50",
+      "body": "use portable_core::Ring;\n\nlet mut queue = Ring::<u8, 3>::new();\nassert_eq!(queue.push(10), Ok(()));\nassert_eq!(queue.push(20), Ok(()));\nassert_eq!(queue.pop(), Some(10));\nassert_eq!(queue.front(), Some(20));\nassert_eq!(queue.len(), 1);\n"
+    },
+    {
+      "id": "AP-G-B002",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 57,
+      "tag": "rust",
+      "sha256": "ba2952f7176dd4ece480f7ebe211a1c66c969c749fcf5d0f549a3fc9f1ee3af8",
+      "body": "use portable_core::Ring;\n\nlet mut queue = Ring::<u8, 2>::new();\nqueue.push(1).unwrap();\nqueue.push(2).unwrap();\nassert_eq!(queue.push(3), Err(3));\nassert_eq!(queue.pop(), Some(1));\nqueue.push(3).unwrap();\nassert_eq!([queue.pop(), queue.pop()], [Some(2), Some(3)]);\n"
+    },
+    {
+      "id": "AP-G-B003",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 75,
+      "tag": "rust,compile_fail",
+      "sha256": "3a4c6e5d1a61c2d8562a417ba78df9ac105c12ffdb63ae1668e9a38a8600d719",
+      "body": "use portable_core::Ring;\n\nfn main() {\n    let _ = Ring::<String, 4>::new();\n}\n"
+    },
+    {
+      "id": "AP-G-B004",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 93,
+      "tag": "rust",
+      "sha256": "fe08ae530493f96b17d198fb51e6c4d2828482349c5a8349ade8e04300dfe96a",
+      "body": "use portable_core::{ByteSink, Ring, flush_to};\n\nstruct OneByte(Option<u8>);\n\nimpl ByteSink for OneByte {\n    type Error = &'static str;\n\n    fn send(&mut self, byte: u8) -> Result<(), Self::Error> {\n        if self.0.is_some() {\n            return Err(\"full\");\n        }\n        self.0 = Some(byte);\n        Ok(())\n    }\n}\n\nlet mut queue = Ring::<u8, 2>::new();\nqueue.push(7).unwrap();\nqueue.push(8).unwrap();\nlet mut sink = OneByte(None);\nlet error = flush_to(&mut queue, &mut sink).unwrap_err();\nassert_eq!(error.written, 1);\nassert_eq!(sink.0, Some(7));\nassert_eq!(queue.front(), Some(8));\n"
+    },
+    {
+      "id": "AP-G-B005",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 128,
+      "tag": "toml",
+      "sha256": "6787fa6ab68631a5847ba8f68f381d3c0c72dc91d16d44cf3924f0ac192ac2ce",
+      "body": "[features]\ndefault = []\nalloc = []\n"
+    },
+    {
+      "id": "AP-G-B006",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 136,
+      "tag": "rust",
+      "sha256": "f9e835db5e095a7dced29e346916ac28de37dda816840ecc7a67b6f6713d7ccc",
+      "body": "#[cfg(feature = \"alloc\")]\nfn main() {\n    use portable_core::Ring;\n\n    let mut queue = Ring::<u8, 2>::new();\n    queue.push(7).unwrap();\n    queue.push(8).unwrap();\n    assert_eq!(queue.try_drain_to_vec().unwrap(), [7, 8]);\n    assert!(queue.is_empty());\n}\n\n#[cfg(not(feature = \"alloc\"))]\nfn main() {}\n"
+    },
+    {
+      "id": "AP-G-B007",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 160,
+      "tag": "console",
+      "sha256": "ecbd43f0df149c90c16f200059fdd23c34c99730208db8a33016ad6ba0721f22",
+      "body": "cargo test -p portable-core --locked\ncargo test -p portable-core --features alloc --locked\n"
+    },
+    {
+      "id": "AP-G-B008",
+      "source": "66.Apendice-G-No-std-y-codigo-portable.md",
+      "line": 175,
+      "tag": "console",
+      "sha256": "bc2077a3ee8d0ea99dc1aec94170bb977ea1da73f7ded56e01545664c916bd13",
+      "body": "rustup target add thumbv7em-none-eabihf --toolchain 1.95.0\ncargo build -p portable-core --lib --target thumbv7em-none-eabihf --locked\ncargo build -p portable-core --lib --features alloc --target thumbv7em-none-eabihf --locked\n"
+    }
+  ]
+}

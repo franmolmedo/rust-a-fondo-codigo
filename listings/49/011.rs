@@ -5,7 +5,7 @@ const fn port_from_literal(value: u16) -> u16 {
 macro_rules! checked_port {
     ($value:literal) => { port_from_literal($value) };
     ($($other:tt)*) => {
-        compile_error!("checked_port! espera un único literal entero entre 0 y 65535")
+        compile_error!("checked_port! expects one integer literal in 0..=65535")
     };
 }
 

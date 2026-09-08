@@ -1,15 +1,20 @@
-//! Oráculos ejecutables para las ocho pruebas de maestría del capítulo 58.
+//! Executable oracles for the eight mastery assessments in chapter 58.
 //!
-//! El código comprueba criterios mínimos y contraejemplos. La explicación y la
-//! defensa de decisiones siguen perteneciendo a la persona evaluada.
+//! The code checks minimum criteria and counterexamples. Explanations and the
+//! defense of design decisions still belong to the person being assessed.
 
 pub mod m01_ownership {
     // SOLUTION: C58-M01
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum CalleeUse {
+        Observe,
+        TakeOwnership,
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct OwnershipFacts {
         pub source_used_after_call: bool,
-        pub callee_only_observes: bool,
-        pub callee_needs_independent_mutation: bool,
+        pub callee_use: CalleeUse,
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -19,13 +24,13 @@ pub mod m01_ownership {
         DeepClone,
     }
 
+    /// Compares a fixed consuming or observing API for an independent `String`.
+    /// Other types may share state when cloned, or return ownership to the caller.
     pub fn weakest_plan(facts: OwnershipFacts) -> OwnershipPlan {
-        if facts.callee_only_observes {
-            OwnershipPlan::Borrow
-        } else if facts.source_used_after_call || facts.callee_needs_independent_mutation {
-            OwnershipPlan::DeepClone
-        } else {
-            OwnershipPlan::Move
+        match (facts.callee_use, facts.source_used_after_call) {
+            (CalleeUse::Observe, _) => OwnershipPlan::Borrow,
+            (CalleeUse::TakeOwnership, false) => OwnershipPlan::Move,
+            (CalleeUse::TakeOwnership, true) => OwnershipPlan::DeepClone,
         }
     }
 
@@ -45,8 +50,7 @@ pub mod m01_ownership {
         fn move_replaces_clone_when_the_source_has_no_future_owner() {
             let facts = OwnershipFacts {
                 source_used_after_call: false,
-                callee_only_observes: false,
-                callee_needs_independent_mutation: false,
+                callee_use: CalleeUse::TakeOwnership,
             };
             assert_eq!(weakest_plan(facts), OwnershipPlan::Move);
             assert_eq!(consume_length(String::from("rust")), 4);
@@ -58,8 +62,7 @@ pub mod m01_ownership {
             assert_eq!(
                 weakest_plan(OwnershipFacts {
                     source_used_after_call: true,
-                    callee_only_observes: true,
-                    callee_needs_independent_mutation: false,
+                    callee_use: CalleeUse::Observe,
                 }),
                 OwnershipPlan::Borrow
             );
@@ -72,10 +75,26 @@ pub mod m01_ownership {
             assert_eq!(
                 weakest_plan(OwnershipFacts {
                     source_used_after_call: true,
-                    callee_only_observes: false,
-                    callee_needs_independent_mutation: true,
+                    callee_use: CalleeUse::TakeOwnership,
                 }),
                 OwnershipPlan::DeepClone
+            );
+
+            let source = String::from("draft");
+            let mut independent = source.clone();
+            independent.push_str("-published");
+            assert_eq!(source, "draft");
+            assert_eq!(independent, "draft-published");
+        }
+
+        #[test]
+        fn ownership_can_move_when_only_the_callee_needs_to_mutate() {
+            assert_eq!(
+                weakest_plan(OwnershipFacts {
+                    source_used_after_call: false,
+                    callee_use: CalleeUse::TakeOwnership,
+                }),
+                OwnershipPlan::Move
             );
         }
     }
@@ -110,8 +129,18 @@ pub mod m02_domain_types {
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct Command {
-        pub document_id: DocumentId,
-        pub action: Action,
+        document_id: DocumentId,
+        action: Action,
+    }
+
+    impl Command {
+        pub fn document_id(self) -> DocumentId {
+            self.document_id
+        }
+
+        pub fn action(self) -> Action {
+            self.action
+        }
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -161,15 +190,19 @@ pub mod m02_domain_types {
             assert_eq!(
                 Command::try_from(request("7", false, false))
                     .unwrap()
-                    .action,
+                    .action(),
                 Action::SaveDraft
             );
             assert_eq!(
-                Command::try_from(request("7", false, true)).unwrap().action,
+                Command::try_from(request("7", false, true))
+                    .unwrap()
+                    .action(),
                 Action::ValidateOnly
             );
             assert_eq!(
-                Command::try_from(request("7", true, false)).unwrap().action,
+                Command::try_from(request("7", true, false))
+                    .unwrap()
+                    .action(),
                 Action::Publish
             );
         }
@@ -195,7 +228,7 @@ pub mod m02_domain_types {
             assert_eq!(
                 Command::try_from(request("9", false, false))
                     .unwrap()
-                    .document_id
+                    .document_id()
                     .get(),
                 9
             );
@@ -298,10 +331,17 @@ pub mod m04_error_trace {
         }
     }
 
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum RetrySafety {
+        Unknown,
+        Idempotent,
+    }
+
     #[derive(Debug)]
     pub struct ApplicationError {
         source: StorageError,
         correlation_id: u64,
+        retry_safety: RetrySafety,
     }
 
     impl ApplicationError {
@@ -309,13 +349,20 @@ pub mod m04_error_trace {
             Self {
                 source,
                 correlation_id,
+                retry_safety: RetrySafety::Unknown,
             }
+        }
+
+        /// Declares a protocol property; it does not prove idempotency.
+        pub fn with_retry_safety(mut self, retry_safety: RetrySafety) -> Self {
+            self.retry_safety = retry_safety;
+            self
         }
     }
 
     impl fmt::Display for ApplicationError {
         fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("operation temporarily unavailable")
+            formatter.write_str("operation unavailable")
         }
     }
 
@@ -350,7 +397,13 @@ pub mod m04_error_trace {
             protocol_code,
             stable_code: "service.unavailable",
             correlation_id: error.correlation_id,
-            retryable: true,
+            retryable: error.retry_safety == RetrySafety::Idempotent
+                && matches!(
+                    error.source.source.kind(),
+                    io::ErrorKind::Interrupted
+                        | io::ErrorKind::WouldBlock
+                        | io::ErrorKind::TimedOut
+                ),
         }
     }
 
@@ -424,14 +477,23 @@ pub mod m05_lifecycle {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub enum LifecycleError {
         NotAdmittedFirst,
+        DuplicateAdmission,
         DuplicateSpawn,
-        MoreThanTwoChildren,
+        MissingChild,
+        SpawnAfterDeadline,
+        DuplicateDeadline,
         CancellationBeforeDeadline,
+        CancelBeforeSpawn,
+        CancelAfterJoin,
+        DuplicateCancel,
         JoinBeforeSpawn,
+        DuplicateJoin,
         OrphanedChild,
         ReportNotLast,
+        DuplicateReport,
     }
 
+    /// Checks this exercise's event protocol; it does not spawn or await tasks.
     pub fn audit(events: &[Event]) -> Result<(), LifecycleError> {
         if events.first() != Some(&Event::AdmitRequest) {
             return Err(LifecycleError::NotAdmittedFirst);
@@ -441,35 +503,65 @@ pub mod m05_lifecycle {
         }
 
         let mut spawned = HashSet::new();
+        let mut cancelled = HashSet::new();
         let mut joined = HashSet::new();
         let mut deadline_seen = false;
+        let mut report_seen = false;
+        let mut admission_seen = false;
         for event in events {
             match *event {
-                Event::AdmitRequest | Event::Report => {}
+                Event::AdmitRequest => {
+                    if admission_seen {
+                        return Err(LifecycleError::DuplicateAdmission);
+                    }
+                    admission_seen = true;
+                }
+                Event::Report => {
+                    if report_seen {
+                        return Err(LifecycleError::DuplicateReport);
+                    }
+                    report_seen = true;
+                }
                 Event::Spawn(child) => {
+                    if deadline_seen {
+                        return Err(LifecycleError::SpawnAfterDeadline);
+                    }
                     if !spawned.insert(child) {
                         return Err(LifecycleError::DuplicateSpawn);
                     }
-                    if spawned.len() > 2 {
-                        return Err(LifecycleError::MoreThanTwoChildren);
-                    }
                 }
-                Event::Deadline => deadline_seen = true,
+                Event::Deadline => {
+                    if deadline_seen {
+                        return Err(LifecycleError::DuplicateDeadline);
+                    }
+                    deadline_seen = true;
+                }
                 Event::Cancel(child) => {
                     if !deadline_seen {
                         return Err(LifecycleError::CancellationBeforeDeadline);
                     }
                     if !spawned.contains(&child) {
-                        return Err(LifecycleError::JoinBeforeSpawn);
+                        return Err(LifecycleError::CancelBeforeSpawn);
+                    }
+                    if joined.contains(&child) {
+                        return Err(LifecycleError::CancelAfterJoin);
+                    }
+                    if !cancelled.insert(child) {
+                        return Err(LifecycleError::DuplicateCancel);
                     }
                 }
                 Event::Join(child) => {
                     if !spawned.contains(&child) {
                         return Err(LifecycleError::JoinBeforeSpawn);
                     }
-                    joined.insert(child);
+                    if !joined.insert(child) {
+                        return Err(LifecycleError::DuplicateJoin);
+                    }
                 }
             }
+        }
+        if spawned.len() != 2 {
+            return Err(LifecycleError::MissingChild);
         }
         if joined != spawned {
             return Err(LifecycleError::OrphanedChild);
@@ -529,6 +621,68 @@ pub mod m05_lifecycle {
                 Err(LifecycleError::CancellationBeforeDeadline)
             );
         }
+
+        #[test]
+        fn duplicate_join_does_not_hide_a_broken_trace() {
+            assert_eq!(
+                audit(&[
+                    Event::AdmitRequest,
+                    Event::Spawn(Child::A),
+                    Event::Join(Child::A),
+                    Event::Join(Child::A),
+                    Event::Report,
+                ]),
+                Err(LifecycleError::DuplicateJoin)
+            );
+        }
+
+        #[test]
+        fn an_intermediate_report_is_not_accepted() {
+            assert_eq!(
+                audit(&[
+                    Event::AdmitRequest,
+                    Event::Spawn(Child::A),
+                    Event::Join(Child::A),
+                    Event::Report,
+                    Event::Report,
+                ]),
+                Err(LifecycleError::DuplicateReport)
+            );
+        }
+
+        #[test]
+        fn work_cannot_start_after_the_deadline() {
+            assert_eq!(
+                audit(&[
+                    Event::AdmitRequest,
+                    Event::Deadline,
+                    Event::Spawn(Child::A),
+                    Event::Report,
+                ]),
+                Err(LifecycleError::SpawnAfterDeadline)
+            );
+        }
+
+        #[test]
+        fn the_trace_requires_both_declared_children() {
+            assert_eq!(
+                audit(&[
+                    Event::AdmitRequest,
+                    Event::Spawn(Child::A),
+                    Event::Join(Child::A),
+                    Event::Report,
+                ]),
+                Err(LifecycleError::MissingChild)
+            );
+        }
+
+        #[test]
+        fn a_request_is_admitted_exactly_once() {
+            assert_eq!(
+                audit(&[Event::AdmitRequest, Event::AdmitRequest, Event::Report,]),
+                Err(LifecycleError::DuplicateAdmission)
+            );
+        }
     }
 }
 
@@ -536,11 +690,12 @@ pub mod m06_unsafe_audit {
     // SOLUTION: C58-M06
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct RawSlicePremises {
+        pub empty: bool,
         pub owner_alive: bool,
         pub non_null_and_aligned_even_if_empty: bool,
         pub initialized_for_len: bool,
         pub one_allocation: bool,
-        pub byte_size_fits_isize: bool,
+        pub byte_size_and_address_range_valid: bool,
         pub aliasing_allows_shared_access: bool,
         pub lifetime_tied_to_owner: bool,
     }
@@ -551,12 +706,22 @@ pub mod m06_unsafe_audit {
         Pointer,
         Initialization,
         Allocation,
-        Size,
+        SizeAndRange,
         Aliasing,
         Lifetime,
     }
 
     pub fn audit(premises: RawSlicePremises) -> Result<(), MissingPremise> {
+        // An empty slice needs no allocation or initialized elements, but its
+        // pointer must still be non-null and aligned. These are declarations,
+        // not measurements or proofs about a real pointer.
+        if premises.empty {
+            return if premises.non_null_and_aligned_even_if_empty {
+                Ok(())
+            } else {
+                Err(MissingPremise::Pointer)
+            };
+        }
         let checks = [
             (premises.owner_alive, MissingPremise::Owner),
             (
@@ -565,7 +730,10 @@ pub mod m06_unsafe_audit {
             ),
             (premises.initialized_for_len, MissingPremise::Initialization),
             (premises.one_allocation, MissingPremise::Allocation),
-            (premises.byte_size_fits_isize, MissingPremise::Size),
+            (
+                premises.byte_size_and_address_range_valid,
+                MissingPremise::SizeAndRange,
+            ),
             (
                 premises.aliasing_allows_shared_access,
                 MissingPremise::Aliasing,
@@ -580,11 +748,12 @@ pub mod m06_unsafe_audit {
 
     pub fn complete_contract() -> RawSlicePremises {
         RawSlicePremises {
+            empty: false,
             owner_alive: true,
             non_null_and_aligned_even_if_empty: true,
             initialized_for_len: true,
             one_allocation: true,
-            byte_size_fits_isize: true,
+            byte_size_and_address_range_valid: true,
             aliasing_allows_shared_access: true,
             lifetime_tied_to_owner: true,
         }
@@ -610,8 +779,47 @@ pub mod m06_unsafe_audit {
         #[test]
         fn zero_length_does_not_waive_non_null_alignment_contract() {
             let mut premises = complete_contract();
+            premises.empty = true;
             premises.non_null_and_aligned_even_if_empty = false;
             assert_eq!(audit(premises), Err(MissingPremise::Pointer));
+        }
+
+        #[test]
+        fn every_individual_missing_premise_is_reported() {
+            type BreakPremise = fn(&mut RawSlicePremises);
+            let cases: [(BreakPremise, MissingPremise); 7] = [
+                (|value| value.owner_alive = false, MissingPremise::Owner),
+                (
+                    |value| value.non_null_and_aligned_even_if_empty = false,
+                    MissingPremise::Pointer,
+                ),
+                (
+                    |value| value.initialized_for_len = false,
+                    MissingPremise::Initialization,
+                ),
+                (
+                    |value| value.one_allocation = false,
+                    MissingPremise::Allocation,
+                ),
+                (
+                    |value| value.byte_size_and_address_range_valid = false,
+                    MissingPremise::SizeAndRange,
+                ),
+                (
+                    |value| value.aliasing_allows_shared_access = false,
+                    MissingPremise::Aliasing,
+                ),
+                (
+                    |value| value.lifetime_tied_to_owner = false,
+                    MissingPremise::Lifetime,
+                ),
+            ];
+
+            for (break_premise, expected) in cases {
+                let mut premises = complete_contract();
+                break_premise(&mut premises);
+                assert_eq!(audit(premises), Err(expected));
+            }
         }
     }
 }
@@ -648,34 +856,49 @@ pub mod m07_api_review {
     ];
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum EvidenceDetail {
+        Claim(&'static str),
+        NotApplicable { reason: &'static str },
+    }
+
+    impl EvidenceDetail {
+        fn is_substantive(self) -> bool {
+            match self {
+                Self::Claim(detail) => !detail.trim().is_empty(),
+                Self::NotApplicable { reason } => !reason.trim().is_empty(),
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct Evidence {
         pub field: AuditField,
-        pub detail: &'static str,
+        pub detail: EvidenceDetail,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub struct ApiAudit {
         pub missing: Vec<AuditField>,
         pub duplicated: Vec<AuditField>,
-        pub empty: Vec<AuditField>,
+        pub unsubstantiated: Vec<AuditField>,
     }
 
     impl ApiAudit {
         pub fn passed(&self) -> bool {
-            self.missing.is_empty() && self.duplicated.is_empty() && self.empty.is_empty()
+            self.missing.is_empty() && self.duplicated.is_empty() && self.unsubstantiated.is_empty()
         }
     }
 
     pub fn review(evidence: &[Evidence]) -> ApiAudit {
         let mut seen = HashSet::new();
         let mut duplicated = Vec::new();
-        let mut empty = Vec::new();
+        let mut unsubstantiated = Vec::new();
         for item in evidence {
             if !seen.insert(item.field) {
                 duplicated.push(item.field);
             }
-            if item.detail.trim().is_empty() {
-                empty.push(item.field);
+            if !item.detail.is_substantive() {
+                unsubstantiated.push(item.field);
             }
         }
         let missing = ALL_FIELDS
@@ -685,7 +908,7 @@ pub mod m07_api_review {
         ApiAudit {
             missing,
             duplicated,
-            empty,
+            unsubstantiated,
         }
     }
 
@@ -698,7 +921,7 @@ pub mod m07_api_review {
                 .into_iter()
                 .map(|field| Evidence {
                     field,
-                    detail: "linked evidence",
+                    detail: EvidenceDetail::Claim("linked evidence"),
                 })
                 .collect()
         }
@@ -709,10 +932,29 @@ pub mod m07_api_review {
         }
 
         #[test]
-        fn no_aplica_without_a_justification_is_empty_evidence() {
+        fn not_applicable_without_a_justification_is_empty_evidence() {
             let mut evidence = complete_evidence();
-            evidence[7].detail = "  ";
-            assert_eq!(review(&evidence).empty, [AuditField::FeatureAndTarget]);
+            evidence[7].detail = EvidenceDetail::NotApplicable { reason: "" };
+            assert_eq!(
+                review(&evidence).unsubstantiated,
+                [AuditField::FeatureAndTarget]
+            );
+        }
+
+        #[test]
+        fn not_applicable_with_a_reason_is_substantive_evidence() {
+            let mut evidence = complete_evidence();
+            evidence[7].detail = EvidenceDetail::NotApplicable {
+                reason: "the crate has no optional features",
+            };
+            assert!(review(&evidence).passed());
+        }
+
+        #[test]
+        fn an_empty_claim_is_unsubstantiated() {
+            let mut evidence = complete_evidence();
+            evidence[9].detail = EvidenceDetail::Claim("   ");
+            assert_eq!(review(&evidence).unsubstantiated, [AuditField::Tests]);
         }
 
         #[test]
@@ -728,6 +970,8 @@ pub mod m07_api_review {
 }
 
 pub mod m08_consolidation {
+    use std::collections::HashSet;
+
     // SOLUTION: C58-M08
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct Architecture {
@@ -785,17 +1029,23 @@ pub mod m08_consolidation {
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct Decision {
+        pub context: &'static str,
         pub choice: &'static str,
         pub alternative: &'static str,
         pub consequence: &'static str,
         pub revisit_when: &'static str,
     }
 
-    pub fn defensible(decisions: &[Decision]) -> bool {
+    /// Checks record shape, not the validity of the decisions or alternatives.
+    pub fn decision_records_complete(decisions: &[Decision]) -> bool {
+        let mut contexts = HashSet::new();
         decisions.len() >= 5
             && decisions.iter().all(|decision| {
-                !decision.choice.trim().is_empty()
+                !decision.context.trim().is_empty()
+                    && contexts.insert(decision.context.trim())
+                    && !decision.choice.trim().is_empty()
                     && !decision.alternative.trim().is_empty()
+                    && decision.choice.trim() != decision.alternative.trim()
                     && !decision.consequence.trim().is_empty()
                     && !decision.revisit_when.trim().is_empty()
             })
@@ -834,21 +1084,59 @@ pub mod m08_consolidation {
         }
 
         #[test]
-        fn five_decisions_need_alternatives_consequences_and_revisit_conditions() {
-            let decision = Decision {
+        fn five_distinct_decisions_need_complete_reasoning() {
+            let admission = Decision {
+                context: "admission",
                 choice: "bounded channel",
                 alternative: "unbounded channel",
                 consequence: "admission can wait",
                 revisit_when: "measured burst changes",
             };
-            assert!(defensible(&[decision; 5]));
+            let decisions = [
+                admission,
+                Decision {
+                    context: "persistence",
+                    choice: "in-memory repository",
+                    alternative: "database adapter",
+                    consequence: "data does not survive process shutdown",
+                    revisit_when: "durability becomes a requirement",
+                },
+                Decision {
+                    context: "http boundary",
+                    choice: "typed public errors",
+                    alternative: "expose internal error text",
+                    consequence: "transport maintains an explicit error mapping",
+                    revisit_when: "the public error contract changes",
+                },
+                Decision {
+                    context: "task ownership",
+                    choice: "supervised task set",
+                    alternative: "detached tasks",
+                    consequence: "the supervisor must collect every result",
+                    revisit_when: "work moves into another process",
+                },
+                Decision {
+                    context: "shutdown",
+                    choice: "drain accepted work",
+                    alternative: "cancel all accepted work immediately",
+                    consequence: "shutdown waits for accepted operations",
+                    revisit_when: "a hard shutdown deadline is required",
+                },
+            ];
+            assert!(decision_records_complete(&decisions));
+
+            assert!(!decision_records_complete(&[admission; 5]));
             let incomplete = Decision {
                 alternative: "",
-                ..decision
+                ..decisions[4]
             };
-            assert!(!defensible(&[
-                decision, decision, decision, decision, incomplete
-            ]));
+            let mut incomplete_decisions = decisions;
+            incomplete_decisions[4] = incomplete;
+            assert!(!decision_records_complete(&incomplete_decisions));
+
+            let mut identical_alternative = decisions;
+            identical_alternative[0].alternative = " bounded channel ";
+            assert!(!decision_records_complete(&identical_alternative));
         }
     }
 }

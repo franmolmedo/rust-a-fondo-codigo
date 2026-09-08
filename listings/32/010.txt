@@ -1,5 +1,5 @@
-thread A: lee top = nodo X, se prepara para CAS(X -> X.next)
-thread B: pop X, pop Y, push X          (top vuelve a ser X...
-                                         ...pero X.next ya no es Y)
-thread A: CAS(top, X -> X.next)          éxito aparente;
-                                         top apunta ahora a un nodo liberado
+hilo A: lee top = X y guarda next = Y; prepara CAS(X -> Y)
+hilo B: extrae X, extrae Y y vuelve a insertar X
+        (top vuelve a ser X, pero X.next ya no es Y)
+hilo A: CAS(top, X -> Y) tiene éxito porque top vuelve a ser X;
+        top queda apuntando al antiguo Y, que ya pudo ser retirado

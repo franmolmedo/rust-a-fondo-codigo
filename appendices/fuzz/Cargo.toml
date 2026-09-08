@@ -1,0 +1,25 @@
+[package]
+name = "appendix-fuzz"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+publish = false
+license = "MIT"
+authors = ["Francisco M. Olmedo Bueno"]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rust-appendix-lab = { path = "../lab" }
+
+[[bin]]
+name = "parse_record"
+path = "fuzz_targets/parse_record.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+members = ["."]

@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 struct CachedReport {
     title: String,
-    render_cache: Rc<String>, // este campo elimina Send y Sync
+    render_cache: Rc<String>, // This field prevents automatic Send and Sync.
 }
 
 fn assert_send<T: Send>() {}

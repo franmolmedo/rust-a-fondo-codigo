@@ -1,11 +1,11 @@
 fn examples() {
     let client = String::from("client");
     let reusable = async move || client.len();
-    // `client` pertenece a la closure, pero cada llamada solo lo presta.
+    // `client` belongs to the closure, but each call only borrows it.
 
     let token = String::from("single-use");
     let consume_once = async move || token;
-    // El output mueve `token` fuera: solo `AsyncFnOnce`.
+    // The output moves `token` out: only `AsyncFnOnce` is implemented.
 
     let _ = (reusable, consume_once);
 }

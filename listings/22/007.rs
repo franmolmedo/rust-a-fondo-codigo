@@ -6,7 +6,7 @@ let cache = RefCell::new(HashMap::<String, u64>::new());
 let value = if let Some(value) = cache.borrow().get("clave") {
     *value
 } else {
-    // Edición 2024: el guard ya se liberó al entrar aquí.
+    // Edición 2024: la guarda ya se ha destruido al entrar aquí.
     cache.borrow_mut().insert(String::from("clave"), 42);
     42
 };

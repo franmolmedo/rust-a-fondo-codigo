@@ -2,7 +2,7 @@
 name = "rust-a-fondo-code"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.86"
 description = "Código, ejercicios y corpus verificable del libro Rust a fondo"
 authors = ["Francisco M. Olmedo Bueno"]
 license = "MIT"

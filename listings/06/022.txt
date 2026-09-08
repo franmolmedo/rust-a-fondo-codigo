@@ -1,2 +1,2 @@
-'long: 'short → 'long es válido al menos durante 'short
-T: 'a         → los préstamos contenidos en T permiten usar T durante 'a
+'long: 'short → 'long dura al menos tanto como 'short
+T: 'a         → las referencias contenidas en T son válidas durante 'a

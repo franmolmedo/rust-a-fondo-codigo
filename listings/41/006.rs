@@ -1,7 +1,7 @@
 fn spawn_find<R>(
     repository: std::sync::Arc<R>,
-    id: u64,
-) -> tokio::task::JoinHandle<Option<User>>
+    id: UserId,
+) -> tokio::task::JoinHandle<Result<Option<User>, RepoError>>
 where
     R: SendUserRepository + 'static,
 {

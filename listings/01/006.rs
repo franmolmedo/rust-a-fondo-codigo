@@ -5,5 +5,5 @@ fn greet(name: &str) {
 fn main() {
     let name = String::from("Ada");
     greet(&name);
-    println!("{name}"); // sigue disponible: nadie lo consumió
+    println!("{name}"); // `main` conserva el nombre después del préstamo
 }

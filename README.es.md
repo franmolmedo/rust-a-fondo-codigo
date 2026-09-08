@@ -15,9 +15,9 @@ este repositorio.
 
 ## Qué incluye
 
-- **891 bloques de código** conservados en `listings/`, identificados por capítulo.
+- **892 bloques de código** conservados en `listings/`, identificados por capítulo.
 - **403 soluciones ejecutables** de referencia en `solutions/`.
-- **447 tests** asociados a las soluciones.
+- **604 tests** asociados a las soluciones.
 - Doctests, ejemplos `compile_fail` y casos `should_panic`.
 - Laboratorios reales de macros procedurales, MIR, LLVM IR y assembly.
 - Un manifiesto con trazabilidad y hashes SHA-256 de cada listado.
@@ -32,7 +32,8 @@ Los identificadores del libro son estables. Por ejemplo, `C24-E06` significa
 - PowerShell 5.1 o posterior para `verify.ps1` en Windows.
 
 El archivo `rust-toolchain.toml` instala automáticamente Rust 1.95.0 con
-Clippy y rustfmt. Las crates declaran Rust 1.85 como versión mínima.
+Clippy y rustfmt. El corpus principal requiere como mínimo Rust 1.86;
+el workspace independiente de los apéndices requiere Rust 1.95.
 
 ## Empezar
 
@@ -56,6 +57,22 @@ Para ejecutar la misma auditoría que utiliza la integración continua:
 
 La auditoría comprueba hashes, TOML, configuraciones de features, tests,
 doctests, formato, Clippy y la emisión real de MIR, LLVM IR y assembly.
+Los dos scripts ejecutan también la verificación nativa de los apéndices.
+
+## Segunda edición (v2)
+
+Esta rama incluye los ejemplos corregidos y las pruebas de regresión de la
+segunda edición, los [laboratorios de los apéndices A–G](appendices/README.md)
+y el [workspace del capítulo 26](fixtures/chapter26-workspace/README.md).
+Se mantienen los identificadores de capítulos y soluciones. Los apéndices
+tienen su propio workspace de Cargo, archivo de dependencias fijadas,
+doctests y script de verificación.
+
+El [flujo de los apéndices](.github/workflows/appendices.yml) comprueba
+Windows y Linux, compilación cruzada, empaquetado, Miri y una campaña breve
+de fuzzing. Estas comprobaciones avanzadas son independientes de los scripts
+de verificación nativa. Para comprobar la versión mínima del corpus principal,
+instala Rust 1.86.0 y ejecuta `python tools/verify.py --msrv`.
 
 ## Declaración sobre el uso de inteligencia artificial
 
@@ -99,6 +116,8 @@ literalmente los bloques publicados.
 ```text
 .
 ├── solutions/         soluciones, katas y proyectos con tests
+├── appendices/        laboratorios y aplicaciones independientes de A–G
+├── fixtures/          workspace completo del capítulo 26
 ├── listings/          un archivo por bloque publicado en el libro
 ├── doctests/          harness de documentación y compile_fail
 ├── macro_lab/         macro procedural

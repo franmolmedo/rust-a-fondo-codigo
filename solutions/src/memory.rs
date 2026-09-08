@@ -20,10 +20,13 @@ pub mod c21 {
         }
 
         pub fn len(&self) -> usize {
-            match self {
-                Self::Nil => 0,
-                Self::Cons(_, tail) => 1 + tail.len(),
+            let mut count = 0;
+            let mut current = self;
+            while let Self::Cons(_, tail) = current {
+                count += 1;
+                current = tail;
             }
+            count
         }
 
         pub fn is_empty(&self) -> bool {
@@ -47,9 +50,20 @@ pub mod c21 {
             })
         }
 
-        pub fn add_child(parent: &Rc<Self>, child: Rc<Self>) {
+        pub fn add_child(parent: &Rc<Self>, child: Rc<Self>) -> Result<(), &'static str> {
+            if child.parent().is_some() {
+                return Err("child already has a parent");
+            }
+            let mut ancestor = Some(Rc::clone(parent));
+            while let Some(node) = ancestor {
+                if Rc::ptr_eq(&node, &child) {
+                    return Err("link would create a cycle");
+                }
+                ancestor = node.parent();
+            }
             *child.parent.borrow_mut() = Rc::downgrade(parent);
             parent.children.borrow_mut().push(child);
+            Ok(())
         }
 
         pub fn parent(&self) -> Option<Rc<Self>> {
@@ -199,7 +213,7 @@ pub mod c21 {
         fn weak_parent_does_not_create_an_ownership_cycle() {
             let root = Node::new("root");
             let child = Node::new("child");
-            Node::add_child(&root, Rc::clone(&child));
+            Node::add_child(&root, Rc::clone(&child)).unwrap();
             assert_eq!(root.child_count(), 1);
             assert_eq!(child.parent().unwrap().name, "root");
             assert_eq!(Rc::strong_count(&root), 1);
@@ -252,8 +266,14 @@ pub mod c22 {
 
     // SOLUTION: C22-E01
     impl Counter {
+        pub fn new(value: u64) -> Self {
+            Self {
+                value: Cell::new(value),
+            }
+        }
+
         pub fn increment(&self) {
-            self.value.set(self.value.get() + 1);
+            self.value.set(self.value.get().saturating_add(1));
         }
 
         pub fn value(&self) -> u64 {
@@ -425,7 +445,7 @@ pub mod c23 {
     use std::collections::{HashMap, VecDeque};
     use std::panic::{AssertUnwindSafe, catch_unwind};
     use std::sync::mpsc::{self, SyncSender};
-    use std::sync::{Arc, Condvar, Mutex, RwLock};
+    use std::sync::{Arc, Barrier, Condvar, Mutex, RwLock};
     use std::thread::{self, JoinHandle};
     use std::time::{Duration, Instant};
 
@@ -453,6 +473,7 @@ pub mod c23 {
         MissingAccount(u64),
         InsufficientFunds,
         SameAccount,
+        BalanceOverflow,
     }
 
     #[derive(Default)]
@@ -483,7 +504,7 @@ pub mod c23 {
                 .ok_or(TransferError::InsufficientFunds)?;
             let destination_after = destination
                 .checked_add(amount)
-                .expect("balance overflow in exercise");
+                .ok_or(TransferError::BalanceOverflow)?;
             balances.insert(from, source_after);
             balances.insert(to, destination_after);
             Ok(())
@@ -534,12 +555,14 @@ pub mod c23 {
 
     fn run_mutex_workload(workload: LockWorkload) -> (Duration, usize) {
         let value = Arc::new(Mutex::new(0_usize));
-        let started = Instant::now();
+        let ready = Arc::new(Barrier::new(workload.readers + workload.writers + 1));
         let mut handles = Vec::new();
 
         for _ in 0..workload.writers {
             let value = Arc::clone(&value);
+            let ready = Arc::clone(&ready);
             handles.push(thread::spawn(move || {
+                ready.wait();
                 for _ in 0..workload.iterations {
                     *value.lock().expect("benchmark mutex poisoned") += 1;
                 }
@@ -547,12 +570,16 @@ pub mod c23 {
         }
         for _ in 0..workload.readers {
             let value = Arc::clone(&value);
+            let ready = Arc::clone(&ready);
             handles.push(thread::spawn(move || {
+                ready.wait();
                 for _ in 0..workload.iterations {
                     std::hint::black_box(*value.lock().expect("benchmark mutex poisoned"));
                 }
             }));
         }
+        let started = Instant::now();
+        ready.wait();
         for handle in handles {
             handle.join().expect("benchmark participant panicked");
         }
@@ -563,12 +590,14 @@ pub mod c23 {
 
     fn run_rwlock_workload(workload: LockWorkload) -> (Duration, usize) {
         let value = Arc::new(RwLock::new(0_usize));
-        let started = Instant::now();
+        let ready = Arc::new(Barrier::new(workload.readers + workload.writers + 1));
         let mut handles = Vec::new();
 
         for _ in 0..workload.writers {
             let value = Arc::clone(&value);
+            let ready = Arc::clone(&ready);
             handles.push(thread::spawn(move || {
+                ready.wait();
                 for _ in 0..workload.iterations {
                     *value.write().expect("benchmark rwlock poisoned") += 1;
                 }
@@ -576,12 +605,16 @@ pub mod c23 {
         }
         for _ in 0..workload.readers {
             let value = Arc::clone(&value);
+            let ready = Arc::clone(&ready);
             handles.push(thread::spawn(move || {
+                ready.wait();
                 for _ in 0..workload.iterations {
                     std::hint::black_box(*value.read().expect("benchmark rwlock poisoned"));
                 }
             }));
         }
+        let started = Instant::now();
+        ready.wait();
         for handle in handles {
             handle.join().expect("benchmark participant panicked");
         }
@@ -648,10 +681,33 @@ pub mod c23 {
             .ok_or(TransferError::InsufficientFunds)?;
         let destination_after = destination
             .checked_add(amount)
-            .expect("balance overflow in exercise");
+            .ok_or(TransferError::BalanceOverflow)?;
         *source = source_after;
         *destination = destination_after;
         Ok(())
+    }
+
+    pub fn detects_opposite_lock_order() -> bool {
+        use std::sync::TryLockError;
+
+        let first = Mutex::new(());
+        let second = Mutex::new(());
+        let acquired = Barrier::new(2);
+        let attempted = Barrier::new(2);
+        thread::scope(|scope| {
+            let handles = [(&first, &second), (&second, &first)].map(|(held, wanted)| {
+                scope.spawn(|| {
+                    let guard = held.lock().expect("probe mutex poisoned");
+                    acquired.wait();
+                    let blocked = matches!(wanted.try_lock(), Err(TryLockError::WouldBlock));
+                    attempted.wait();
+                    drop(guard);
+                    blocked
+                })
+            });
+            let outcomes = handles.map(|handle| handle.join().expect("probe thread panicked"));
+            outcomes == [true, true]
+        })
     }
 
     enum CounterCommand {
@@ -670,10 +726,10 @@ pub mod c23 {
         pub fn start(capacity: usize) -> Self {
             let (sender, receiver) = mpsc::sync_channel(capacity);
             let handle = thread::spawn(move || {
-                let mut value = 0;
+                let mut value = 0_u64;
                 while let Ok(command) = receiver.recv() {
                     match command {
-                        CounterCommand::Add(amount) => value += amount,
+                        CounterCommand::Add(amount) => value = value.saturating_add(amount),
                         CounterCommand::Snapshot(reply) => {
                             let _ = reply.send(value);
                         }
@@ -690,15 +746,15 @@ pub mod c23 {
         pub fn add(&self, amount: u64) -> Result<(), &'static str> {
             self.sender
                 .send(CounterCommand::Add(amount))
-                .map_err(|_| "worker detenido")
+                .map_err(|_| "worker stopped")
         }
 
         pub fn snapshot(&self) -> Result<u64, &'static str> {
             let (reply, answer) = mpsc::channel();
             self.sender
                 .send(CounterCommand::Snapshot(reply))
-                .map_err(|_| "worker detenido")?;
-            answer.recv().map_err(|_| "worker sin respuesta")
+                .map_err(|_| "worker stopped")?;
+            answer.recv().map_err(|_| "worker did not respond")
         }
 
         pub fn shutdown(mut self) -> thread::Result<()> {
@@ -885,24 +941,25 @@ pub mod c24 {
 
         // SOLUTION: C24-E04
         pub fn project(self: Pin<&mut Self>) -> (Pin<&mut F>, &mut u32) {
-            // SAFETY: `future` se clasifica como campo estructuralmente
-            // pinneado y `polls` como campo movible independiente.
+            // SAFETY: `future` is structurally pinned. Counted has no custom
+            // Drop or unconditional Unpin implementation, and exposes no safe
+            // operation that moves a pinned future. `polls` is independent.
             unsafe { Self::project_unchecked(self) }
         }
 
         // SOLUTION: C24-E05
-        /// Proyecta los dos campos sin moverlos fuera de `self`.
+        /// Projects both fields without moving them out of `self`.
         ///
         /// # Safety
         ///
-        /// El caller debe mantener `future` estructuralmente pinneado durante
-        /// toda la vida de la proyección: no puede reemplazarlo, extraerlo ni
-        /// implementar un `Drop` que lo mueva. `polls` no participa en ninguna
-        /// invariante de dirección y puede exponerse como `&mut u32`.
+        /// The caller must preserve structural pinning of `future` until it is
+        /// dropped, not just while the projection is borrowed. No operation,
+        /// including Drop, may move it out. Unpin must remain conditional on F:
+        /// Unpin. The independently movable `polls` field cannot move `future`.
         unsafe fn project_unchecked(self: Pin<&mut Self>) -> (Pin<&mut F>, &mut u32) {
-            // SAFETY: la precondición prohíbe mover `future` mediante este &mut.
+            // SAFETY: the contract forbids moving `future` through this &mut.
             let this = unsafe { self.get_unchecked_mut() };
-            // SAFETY: `future` hereda el pinning estructural de `self`.
+            // SAFETY: `future` inherits structural pinning from `self`.
             let future = unsafe { Pin::new_unchecked(&mut this.future) };
             (future, &mut this.polls)
         }
@@ -917,13 +974,13 @@ pub mod c24 {
 
         fn poll(self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<Self::Output> {
             let (future, polls) = self.project();
-            *polls += 1;
+            *polls = polls.saturating_add(1);
             future.poll(context)
         }
     }
 
     // SOLUTION: C24-E07
-    /// Intercambia valores pinneados únicamente cuando mover `T` es seguro.
+    /// Swaps pinned values only when T permits moving the pointee.
     ///
     /// ```compile_fail
     /// use course_solutions::memory::c24::{AddressSensitive, swap_unpin};

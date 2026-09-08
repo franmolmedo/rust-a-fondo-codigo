@@ -1,4 +1,5 @@
 cargo metadata --format-version 1
-cargo tree --edges all --duplicates
+cargo tree --duplicates
+cargo tree --edges features
 cargo build -vv
 cargo rustc --lib -- --emit=mir

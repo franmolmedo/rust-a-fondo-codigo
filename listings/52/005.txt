@@ -1,3 +1,3 @@
-cargo clean
-cargo build --workspace --timings
-cargo build --workspace --timings
+cargo clean --target-dir target/c52-timings
+cargo build --workspace --timings --target-dir target/c52-timings --locked
+cargo build --workspace --timings --target-dir target/c52-timings --locked

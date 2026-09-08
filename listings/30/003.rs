@@ -1,3 +1,5 @@
+use std::thread;
+
 let names = vec![String::from("Ada"), String::from("Grace")];
 
 let handle = thread::spawn(move || names.len());

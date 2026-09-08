@@ -7,11 +7,10 @@ impl<'a> UserView<'a> {
         self.name
     }
 
-    fn choose_label<'b>(&self, fallback: &'b str) -> &'a str {
+    fn choose_label<'b>(&'b self, fallback: &'b str) -> &'b str {
         if self.name.is_empty() {
-            "anonymous"
+            fallback
         } else {
-            let _ = fallback;
             self.name
         }
     }
@@ -23,4 +22,8 @@ fn main() {
 
     assert_eq!(view.name(), "Ada");
     assert_eq!(view.choose_label("fallback"), "Ada");
+
+    let empty = UserView { name: "" };
+    let fallback = String::from("Guest");
+    assert_eq!(empty.choose_label(&fallback), "Guest");
 }

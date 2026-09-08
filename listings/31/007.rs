@@ -1,8 +1,12 @@
+use std::rc::Rc;
+
+fn require_send<T: Send>(_: T) {}
+
 let shared = Rc::new(5);
-let value = *shared; // se extrae aquí: el future captura un i32
+let value = *shared; // The future will capture only an i32.
 
 let future = async move {
-    pause().await;
+    std::future::ready(()).await;
     value
 };
 require_send(future);

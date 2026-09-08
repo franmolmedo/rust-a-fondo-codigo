@@ -1,10 +1,10 @@
-mod auth {
-    fn hash_password(input: &str) -> String {
-        format!("hash:{input}")
+mod formatting {
+    fn normalize_label(input: &str) -> String {
+        input.trim().to_lowercase()
     }
 }
 
 fn main() {
-    auth::hash_password("secreto");
-    // error[E0603]: function `hash_password` is private
+    formatting::normalize_label("  Rust  ");
+    // error[E0603]: function `normalize_label` is private
 }

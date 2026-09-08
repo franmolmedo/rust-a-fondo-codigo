@@ -1,10 +1,10 @@
 fn main() {
     let future = async {
-        println!("cuerpo ejecutado");
+        println!("body executed");
         42
     };
 
-    // Sin executor que lo sondee, el cuerpo nunca corre:
+    // No one polls this future, so its body never runs.
     drop(future);
-    println!("fin del programa");
+    println!("program finished");
 }

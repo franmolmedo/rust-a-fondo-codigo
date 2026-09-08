@@ -1,2 +1,2 @@
-thread A: lock users -> lock orders
-thread B: lock orders -> lock users
+hilo A: bloquea users -> bloquea orders
+hilo B: bloquea orders -> bloquea users

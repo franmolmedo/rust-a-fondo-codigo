@@ -4,5 +4,5 @@ macro_rules! choose {
 }
 
 fn main() {
-    let _ = choose!(1); // coincide con el primer brazo; el segundo no rescata el error
+    let _ = choose!(1); // The first arm matches; the second cannot rescue the error.
 }

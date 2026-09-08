@@ -1,5 +1,5 @@
-//! Soluciones ejecutables sobre el pipeline de compilación, sus observaciones
-//! y las decisiones de build. Los modelos no convierten IRs internas en API.
+//! Executable solutions about the compilation pipeline, its observations, and
+//! build decisions. These models do not turn internal IRs into stable APIs.
 
 pub mod c52 {
     use std::collections::BTreeSet;
@@ -12,6 +12,8 @@ pub mod c52 {
         pub unwind_edges: usize,
     }
 
+    /// Counts textual markers for a small educational MIR sample. This is not
+    /// a MIR parser: marker-like text in comments or literals can be counted.
     // SOLUTION: C52-E01
     pub fn summarize_pretty_mir(mir: &str) -> MirSummary {
         MirSummary {
@@ -98,16 +100,20 @@ pub mod c52 {
     pub struct Bottleneck {
         pub crate_name: String,
         pub dominant_phase: BuildPhase,
-        pub total_ms: u64,
+        pub total_ms: u128,
     }
 
+    /// Selects the largest sum of supplied, non-overlapping phase durations.
+    /// This model does not compute the build graph's critical path.
     // SOLUTION: C52-E03
     pub fn dominant_clean_timing(samples: &[TimingSample]) -> Option<Bottleneck> {
         let sample = samples
             .iter()
             .filter(|sample| !sample.fresh)
             .max_by_key(|sample| {
-                sample.front_end_ms + sample.codegen_ms + sample.build_script_ms
+                u128::from(sample.front_end_ms)
+                    + u128::from(sample.codegen_ms)
+                    + u128::from(sample.build_script_ms)
             })?;
         let dominant_phase = if sample.build_script_ms >= sample.front_end_ms
             && sample.build_script_ms >= sample.codegen_ms
@@ -122,7 +128,9 @@ pub mod c52 {
         Some(Bottleneck {
             crate_name: sample.crate_name.clone(),
             dominant_phase,
-            total_ms: sample.front_end_ms + sample.codegen_ms + sample.build_script_ms,
+            total_ms: u128::from(sample.front_end_ms)
+                + u128::from(sample.codegen_ms)
+                + u128::from(sample.build_script_ms),
         })
     }
 
@@ -255,6 +263,8 @@ pub mod c52 {
         pub depends_on: &'a str,
     }
 
+    /// Returns a conservative transitive dependency set. Unlike rustc, it does
+    /// not reevaluate queries to determine whether their results really changed.
     // SOLUTION: C52-E06
     pub fn affected_queries(edges: &[QueryEdge<'_>], changed: &[&str]) -> BTreeSet<String> {
         let mut affected = changed
@@ -370,10 +380,19 @@ pub mod c52 {
                     unwind_edges: 1,
                 },
             );
+            assert_eq!(
+                summarize_pretty_mir("// no MIR markers in this input"),
+                MirSummary {
+                    basic_blocks: 0,
+                    moves: 0,
+                    drops: 0,
+                    unwind_edges: 0,
+                },
+            );
         }
 
         #[test]
-        fn assembly_comparison_rejects_cross_target_conclusions() {
+        fn assembly_comparison_requires_matching_context_and_build_modes() {
             let debug = AssemblySample {
                 function: "twice_u64",
                 target: "x86_64-pc-windows-msvc",
@@ -406,6 +425,26 @@ pub mod c52 {
                 ),
                 Err(ComparisonError::DifferentTarget),
             );
+            assert_eq!(
+                compare_assembly(
+                    debug,
+                    AssemblySample {
+                        function: "another_function",
+                        ..optimized
+                    },
+                ),
+                Err(ComparisonError::DifferentFunction),
+            );
+            assert_eq!(
+                compare_assembly(
+                    debug,
+                    AssemblySample {
+                        mode: BuildMode::Debug,
+                        ..optimized
+                    },
+                ),
+                Err(ComparisonError::UnexpectedBuildModes),
+            );
         }
 
         #[test]
@@ -433,6 +472,41 @@ pub mod c52 {
                     dominant_phase: BuildPhase::Codegen,
                     total_ms: 3_300,
                 }),
+            );
+
+            let front_end = dominant_clean_timing(&[TimingSample {
+                crate_name: String::from("types"),
+                fresh: false,
+                front_end_ms: 500,
+                codegen_ms: 100,
+                build_script_ms: 0,
+            }]);
+            assert_eq!(
+                front_end.map(|sample| sample.dominant_phase),
+                Some(BuildPhase::FrontEnd),
+            );
+
+            let build_script = dominant_clean_timing(&[TimingSample {
+                crate_name: String::from("native-wrapper"),
+                fresh: false,
+                front_end_ms: 100,
+                codegen_ms: 200,
+                build_script_ms: 700,
+            }]);
+            assert_eq!(
+                build_script.map(|sample| sample.dominant_phase),
+                Some(BuildPhase::BuildScript),
+            );
+            assert_eq!(dominant_clean_timing(&[]), None);
+            assert_eq!(
+                dominant_clean_timing(&[TimingSample {
+                    crate_name: String::from("cached"),
+                    fresh: true,
+                    front_end_ms: 1,
+                    codegen_ms: 1,
+                    build_script_ms: 1,
+                }]),
+                None,
             );
         }
 
@@ -503,6 +577,68 @@ pub mod c52 {
         }
 
         #[test]
+        fn cross_target_audit_reports_every_build_requirement() {
+            let audit = audit_cross_target(CrossTargetPlan {
+                target_spec_available: false,
+                std_provision: None,
+                linker_available: true,
+                linker_selected: false,
+                requires_platform_sdk: true,
+                platform_sdk_available: false,
+                native_dependencies_resolved: false,
+                execution: ExecutionStrategy::CompileOnly,
+            });
+            assert!(!audit.build_ready);
+            assert!(!audit.test_ready);
+            assert_eq!(
+                audit.missing,
+                [
+                    MissingCrossComponent::TargetSpecification,
+                    MissingCrossComponent::RustStandardLibrary,
+                    MissingCrossComponent::LinkerSelection,
+                    MissingCrossComponent::PlatformSdkOrSysroot,
+                    MissingCrossComponent::NativeDependency,
+                ],
+            );
+        }
+
+        #[test]
+        fn cross_target_audit_distinguishes_building_from_running_tests() {
+            let compile_only = CrossTargetPlan {
+                target_spec_available: true,
+                std_provision: Some(StdProvision::NoStd),
+                linker_available: true,
+                linker_selected: true,
+                requires_platform_sdk: false,
+                platform_sdk_available: false,
+                native_dependencies_resolved: true,
+                execution: ExecutionStrategy::CompileOnly,
+            };
+            assert_eq!(
+                audit_cross_target(compile_only),
+                CrossTargetAudit {
+                    build_ready: true,
+                    test_ready: false,
+                    missing: vec![MissingCrossComponent::TestRunner],
+                },
+            );
+
+            for execution in [
+                ExecutionStrategy::LocalRunner,
+                ExecutionStrategy::RemoteDevice,
+                ExecutionStrategy::Emulator,
+            ] {
+                let audit = audit_cross_target(CrossTargetPlan {
+                    execution,
+                    ..compile_only
+                });
+                assert!(audit.build_ready);
+                assert!(audit.test_ready);
+                assert!(audit.missing.is_empty());
+            }
+        }
+
+        #[test]
         fn query_invalidation_propagates_only_through_declared_dependencies() {
             let affected = affected_queries(
                 &[
@@ -531,7 +667,39 @@ pub mod c52 {
         }
 
         #[test]
-        fn profile_advice_keeps_feedback_and_runtime_goals_distinct() {
+        fn query_invalidation_terminates_on_cycles_and_keeps_unrelated_nodes() {
+            let affected = affected_queries(
+                &[
+                    QueryEdge {
+                        query: "query-a",
+                        depends_on: "query-b",
+                    },
+                    QueryEdge {
+                        query: "query-b",
+                        depends_on: "query-a",
+                    },
+                    QueryEdge {
+                        query: "dependent",
+                        depends_on: "query-b",
+                    },
+                    QueryEdge {
+                        query: "unrelated",
+                        depends_on: "other-input",
+                    },
+                ],
+                &["query-a"],
+            );
+            assert_eq!(
+                affected,
+                ["dependent", "query-a", "query-b"]
+                    .into_iter()
+                    .map(String::from)
+                    .collect(),
+            );
+        }
+
+        #[test]
+        fn profile_advice_covers_every_build_goal() {
             assert_eq!(
                 profile_for(BuildGoal::FastFeedback),
                 ProfileAdvice {
@@ -543,6 +711,16 @@ pub mod c52 {
                 },
             );
             assert_eq!(
+                profile_for(BuildGoal::BalancedRelease),
+                ProfileAdvice {
+                    optimization: OptimizationLevel::Full,
+                    incremental: false,
+                    codegen_units: 16,
+                    lto: LtoMode::Off,
+                    debug_info: DebugInfo::LineTables,
+                },
+            );
+            assert_eq!(
                 profile_for(BuildGoal::RuntimeThroughput),
                 ProfileAdvice {
                     optimization: OptimizationLevel::Full,
@@ -550,6 +728,16 @@ pub mod c52 {
                     codegen_units: 1,
                     lto: LtoMode::Fat,
                     debug_info: DebugInfo::LineTables,
+                },
+            );
+            assert_eq!(
+                profile_for(BuildGoal::SmallBinary),
+                ProfileAdvice {
+                    optimization: OptimizationLevel::SizeAggressive,
+                    incremental: false,
+                    codegen_units: 1,
+                    lto: LtoMode::Fat,
+                    debug_info: DebugInfo::None,
                 },
             );
         }

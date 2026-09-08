@@ -1,4 +1,4 @@
-fn largest<T: PartialOrd>(values: &[T]) -> Option<&T> {
+fn largest<T: Ord>(values: &[T]) -> Option<&T> {
     let mut largest = values.first()?;
     for value in &values[1..] {
         if value > largest {

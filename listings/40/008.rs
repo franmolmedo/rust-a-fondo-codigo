@@ -10,5 +10,5 @@ where
             Err(error) => last_error = Some(error),
         }
     }
-    Err(last_error.expect("hubo al menos un intento"))
+    Err(last_error.expect("at least one attempt was made"))
 }

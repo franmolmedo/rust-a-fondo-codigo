@@ -2,17 +2,17 @@ use std::iter::FusedIterator;
 
 #[derive(Debug)]
 struct Countdown {
-    next: u32,
+    next: usize,
 }
 
 impl Countdown {
-    fn new(start: u32) -> Self {
+    fn new(start: usize) -> Self {
         Self { next: start }
     }
 }
 
 impl Iterator for Countdown {
-    type Item = u32;
+    type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.next == 0 {
@@ -24,7 +24,7 @@ impl Iterator for Countdown {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = self.next as usize;
+        let remaining = self.next;
         (remaining, Some(remaining))
     }
 }

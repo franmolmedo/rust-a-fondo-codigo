@@ -18,8 +18,8 @@ fn copy_within_raw<T: Copy>(
     }
 
     let base = values.as_mut_ptr();
-    // SAFETY: ambos rangos están dentro de la slice; `copy` admite overlap y
-    // `T: Copy` permite usar tanto las copias de origen como las de destino.
+    // SAFETY: both ranges are inside the slice; `copy` permits overlap, and
+    // `T: Copy` allows both source and destination copies to remain usable.
     unsafe { ptr::copy(base.add(source.start), base.add(destination), count) };
     true
 }

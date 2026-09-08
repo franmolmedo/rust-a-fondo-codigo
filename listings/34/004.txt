@@ -1,4 +1,4 @@
 Map<F, Closure>
-├── future F pinneado
+├── Future F fijado mediante Pin
 ├── closure todavía disponible
 └── estado: esperando | completado

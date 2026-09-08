@@ -1,1 +1,1 @@
-fuente → selección/validación → transformación → agregación/frontera
+datos de entrada → seleccionar o validar → transformar → obtener el resultado

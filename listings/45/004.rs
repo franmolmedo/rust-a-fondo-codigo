@@ -1,8 +1,8 @@
 fn second<T>(owner: &[T]) -> Option<&T> {
     let pointer = owner.as_ptr();
     (owner.len() > 1).then(|| {
-        // SAFETY: el índice está dentro de `owner` y la referencia devuelta
-        // hereda exactamente su lifetime compartido.
+        // SAFETY: the index is inside `owner`, and the returned reference
+        // inherits exactly its shared lifetime.
         unsafe { &*pointer.add(1) }
     })
 }

@@ -1,14 +1,14 @@
 Pregunta y criterio de cierre:
-Versión / commit / checksum:
-Toolchain / target / features:
+Versión / commit / suma de comprobación:
+Toolchain / plataforma / características:
 Promesa pública y enlace:
 Grafo relevante:
-Corte vertical:
-Tipos y ownership:
+Recorrido de la operación:
+Tipos y propiedad:
 Errores y efectos:
 Concurrencia / cancelación:
-Unsafe y premisas:
-Tests que sostienen el contrato:
+Unsafe y sus premisas:
+Pruebas que sostienen el contrato:
 Historia relevante:
 Hechos:
 Inferencias pendientes:

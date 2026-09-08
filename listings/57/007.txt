@@ -1,5 +1,5 @@
 Tauri ─┐
        ├─> application ─> domain
 Axum ──┘        │
-                ├─> storage port <─ adapter local
-                └─> sync port    <─ adapter HTTP
+                ├─> puerto de persistencia  <─ adaptador local
+                └─> puerto de sincronización <─ adaptador HTTP

@@ -17,6 +17,8 @@ where
 }
 
 fn main() {
-    let reduced = apply_discount(Cents(1_000), |amount| Cents(amount.0 - 100));
+    let discount = |amount: Cents| Cents(amount.0.saturating_sub(100));
+    let reduced = apply_discount(Cents(1_000), discount);
     assert_eq!(reduced.0, 900);
+    assert_eq!(apply_discount(Cents(50), discount).0, 0);
 }

@@ -1,4 +1,4 @@
-error: el campo `missing` no existe en esta struct
+error: field `missing` does not exist in this struct
  --> src/lib.rs:4:15
   |
 4 | #[entity(id = "missing")]

@@ -21,4 +21,8 @@ fn main() {
         parse_and_sum(&["10", "x"]),
         Err(SumError::InvalidNumber { index: 1 })
     );
+    assert_eq!(
+        parse_and_sum(&["4294967295", "1"]),
+        Err(SumError::Overflow { index: 1 })
+    );
 }

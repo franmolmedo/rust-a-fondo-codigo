@@ -9,12 +9,13 @@ struct Account {
 enum TransferError {
     SameAccount,
     Insufficient,
+    BalanceOverflow,
 }
 
 fn transfer(from: &Account, to: &Account, amount: u64) -> Result<(), TransferError> {
     if from.id == to.id {
-        // Sin esta guarda, la doble adquisición del mismo mutex
-        // bloquearía para siempre: el Mutex de std no es reentrante.
+        // Volver a bloquear el mismo mutex no está definido como reentrante:
+        // la segunda llamada puede bloquearse o hacer panic.
         return Err(TransferError::SameAccount);
     }
 
@@ -32,7 +33,16 @@ fn transfer(from: &Account, to: &Account, amount: u64) -> Result<(), TransferErr
     if *from_balance < amount {
         return Err(TransferError::Insufficient);
     }
+    let destination_after = to_balance
+        .checked_add(amount)
+        .ok_or(TransferError::BalanceOverflow)?;
     *from_balance -= amount;
-    *to_balance += amount;
+    *to_balance = destination_after;
     Ok(())
 }
+
+let source = Account { id: 1, balance: Mutex::new(10) };
+let destination = Account { id: 2, balance: Mutex::new(u64::MAX) };
+assert_eq!(transfer(&source, &destination, 1), Err(TransferError::BalanceOverflow));
+assert_eq!(*source.balance.lock().unwrap(), 10);
+assert_eq!(*destination.balance.lock().unwrap(), u64::MAX);

@@ -1,2 +1,2 @@
-Vec<T>  -> buffer owned y growable
-&[T]    -> vista prestada de elementos contiguos
+Vec<T>  -> posee los elementos y puede cambiar su longitud
+&[T]    -> permite consultar una secuencia contigua prestada

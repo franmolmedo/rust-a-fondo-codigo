@@ -14,9 +14,9 @@ el diseño de sistemas robustos*』の付属リポジトリです。
 
 ## 収録内容
 
-- `listings/` に章ごとに整理された **891 個のコードブロック**。
+- `listings/` に章ごとに整理された **892 個のコードブロック**。
 - `solutions/` に収録された **403 個の実行可能な参照解答**。
-- 解答に対応する **447 個のテスト**。
+- 解答に対応する **604 個のテスト**。
 - doctest、`compile_fail` サンプル、`should_panic` ケース。
 - 手続きマクロ、MIR、LLVM IR、assembly の実動ラボ。
 - 各 listing の追跡情報と SHA-256 ハッシュを保持する manifest。
@@ -31,7 +31,8 @@ el diseño de sistemas robustos*』の付属リポジトリです。
 - Windows で `verify.ps1` を実行する場合は PowerShell 5.1 以降。
 
 `rust-toolchain.toml` により、Clippy と rustfmt を含む Rust 1.95.0 が
-自動的にインストールされます。各 crate の MSRV は Rust 1.85 です。
+自動的にインストールされます。本編のコードには Rust 1.86 以上、
+付録の独立したワークスペースには Rust 1.95 が必要です。
 
 ## はじめに
 
@@ -55,7 +56,22 @@ cargo test --workspace --all-targets --all-features --locked
 
 この監査では、ハッシュ、TOML、feature 構成、テスト、doctest、
 フォーマット、Clippy、および MIR・LLVM IR・assembly の実際の生成を
-確認します。
+確認します。どちらのスクリプトも、付録のネイティブ環境での検証を
+あわせて実行します。
+
+## 第2版（v2）
+
+このブランチには、第2版の修正済みサンプルと回帰テストに加え、
+[付録 A–G のラボ](appendices/README.md)と
+[第26章のワークスペース](fixtures/chapter26-workspace/README.md)を収録しています。
+既存の章と解答の識別子は変更していません。付録には独立した Cargo
+ワークスペース、ロックファイル、doctest、検証スクリプトがあります。
+
+[付録のワークフロー](.github/workflows/appendices.yml)は、Windows と Linux、
+クロスコンパイル、パッケージ作成、Miri、短時間の fuzzing を検証します。
+これらの高度な検証は、ネイティブ環境用スクリプトとは別に実行されます。
+本編の最小対応コンパイラを確認するには Rust 1.86.0 をインストールし、
+`python tools/verify.py --msrv` を実行してください。
 
 ## 人工知能の利用について
 
@@ -97,6 +113,8 @@ cargo test -p course-solutions projects
 ```text
 .
 ├── solutions/         テスト付きの解答、kata、プロジェクト
+├── appendices/        付録 A–G の独立したラボとアプリケーション
+├── fixtures/          第26章の完全なワークスペース
 ├── listings/          本書に掲載したコードブロックごとのファイル
 ├── doctests/          ドキュメント用 harness と compile_fail ケース
 ├── macro_lab/         手続きマクロの実装

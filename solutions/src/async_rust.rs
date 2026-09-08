@@ -61,7 +61,7 @@ pub mod c33 {
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub enum Operation {
-        SocketRead,
+        AsyncSocketRead,
         AsyncTimer,
         BlockingFileRead,
         PasswordHash,
@@ -78,7 +78,7 @@ pub mod c33 {
     // SOLUTION: C33-E04
     pub const fn classify_operation(operation: Operation) -> WorkClass {
         match operation {
-            Operation::SocketRead | Operation::AsyncTimer => WorkClass::AsyncIo,
+            Operation::AsyncSocketRead | Operation::AsyncTimer => WorkClass::AsyncIo,
             Operation::BlockingFileRead | Operation::PersistentBlockingWorker => {
                 WorkClass::Blocking
             }
@@ -101,21 +101,28 @@ pub mod c33 {
     }
 
     // SOLUTION: C33-E05
+    /// Check a written plan, not the actual supervision of running tasks.
     pub fn lifecycle_is_explicit(subtasks: &[SubtaskPlan]) -> bool {
         !subtasks.is_empty()
             && subtasks.iter().all(|subtask| {
-                !subtask.name.is_empty()
-                    && !subtask.owner.is_empty()
+                !subtask.name.trim().is_empty()
+                    && !subtask.owner.trim().is_empty()
                     && match subtask.completion {
-                        CompletionPolicy::TransferTo(new_owner) => !new_owner.is_empty(),
+                        CompletionPolicy::TransferTo(new_owner) => !new_owner.trim().is_empty(),
                         CompletionPolicy::Join | CompletionPolicy::CancelThenJoin => true,
                     }
             })
     }
 
     // SOLUTION: C33-E06
+    /// Increment only when polled, keeping this metric at usize::MAX on overflow.
     pub async fn lazy_effect(counter: Arc<AtomicUsize>) -> usize {
-        counter.fetch_add(1, Ordering::SeqCst) + 1
+        let previous = counter
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |value| {
+                Some(value.saturating_add(1))
+            })
+            .expect("the update always returns Some");
+        previous.saturating_add(1)
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -138,7 +145,7 @@ pub mod c33 {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use tokio::sync::Barrier;
+        use tokio::sync::{Barrier, oneshot};
 
         #[test]
         fn poll_cycle_registers_before_pending_and_repolls_after_wake() {
@@ -188,7 +195,7 @@ pub mod c33 {
         #[test]
         fn five_operations_are_classified_by_what_makes_them_wait_or_work() {
             assert_eq!(
-                classify_operation(Operation::SocketRead),
+                classify_operation(Operation::AsyncSocketRead),
                 WorkClass::AsyncIo
             );
             assert_eq!(
@@ -250,6 +257,25 @@ pub mod c33 {
             let panicked = tokio::spawn(async { panic!("task failed") });
             assert_eq!(supervise(panicked).await, Err(SupervisionError::Panicked));
         }
+
+        #[tokio::test]
+        async fn dropping_a_join_handle_detaches_instead_of_cancelling() {
+            let (release_tx, release_rx) = oneshot::channel();
+            let (finished_tx, finished_rx) = oneshot::channel();
+
+            let handle = tokio::spawn(async move {
+                release_rx.await.expect("release signal must arrive");
+                finished_tx.send(()).expect("observer must remain alive");
+            });
+
+            drop(handle);
+            release_tx
+                .send(())
+                .expect("detached task must remain alive");
+            finished_rx
+                .await
+                .expect("dropping JoinHandle must not cancel the task");
+        }
     }
 }
 
@@ -304,7 +330,7 @@ pub mod c34 {
                 self.get_mut()
                     .0
                     .take()
-                    .expect("Immediate no puede sondearse después de Ready"),
+                    .expect("Immediate cannot be polled after Ready"),
             )
         }
     }
@@ -323,7 +349,7 @@ pub mod c34 {
         }
     }
 
-    // El future hijo conserva su pinning tras la indirección; mover `Map` no lo mueve.
+    // The boxed child stays pinned when `Map` itself moves.
     impl<Inner, Mapper> Unpin for Map<Inner, Mapper> {}
 
     // SOLUTION: C34-E03
@@ -339,7 +365,7 @@ pub mod c34 {
             let inner = this
                 .inner
                 .as_mut()
-                .expect("Map no puede sondearse después de Ready");
+                .expect("Map cannot be polled after Ready");
 
             match inner.as_mut().poll(context) {
                 Poll::Pending => Poll::Pending,
@@ -348,7 +374,7 @@ pub mod c34 {
                     let mapper = this
                         .mapper
                         .take()
-                        .expect("Map debe conservar su mapper hasta Ready");
+                        .expect("Map must retain its mapper until Ready");
                     Poll::Ready(mapper(value))
                 }
             }
@@ -489,26 +515,30 @@ pub mod c34 {
 
         fn poll(self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<Self::Output> {
             let this = self.get_mut();
-            let mut state = this.shared.lock().expect("event mutex poisoned");
-
-            if state.ready {
-                state.waiters.retain(|(id, _)| *id != this.waiter_id);
-                this.completed = true;
-                return Poll::Ready(());
-            }
-
-            if let Some((_, registered)) = state
-                .waiters
-                .iter_mut()
-                .find(|(id, _)| *id == this.waiter_id)
-            {
-                registered.clone_from(context.waker());
-            } else {
-                state
+            // Waker callbacks may re-enter the event, so clone and drop outside the lock.
+            let replacement = context.waker().clone();
+            let (outcome, retired) = {
+                let mut state = this.shared.lock().expect("event mutex poisoned");
+                let position = state
                     .waiters
-                    .push((this.waiter_id, context.waker().clone()));
-            }
-            Poll::Pending
+                    .iter()
+                    .position(|(id, _)| *id == this.waiter_id);
+                if state.ready {
+                    let retired = position.map(|index| state.waiters.swap_remove(index).1);
+                    this.completed = true;
+                    (Poll::Ready(()), retired)
+                } else {
+                    let retired = if let Some(index) = position {
+                        Some(std::mem::replace(&mut state.waiters[index].1, replacement))
+                    } else {
+                        state.waiters.push((this.waiter_id, replacement));
+                        None
+                    };
+                    (Poll::Pending, retired)
+                }
+            };
+            drop(retired);
+            outcome
         }
     }
 
@@ -518,11 +548,15 @@ pub mod c34 {
             if self.completed {
                 return;
             }
-            self.shared
-                .lock()
-                .expect("event mutex poisoned")
-                .waiters
-                .retain(|(id, _)| *id != self.waiter_id);
+            let retired = {
+                let mut state = self.shared.lock().expect("event mutex poisoned");
+                let position = state
+                    .waiters
+                    .iter()
+                    .position(|(id, _)| *id == self.waiter_id);
+                position.map(|index| state.waiters.swap_remove(index).1)
+            };
+            drop(retired);
         }
     }
 
@@ -639,17 +673,72 @@ pub mod c34 {
         #[test]
         fn dropping_a_pending_waiter_unregisters_only_that_waiter() {
             let event = OneShotEvent::new();
-            let mut future = Box::pin(event.wait());
-            let (probe, waker) = probe();
-            let mut context = Context::from_waker(&waker);
+            let mut cancelled = Box::pin(event.wait());
+            let mut active = Box::pin(event.wait());
+            let (cancelled_probe, cancelled_waker) = probe();
+            let (active_probe, active_waker) = probe();
+            let mut cancelled_context = Context::from_waker(&cancelled_waker);
+            let mut active_context = Context::from_waker(&active_waker);
 
-            assert_eq!(future.as_mut().poll(&mut context), Poll::Pending);
+            assert_eq!(
+                cancelled.as_mut().poll(&mut cancelled_context),
+                Poll::Pending
+            );
+            assert_eq!(active.as_mut().poll(&mut active_context), Poll::Pending);
+            assert_eq!(event.waiting_count(), 2);
+
+            drop(cancelled);
             assert_eq!(event.waiting_count(), 1);
-            drop(future);
-            assert_eq!(event.waiting_count(), 0);
 
             assert!(event.signal());
-            assert_eq!(probe.wakes.load(Ordering::SeqCst), 0);
+            assert_eq!(cancelled_probe.wakes.load(Ordering::SeqCst), 0);
+            assert_eq!(active_probe.wakes.load(Ordering::SeqCst), 1);
+            assert_eq!(active.as_mut().poll(&mut active_context), Poll::Ready(()));
+        }
+
+        #[test]
+        fn c34_retired_wakers_are_destroyed_without_holding_the_event_mutex() {
+            use std::sync::atomic::AtomicBool;
+            struct DropProbe {
+                shared: Arc<Mutex<EventState>>,
+                unlocked: Arc<AtomicBool>,
+            }
+            impl Wake for DropProbe {
+                fn wake(self: Arc<Self>) {}
+            }
+            impl Drop for DropProbe {
+                fn drop(&mut self) {
+                    self.unlocked
+                        .store(self.shared.try_lock().is_ok(), Ordering::SeqCst);
+                }
+            }
+            for cancel in [false, true] {
+                let event = OneShotEvent::new();
+                let unlocked = Arc::new(AtomicBool::new(false));
+                let waker = Waker::from(Arc::new(DropProbe {
+                    shared: Arc::clone(&event.shared),
+                    unlocked: Arc::clone(&unlocked),
+                }));
+                let mut future = Box::pin(event.wait());
+                assert!(
+                    future
+                        .as_mut()
+                        .poll(&mut Context::from_waker(&waker))
+                        .is_pending()
+                );
+                drop(waker);
+                if cancel {
+                    drop(future);
+                } else {
+                    assert!(
+                        future
+                            .as_mut()
+                            .poll(&mut Context::from_waker(Waker::noop()))
+                            .is_pending()
+                    );
+                }
+                assert!(unlocked.load(Ordering::SeqCst));
+            }
         }
     }
 }
@@ -699,10 +788,13 @@ pub mod c35 {
     }
 
     // SOLUTION: C35-E02
+    /// Compute a modular byte sum, not a cryptographic checksum, before yielding.
     pub async fn checksum_before_wait(input: Vec<u8>) -> u64 {
         let checksum = {
             let buffer = input;
-            buffer.iter().map(|byte| u64::from(*byte)).sum()
+            buffer
+                .iter()
+                .fold(0_u64, |sum, byte| sum.wrapping_add(u64::from(*byte)))
         };
         tokio::task::yield_now().await;
         checksum
@@ -723,7 +815,7 @@ pub mod c35 {
         let direct = async { 42_u64 };
         let parsed = async {
             let value = input.parse::<u64>()?;
-            Ok::<u64, ParseIntError>(value * 2)
+            Ok::<u64, ParseIntError>(value)
         };
         let validated = async {
             require_non_empty(input)?;
@@ -739,13 +831,23 @@ pub mod c35 {
     }
 
     // SOLUTION: C35-E04
+    /// Yield every 64 visited nodes. Expanding a wide node still takes time.
+    /// Cancelling this owned traversal may recursively drop unvisited subtrees.
     pub async fn count_nodes(root: Node) -> usize {
+        const NODES_PER_YIELD: usize = 64;
+
         let mut stack = vec![root];
         let mut count = 0;
+        let mut nodes_since_yield = 0;
         while let Some(node) = stack.pop() {
             count += 1;
             stack.extend(node.children);
-            tokio::task::yield_now().await;
+            nodes_since_yield += 1;
+
+            if nodes_since_yield == NODES_PER_YIELD {
+                nodes_since_yield = 0;
+                tokio::task::yield_now().await;
+            }
         }
         count
     }
@@ -834,7 +936,7 @@ pub mod c35 {
         async fn three_async_blocks_expose_three_output_types() {
             let (direct, parsed, validated) = infer_three_outputs("21").await;
             assert_eq!(direct, 42);
-            assert_eq!(parsed, Ok(42));
+            assert_eq!(parsed, Ok(21));
             assert_eq!(validated, Ok(()));
 
             let (_, parsed, validated) = infer_three_outputs("").await;
@@ -845,14 +947,9 @@ pub mod c35 {
         #[tokio::test]
         async fn explicit_stack_replaces_recursive_future() {
             let tree = Node {
-                children: vec![
-                    Node { children: vec![] },
-                    Node {
-                        children: vec![Node { children: vec![] }],
-                    },
-                ],
+                children: (0..128).map(|_| Node { children: vec![] }).collect(),
             };
-            assert_eq!(count_nodes(tree).await, 4);
+            assert_eq!(count_nodes(tree).await, 129);
         }
 
         #[test]
@@ -874,10 +971,13 @@ pub mod c35 {
             assert_eq!(constructed.load(Ordering::SeqCst), 1);
         }
 
-        #[tokio::test]
-        async fn a_ready_await_continues_without_a_pending_boundary() {
+        #[test]
+        fn a_ready_await_continues_without_a_pending_boundary() {
             let trace = Arc::new(Mutex::new(Vec::new()));
-            trace_immediately_ready_await(Arc::clone(&trace)).await;
+            let mut future = Box::pin(trace_immediately_ready_await(Arc::clone(&trace)));
+            let mut context = Context::from_waker(Waker::noop());
+
+            assert_eq!(future.as_mut().poll(&mut context), Poll::Ready(()));
             assert_eq!(
                 *trace.lock().expect("trace mutex poisoned"),
                 ["before await", "child: Ready", "after await"]
@@ -975,18 +1075,25 @@ pub mod c36 {
         pub finished: bool,
     }
 
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub struct RevisionExhausted;
+
     // SOLUTION: C36-E03
+    /// A cancelled notification leaves the current revision prepared but unfinished.
+    /// Every other writer must also advance the revision before changing this state.
     pub async fn update_after_notification<Notification>(
         shared: &Mutex<VersionedState>,
         notification: Notification,
-    ) -> bool
+    ) -> Result<bool, RevisionExhausted>
     where
         Notification: Future<Output = ()>,
     {
         let expected_revision = {
             let mut state = shared.lock().expect("state mutex poisoned");
-            state.revision = state.revision.checked_add(1).expect("revision overflow");
+            let next_revision = state.revision.checked_add(1).ok_or(RevisionExhausted)?;
+            state.revision = next_revision;
             state.prepared = true;
+            state.finished = false;
             state.revision
         };
 
@@ -994,10 +1101,10 @@ pub mod c36 {
 
         let mut state = shared.lock().expect("state mutex poisoned");
         if state.revision != expected_revision {
-            return false;
+            return Ok(false);
         }
         state.finished = true;
-        true
+        Ok(true)
     }
 
     // SOLUTION: C36-E04
@@ -1007,10 +1114,10 @@ pub mod c36 {
     }
 
     pub fn first_line_owned(input: &str) -> impl Future<Output = Option<String>> + Send + 'static {
-        let owned = input.to_owned();
+        let first_line = input.lines().next().map(str::to_owned);
         async move {
             tokio::task::yield_now().await;
-            owned.lines().next().map(str::to_owned)
+            first_line
         }
     }
 
@@ -1036,17 +1143,17 @@ pub mod c36 {
     pub const fn choose_execution(requirements: ExecutionRequirements) -> ExecutionChoice {
         if !requirements.must_outlive_caller {
             ExecutionChoice::AwaitOrCompose
+        } else if requirements.future_static
+            && requirements.output_static
+            && requirements.intentional_local_affinity
+        {
+            ExecutionChoice::SpawnLocal
         } else if requirements.future_send
             && requirements.future_static
             && requirements.output_send
             && requirements.output_static
         {
             ExecutionChoice::Spawn
-        } else if requirements.future_static
-            && requirements.output_static
-            && requirements.intentional_local_affinity
-        {
-            ExecutionChoice::SpawnLocal
         } else {
             ExecutionChoice::Redesign
         }
@@ -1108,7 +1215,10 @@ pub mod c36 {
         #[tokio::test]
         async fn revision_check_rejects_a_stale_post_await_transition() {
             let stable = Mutex::new(VersionedState::default());
-            assert!(update_after_notification(&stable, std::future::ready(())).await);
+            assert_eq!(
+                update_after_notification(&stable, std::future::ready(())).await,
+                Ok(true)
+            );
             assert!(stable.lock().expect("state mutex poisoned").finished);
 
             let changed = Mutex::new(VersionedState::default());
@@ -1116,7 +1226,10 @@ pub mod c36 {
                 let mut state = changed.lock().expect("state mutex poisoned");
                 state.revision += 1;
             };
-            assert!(!update_after_notification(&changed, concurrent_change).await);
+            assert_eq!(
+                update_after_notification(&changed, concurrent_change).await,
+                Ok(false)
+            );
             assert!(!changed.lock().expect("state mutex poisoned").finished);
         }
 
@@ -1141,6 +1254,13 @@ pub mod c36 {
                 intentional_local_affinity: false,
             };
             assert_eq!(choose_execution(base), ExecutionChoice::Spawn);
+            assert_eq!(
+                choose_execution(ExecutionRequirements {
+                    intentional_local_affinity: true,
+                    ..base
+                }),
+                ExecutionChoice::SpawnLocal
+            );
             assert_eq!(
                 choose_execution(ExecutionRequirements {
                     must_outlive_caller: false,
@@ -1226,6 +1346,13 @@ pub mod c37 {
     pub type LocalBoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a>>;
     pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
+    pub fn boxed_len(input: &str) -> BoxFuture<'_, usize> {
+        Box::pin(async move {
+            tokio::task::yield_now().await;
+            input.len()
+        })
+    }
+
     pub fn boxed_value(value: u64) -> BoxFuture<'static, u64> {
         Box::pin(async move { value })
     }
@@ -1300,6 +1427,8 @@ pub mod c37 {
     }
 
     // SOLUTION: C37-E05
+    /// Polls a finite, self-waking teaching future; this is not an I/O executor.
+    /// Use small round counts: the result requires `pending_rounds + 1` to fit.
     pub fn polls_to_completion(pending_rounds: usize) -> usize {
         let mut future = std::pin::pin!(StepFuture {
             pending_rounds,
@@ -1314,6 +1443,13 @@ pub mod c37 {
         }
     }
 
+    /// A pinned tracker cannot be exposed as an ordinary mutable reference.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::async_rust::c37::AddrTracker;
+    /// let mut tracker = std::pin::pin!(AddrTracker::new());
+    /// let _: &mut AddrTracker = tracker.as_mut().get_mut();
+    /// ```
     pub struct AddrTracker {
         previous: Cell<Option<usize>>,
         _pin: PhantomPinned,
@@ -1427,7 +1563,10 @@ pub mod c37 {
         }
 
         #[tokio::test]
-        async fn boxed_alias_erases_the_future_type() {
+        async fn boxed_alias_preserves_borrowed_and_static_lifetimes() {
+            let input = String::from("rust");
+            assert_eq!(boxed_len(&input).await, 4);
+            assert_eq!(input, "rust");
             assert_eq!(boxed_value(7).await, 7);
         }
 
@@ -1564,6 +1703,8 @@ pub mod c38 {
     }
 
     // SOLUTION: C38-E04
+    /// Drains accepted commands, including sends through permits reserved before close.
+    /// Shutdown waits until every outstanding permit is used or dropped.
     pub async fn run_draining_worker(mut commands: mpsc::Receiver<Command>) -> Vec<u64> {
         let mut stored = Vec::new();
         while let Some(command) = commands.recv().await {
@@ -1571,8 +1712,10 @@ pub mod c38 {
                 Command::Store(value) => stored.push(value),
                 Command::Shutdown => {
                     commands.close();
-                    while let Some(Command::Store(value)) = commands.recv().await {
-                        stored.push(value);
+                    while let Some(command) = commands.recv().await {
+                        if let Command::Store(value) = command {
+                            stored.push(value);
+                        }
                     }
                     break;
                 }
@@ -1631,9 +1774,15 @@ pub mod c38 {
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct DeadlineExpired;
 
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub struct DeadlineOutOfRange;
+
     impl Deadline {
-        pub fn after(budget: Duration) -> Self {
-            Self(tokio::time::Instant::now() + budget)
+        pub fn after(budget: Duration) -> Result<Self, DeadlineOutOfRange> {
+            tokio::time::Instant::now()
+                .checked_add(budget)
+                .map(Self)
+                .ok_or(DeadlineOutOfRange)
         }
 
         // SOLUTION: C38-E06
@@ -1711,6 +1860,10 @@ pub mod c38 {
                 with_timeout(Duration::from_secs(1), async { Err::<u64, _>("backend") }).await,
                 Err(TimeoutError::Operation("backend"))
             );
+            assert_eq!(
+                with_timeout(Duration::from_secs(1), async { Ok::<_, &'static str>(7) }).await,
+                Ok(7)
+            );
         }
 
         #[test]
@@ -1732,6 +1885,7 @@ pub mod c38 {
         async fn shutdown_drains_commands_already_in_the_bounded_channel() {
             let (sender, receiver) = mpsc::channel(4);
             sender.send(Command::Store(1)).await.unwrap();
+            sender.send(Command::Shutdown).await.unwrap();
             sender.send(Command::Shutdown).await.unwrap();
             sender.send(Command::Store(2)).await.unwrap();
             drop(sender);
@@ -1758,7 +1912,7 @@ pub mod c38 {
 
         #[tokio::test(start_paused = true)]
         async fn every_hop_receives_only_the_remaining_deadline_budget() {
-            let deadline = Deadline::after(Duration::from_secs(10));
+            let deadline = Deadline::after(Duration::from_secs(10)).unwrap();
             assert_eq!(deadline.remaining(), Ok(Duration::from_secs(10)));
 
             tokio::time::advance(Duration::from_secs(4)).await;
@@ -1806,6 +1960,8 @@ pub mod c39 {
     }
 
     // SOLUTION: C39-E01
+    /// Estimates queue payload capacity for a finite burst, not total process memory.
+    /// Active work, channel overhead, and retained results need separate budgets.
     pub fn plan_bounded_stage(input: CapacityInput) -> Result<CapacityPlan, CapacityError> {
         if input.bytes_per_item == 0 {
             return Err(CapacityError::ZeroMessageSize);
@@ -1820,10 +1976,7 @@ pub mod c39 {
         let backlog_millis = excess_per_second
             .checked_mul(input.burst_millis)
             .ok_or(CapacityError::ArithmeticOverflow)?;
-        let required_slots = backlog_millis
-            .checked_add(999)
-            .ok_or(CapacityError::ArithmeticOverflow)?
-            / 1_000;
+        let required_slots = backlog_millis.div_ceil(1_000);
         let required_slots = required_slots.max(1);
         let affordable_slots = input.memory_budget_bytes / input.bytes_per_item;
 
@@ -1867,9 +2020,11 @@ pub mod c39 {
 
     // SOLUTION: C39-E02
     impl Calculator {
-        pub fn start(capacity: usize) -> Self {
+        /// Returns the client and its worker handle. Drop the client before joining.
+        /// Panics for zero capacity or when called outside a Tokio runtime.
+        pub fn start(capacity: usize) -> (Self, tokio::task::JoinHandle<()>) {
             let (commands, mut receiver) = mpsc::channel(capacity);
-            tokio::spawn(async move {
+            let worker = tokio::spawn(async move {
                 while let Some(command) = receiver.recv().await {
                     match command {
                         Command::Add { left, right, reply } => {
@@ -1879,7 +2034,7 @@ pub mod c39 {
                     }
                 }
             });
-            Self { commands }
+            (Self { commands }, worker)
         }
 
         pub async fn add(&self, left: i64, right: i64) -> Result<i64, CalculatorError> {
@@ -1902,12 +2057,16 @@ pub mod c39 {
     }
 
     // SOLUTION: C39-E03
-    pub fn delivered_ids(completion_order: &[usize], order: DeliveryOrder) -> Vec<usize> {
-        let mut delivered = completion_order.to_vec();
-        if order == DeliveryOrder::Input {
-            delivered.sort_unstable();
+    /// Compares two supplied orders; this model does not execute concurrent work.
+    pub fn delivered_ids(
+        input_order: &[usize],
+        completion_order: &[usize],
+        order: DeliveryOrder,
+    ) -> Vec<usize> {
+        match order {
+            DeliveryOrder::Input => input_order.to_vec(),
+            DeliveryOrder::Completion => completion_order.to_vec(),
         }
-        delivered
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1960,6 +2119,7 @@ pub mod c39 {
     pub struct AdmissionClosed;
 
     // SOLUTION: C39-E06
+    /// Reserves before building. Admission does not acknowledge processing or delivery.
     pub async fn reserve_then_build<T, Build>(
         sender: &mpsc::Sender<T>,
         build: Build,
@@ -2015,25 +2175,50 @@ pub mod c39 {
         }
 
         #[tokio::test]
-        async fn oneshot_preserves_success_and_domain_error_layers() {
-            let calculator = Calculator::start(2);
+        async fn oneshot_preserves_all_transport_and_domain_error_layers() {
+            let (calculator, worker) = Calculator::start(2);
             assert_eq!(calculator.add(20, 22).await, Ok(42));
             assert_eq!(
                 calculator.add(i64::MAX, 1).await,
                 Err(CalculatorError::Domain(ArithmeticError::Overflow))
             );
+            drop(calculator);
+            worker.await.unwrap();
+
+            let (commands, receiver) = mpsc::channel(1);
+            drop(receiver);
+            let unavailable = Calculator { commands };
+            assert_eq!(
+                unavailable.add(1, 2).await,
+                Err(CalculatorError::ServiceClosed)
+            );
+
+            let (commands, mut receiver) = mpsc::channel(1);
+            let drops_reply = tokio::spawn(async move {
+                let Some(Command::Add { reply, .. }) = receiver.recv().await else {
+                    return;
+                };
+                drop(reply);
+            });
+            let silent = Calculator { commands };
+            assert_eq!(
+                silent.add(1, 2).await,
+                Err(CalculatorError::ResponseCancelled)
+            );
+            drops_reply.await.unwrap();
         }
 
         #[test]
         fn unordered_delivery_does_not_wait_for_the_slow_first_item() {
-            let completion_order = [1, 2, 0];
+            let input_order = [42, 7, 99];
+            let completion_order = [7, 99, 42];
             assert_eq!(
-                delivered_ids(&completion_order, DeliveryOrder::Completion),
-                [1, 2, 0]
+                delivered_ids(&input_order, &completion_order, DeliveryOrder::Completion),
+                [7, 99, 42]
             );
             assert_eq!(
-                delivered_ids(&completion_order, DeliveryOrder::Input),
-                [0, 1, 2]
+                delivered_ids(&input_order, &completion_order, DeliveryOrder::Input),
+                [42, 7, 99]
             );
         }
 
@@ -2135,7 +2320,7 @@ pub mod c40 {
     // SOLUTION: C40-E02
     pub async fn push_with_lending_closure(values: &mut Vec<u64>, value: u64) -> usize {
         let mut push = async || {
-            std::future::ready(()).await;
+            tokio::task::yield_now().await;
             values.push(value);
             values.len()
         };
@@ -2222,12 +2407,14 @@ pub mod c40 {
     pub type SendFuture<T> = Pin<Box<dyn Future<Output = T> + Send + 'static>>;
 
     // SOLUTION: C40-E07
-    pub async fn spawn_boxed_callback<F, T>(callback: F) -> Result<T, tokio::task::JoinError>
+    /// Returns the task handle so callers can supervise cancellation and completion.
+    /// Dropping that handle detaches the task; it does not cancel it.
+    pub fn spawn_boxed_callback<F, T>(callback: F) -> tokio::task::JoinHandle<T>
     where
         F: FnOnce() -> SendFuture<T> + Send + 'static,
         T: Send + 'static,
     {
-        tokio::spawn(callback()).await
+        tokio::spawn(async move { callback().await })
     }
 
     #[cfg(test)]
@@ -2289,6 +2476,10 @@ pub mod c40 {
                     last: "offline",
                 })
             );
+            assert_eq!(
+                retry(async || Ok::<_, &'static str>(42), 0).await,
+                Err(RetryError::NoAttempts)
+            );
         }
 
         #[tokio::test]
@@ -2347,12 +2538,16 @@ pub mod c41 {
     }
 
     impl MemoryRepository {
-        pub fn new(users: Vec<User>) -> Self {
-            Self { users }
+        pub fn new(users: Vec<User>) -> Result<Self, SaveError> {
+            let mut ids = std::collections::HashSet::new();
+            if users.iter().any(|user| !ids.insert(user.id)) {
+                return Err(SaveError::Duplicate);
+            }
+            Ok(Self { users })
         }
     }
 
-    // Este contrato es deliberadamente local; no promete `Send` para sus futures.
+    // This contract is deliberately local; it does not promise `Send` futures.
     #[allow(async_fn_in_trait)]
     pub trait NativeUserRepository {
         async fn find(&self, id: u64) -> Option<User>;
@@ -2379,16 +2574,19 @@ pub mod c41 {
         value: Rc<RefCell<u64>>,
     }
 
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub struct SequenceExhausted;
+
     #[allow(async_fn_in_trait)]
     pub trait LocalNext {
-        async fn next(&self) -> u64;
+        async fn next(&self) -> Result<u64, SequenceExhausted>;
     }
 
     impl LocalNext for LocalSequence {
-        async fn next(&self) -> u64 {
+        async fn next(&self) -> Result<u64, SequenceExhausted> {
             let mut value = self.value.borrow_mut();
-            *value += 1;
-            *value
+            *value = value.checked_add(1).ok_or(SequenceExhausted)?;
+            Ok(*value)
         }
     }
 
@@ -2398,13 +2596,18 @@ pub mod c41 {
     }
 
     pub trait SendNext: Send + Sync {
-        fn next(&self) -> impl Future<Output = u64> + Send;
+        fn next(&self) -> impl Future<Output = Result<u64, SequenceExhausted>> + Send;
     }
 
     // SOLUTION: C41-E02
     impl SendNext for ThreadSafeSequence {
-        async fn next(&self) -> u64 {
-            self.value.fetch_add(1, Ordering::SeqCst) + 1
+        async fn next(&self) -> Result<u64, SequenceExhausted> {
+            self.value
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| {
+                    value.checked_add(1)
+                })
+                .map(|previous| previous + 1)
+                .map_err(|_| SequenceExhausted)
         }
     }
 
@@ -2433,7 +2636,7 @@ pub mod c41 {
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct CostProfile {
         pub runtime_selection: bool,
-        pub heap_allocation_per_call: bool,
+        pub boxes_future_per_call: bool,
         pub monomorphized: bool,
         pub future_send_guaranteed: bool,
     }
@@ -2443,19 +2646,19 @@ pub mod c41 {
         match shape {
             AsyncTraitShape::NativeLocal => CostProfile {
                 runtime_selection: false,
-                heap_allocation_per_call: false,
+                boxes_future_per_call: false,
                 monomorphized: true,
                 future_send_guaranteed: false,
             },
             AsyncTraitShape::OpaqueSend => CostProfile {
                 runtime_selection: false,
-                heap_allocation_per_call: false,
+                boxes_future_per_call: false,
                 monomorphized: true,
                 future_send_guaranteed: true,
             },
             AsyncTraitShape::BoxedDynamic => CostProfile {
                 runtime_selection: true,
-                heap_allocation_per_call: true,
+                boxes_future_per_call: true,
                 monomorphized: false,
                 future_send_guaranteed: true,
             },
@@ -2479,7 +2682,7 @@ pub mod c41 {
         match phase {
             SavePhase::BeforeExternalWrite => DropOutcome::NoExternalEffect,
             SavePhase::CommitMayHaveHappened => DropOutcome::OutcomeUnknown {
-                recovery: "consultar por idempotency key",
+                recovery: "query by idempotency key",
             },
         }
     }
@@ -2555,18 +2758,40 @@ pub mod c41 {
         #[tokio::test(flavor = "current_thread")]
         async fn local_and_send_variants_make_different_promises() {
             let local = LocalSequence::default();
-            assert_eq!(LocalNext::next(&local).await, 1);
-            assert_eq!(LocalNext::next(&local).await, 2);
+            assert_eq!(LocalNext::next(&local).await, Ok(1));
+            assert_eq!(LocalNext::next(&local).await, Ok(2));
 
             let thread_safe = ThreadSafeSequence::default();
-            assert_eq!(SendNext::next(&thread_safe).await, 1);
-            assert_eq!(SendNext::next(&thread_safe).await, 2);
+            assert_eq!(SendNext::next(&thread_safe).await, Ok(1));
+            assert_eq!(SendNext::next(&thread_safe).await, Ok(2));
+        }
+
+        #[tokio::test]
+        async fn exhausted_sequences_do_not_wrap_or_reuse_identifiers() {
+            let local = LocalSequence {
+                value: Rc::new(RefCell::new(u64::MAX)),
+            };
+            let thread_safe = ThreadSafeSequence {
+                value: AtomicU64::new(u64::MAX),
+            };
+            assert_eq!(local.next().await, Err(SequenceExhausted));
+            assert_eq!(thread_safe.next().await, Err(SequenceExhausted));
+            assert_eq!(*local.value.borrow(), u64::MAX);
+            assert_eq!(thread_safe.value.load(Ordering::Relaxed), u64::MAX);
+        }
+
+        #[test]
+        fn repository_constructor_rejects_duplicate_identifiers() {
+            assert!(matches!(
+                MemoryRepository::new(vec![User { id: 7 }, User { id: 7 }]),
+                Err(SaveError::Duplicate)
+            ));
         }
 
         #[tokio::test]
         async fn boxed_future_makes_the_trait_dyn_compatible() {
             let repository: Box<dyn DynUserRepository> =
-                Box::new(MemoryRepository::new(vec![User { id: 7 }]));
+                Box::new(MemoryRepository::new(vec![User { id: 7 }]).unwrap());
             assert_eq!(find_dyn(repository.as_ref(), 7).await, Some(User { id: 7 }));
         }
 
@@ -2576,13 +2801,13 @@ pub mod c41 {
                 cost_profile(AsyncTraitShape::OpaqueSend),
                 CostProfile {
                     runtime_selection: false,
-                    heap_allocation_per_call: false,
+                    boxes_future_per_call: false,
                     monomorphized: true,
                     future_send_guaranteed: true,
                 }
             );
             assert!(cost_profile(AsyncTraitShape::BoxedDynamic).runtime_selection);
-            assert!(cost_profile(AsyncTraitShape::BoxedDynamic).heap_allocation_per_call);
+            assert!(cost_profile(AsyncTraitShape::BoxedDynamic).boxes_future_per_call);
         }
 
         #[test]
@@ -2594,14 +2819,14 @@ pub mod c41 {
             assert_eq!(
                 save_drop_outcome(SavePhase::CommitMayHaveHappened),
                 DropOutcome::OutcomeUnknown {
-                    recovery: "consultar por idempotency key",
+                    recovery: "query by idempotency key",
                 }
             );
         }
 
         #[tokio::test]
         async fn send_future_contract_supports_a_multithread_spawn() {
-            let repository = Arc::new(MemoryRepository::new(vec![User { id: 8 }]));
+            let repository = Arc::new(MemoryRepository::new(vec![User { id: 8 }]).unwrap());
             assert_eq!(
                 spawn_find(repository, 8).await.unwrap(),
                 Some(User { id: 8 })
@@ -2614,7 +2839,7 @@ pub mod c41 {
                 future
             }
 
-            let repository = MemoryRepository::new(vec![User { id: 9 }]);
+            let repository = MemoryRepository::new(vec![User { id: 9 }]).unwrap();
             let future = require_send(find_with_named_future(&repository, 9));
             assert_eq!(future.await, Some(User { id: 9 }));
         }
@@ -2669,6 +2894,15 @@ pub mod c42 {
     }
 
     // SOLUTION: C42-E03
+    /// Excludes the context borrow, not borrows carried by `T` itself.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::async_rust::c42::named_transform;
+    /// let value = String::from("borrowed payload");
+    /// let result = named_transform("context", value.as_str());
+    /// drop(value);
+    /// println!("{result:?}");
+    /// ```
     pub fn named_transform<T>(_: &str, value: T) -> impl Debug + PartialEq<T> + use<T>
     where
         T: Debug + PartialEq<T>,
@@ -2677,7 +2911,7 @@ pub mod c42 {
     }
 
     // SOLUTION: C42-E04
-    // El nombre `'a` es deliberado: el ejercicio audita el capture set `use<'a, T>`.
+    // The name `'a` is deliberate: the exercise audits the `use<'a, T>` capture set.
     #[allow(clippy::needless_lifetimes)]
     pub fn captured_pair<'a, T>(anchor: &'a (), value: T) -> impl Debug + use<'a, T>
     where
@@ -2905,17 +3139,28 @@ pub mod c43 {
         }
     }
 
+    #[derive(Clone, Debug, Eq, PartialEq)]
+    pub struct AccountSnapshot {
+        pub account: Account,
+        pub revision: u64,
+    }
+
     pub trait AccountRepository {
         type Error;
 
-        fn load(&self) -> impl Future<Output = Result<Account, Self::Error>> + Send;
-        fn save(&self, account: Account) -> impl Future<Output = Result<(), Self::Error>> + Send;
+        fn load(&self) -> impl Future<Output = Result<AccountSnapshot, Self::Error>> + Send;
+        /// Atomically rejects stale revisions before persisting and advancing the revision.
+        fn save(
+            &self,
+            snapshot: AccountSnapshot,
+        ) -> impl Future<Output = Result<(), Self::Error>> + Send;
     }
 
     #[derive(Clone, Debug, Eq, PartialEq)]
     pub enum DepositError<E> {
-        Repository(E),
+        Load(E),
         Domain(AccountError),
+        Save(E),
     }
 
     // SOLUTION: C43-E01
@@ -2923,43 +3168,70 @@ pub mod c43 {
     where
         R: AccountRepository + Sync,
     {
-        let mut account = repository.load().await.map_err(DepositError::Repository)?;
-        let balance = account.deposit(amount).map_err(DepositError::Domain)?;
+        let mut snapshot = repository.load().await.map_err(DepositError::Load)?;
+        let balance = snapshot
+            .account
+            .deposit(amount)
+            .map_err(DepositError::Domain)?;
         repository
-            .save(account)
+            .save(snapshot)
             .await
-            .map_err(DepositError::Repository)?;
+            .map_err(DepositError::Save)?;
         Ok(balance)
     }
 
     #[derive(Default)]
     pub struct MemoryRepository {
-        account: tokio::sync::Mutex<Option<Account>>,
+        account: tokio::sync::Mutex<Option<AccountSnapshot>>,
     }
 
     impl MemoryRepository {
         pub fn new(account: Account) -> Self {
             Self {
-                account: tokio::sync::Mutex::new(Some(account)),
+                account: tokio::sync::Mutex::new(Some(AccountSnapshot {
+                    account,
+                    revision: 0,
+                })),
             }
         }
     }
 
-    impl AccountRepository for MemoryRepository {
-        type Error = &'static str;
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum MemoryRepositoryError {
+        Missing,
+        Conflict,
+        RevisionExhausted,
+    }
 
-        async fn load(&self) -> Result<Account, Self::Error> {
-            self.account.lock().await.clone().ok_or("missing")
+    impl AccountRepository for MemoryRepository {
+        type Error = MemoryRepositoryError;
+
+        async fn load(&self) -> Result<AccountSnapshot, Self::Error> {
+            self.account
+                .lock()
+                .await
+                .clone()
+                .ok_or(MemoryRepositoryError::Missing)
         }
 
-        async fn save(&self, account: Account) -> Result<(), Self::Error> {
-            *self.account.lock().await = Some(account);
+        async fn save(&self, mut snapshot: AccountSnapshot) -> Result<(), Self::Error> {
+            let mut stored = self.account.lock().await;
+            let current = stored.as_ref().ok_or(MemoryRepositoryError::Missing)?;
+            if current.revision != snapshot.revision {
+                return Err(MemoryRepositoryError::Conflict);
+            }
+            snapshot.revision = current
+                .revision
+                .checked_add(1)
+                .ok_or(MemoryRepositoryError::RevisionExhausted)?;
+            *stored = Some(snapshot);
             Ok(())
         }
     }
 
     #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
     pub enum RuntimeNeed {
+        CurrentThreadExecutor,
         MultiThreadExecutor,
         Macros,
         Timers,
@@ -2974,6 +3246,9 @@ pub mod c43 {
         let mut features = BTreeSet::new();
         for need in needs {
             match need {
+                RuntimeNeed::CurrentThreadExecutor => {
+                    features.insert("rt");
+                }
                 RuntimeNeed::MultiThreadExecutor => {
                     features.insert("rt-multi-thread");
                 }
@@ -3009,6 +3284,12 @@ pub mod c43 {
         pub clean: bool,
     }
 
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum ShutdownJob {
+        CompleteAfter(Duration),
+        PanicAfter(Duration),
+    }
+
     fn record_join(
         result: Result<(), tokio::task::JoinError>,
         completed: &mut usize,
@@ -3023,13 +3304,18 @@ pub mod c43 {
 
     // SOLUTION: C43-E03
     pub async fn drain_jobs_with_deadline(
-        durations: Vec<Duration>,
+        jobs: Vec<ShutdownJob>,
         deadline: Duration,
     ) -> ShutdownReport {
         let mut tasks = JoinSet::new();
-        for duration in durations {
+        for job in jobs {
             tasks.spawn(async move {
+                let (duration, should_panic) = match job {
+                    ShutdownJob::CompleteAfter(duration) => (duration, false),
+                    ShutdownJob::PanicAfter(duration) => (duration, true),
+                };
                 tokio::time::sleep(duration).await;
+                assert!(!should_panic, "simulated job failure");
             });
         }
 
@@ -3055,9 +3341,15 @@ pub mod c43 {
         while let Some(result) = tasks.try_join_next() {
             record_join(result, &mut completed, &mut failed);
         }
-        let aborted = tasks.len();
         tasks.abort_all();
-        while tasks.join_next().await.is_some() {}
+        let mut aborted = 0;
+        while let Some(result) = tasks.join_next().await {
+            match result {
+                Ok(()) => completed += 1,
+                Err(error) if error.is_cancelled() => aborted += 1,
+                Err(_) => failed += 1,
+            }
+        }
 
         ShutdownReport {
             completed,
@@ -3096,27 +3388,27 @@ pub mod c43 {
             AppFailure::InvalidInput => HttpProblem {
                 status: 422,
                 code: "invalid_input",
-                message: "la entrada no es válida",
+                message: "the input is invalid",
             },
             AppFailure::NotFound => HttpProblem {
                 status: 404,
                 code: "not_found",
-                message: "el recurso no existe",
+                message: "the resource does not exist",
             },
             AppFailure::Conflict => HttpProblem {
                 status: 409,
                 code: "conflict",
-                message: "la operación entra en conflicto con el estado actual",
+                message: "the operation conflicts with the current state",
             },
             AppFailure::TemporarilyUnavailable => HttpProblem {
                 status: 503,
                 code: "temporarily_unavailable",
-                message: "servicio temporalmente no disponible",
+                message: "the service is temporarily unavailable",
             },
             AppFailure::Internal(_) => HttpProblem {
                 status: 500,
                 code: "internal",
-                message: "error interno",
+                message: "internal error",
             },
         }
     }
@@ -3126,27 +3418,27 @@ pub mod c43 {
             AppFailure::InvalidInput => IpcProblem {
                 code: "INVALID_INPUT",
                 retryable: false,
-                message: "la entrada no es válida",
+                message: "the input is invalid",
             },
             AppFailure::NotFound => IpcProblem {
                 code: "NOT_FOUND",
                 retryable: false,
-                message: "el recurso no existe",
+                message: "the resource does not exist",
             },
             AppFailure::Conflict => IpcProblem {
                 code: "CONFLICT",
                 retryable: false,
-                message: "conflicto de estado",
+                message: "state conflict",
             },
             AppFailure::TemporarilyUnavailable => IpcProblem {
                 code: "TEMPORARILY_UNAVAILABLE",
                 retryable: true,
-                message: "servicio temporalmente no disponible",
+                message: "the service is temporarily unavailable",
             },
             AppFailure::Internal(_) => IpcProblem {
                 code: "INTERNAL",
                 retryable: false,
-                message: "error interno",
+                message: "internal error",
             },
         }
     }
@@ -3200,14 +3492,21 @@ pub mod c43 {
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub enum BlockingBatchError {
+        ParallelismTooLarge,
         WorkerPanicked,
+        WorkerCancelled,
     }
 
     // SOLUTION: C43-E06
+    /// Bounds active blocking work, not the memory of the input/output vectors.
+    /// Cancellation can detach already-started workers; those workers keep their permits.
     pub async fn parse_word_counts_bounded(
         documents: Vec<String>,
         max_parallel: NonZeroUsize,
     ) -> Result<BlockingBatch, BlockingBatchError> {
+        if max_parallel.get() > Semaphore::MAX_PERMITS {
+            return Err(BlockingBatchError::ParallelismTooLarge);
+        }
         let semaphore = Arc::new(Semaphore::new(max_parallel.get()));
         let active = Arc::new(AtomicUsize::new(0));
         let peak = Arc::new(AtomicUsize::new(0));
@@ -3230,20 +3529,36 @@ pub mod c43 {
             }));
         }
 
-        let mut indexed = Vec::with_capacity(handles.len());
-        for handle in handles {
-            indexed.push(
-                handle
-                    .await
-                    .map_err(|_| BlockingBatchError::WorkerPanicked)?,
-            );
-        }
+        let mut indexed = collect_blocking_results(handles).await?;
         indexed.sort_unstable_by_key(|(index, _)| *index);
 
         Ok(BlockingBatch {
             word_counts: indexed.into_iter().map(|(_, count)| count).collect(),
             observed_peak_parallelism: peak.load(Ordering::SeqCst),
         })
+    }
+
+    async fn collect_blocking_results(
+        handles: Vec<tokio::task::JoinHandle<(usize, usize)>>,
+    ) -> Result<Vec<(usize, usize)>, BlockingBatchError> {
+        let mut results = Vec::with_capacity(handles.len());
+        let mut first_error = None;
+        for handle in handles {
+            match handle.await {
+                Ok(result) => results.push(result),
+                Err(error) => {
+                    first_error.get_or_insert(if error.is_cancelled() {
+                        BlockingBatchError::WorkerCancelled
+                    } else {
+                        BlockingBatchError::WorkerPanicked
+                    });
+                }
+            }
+        }
+        match first_error {
+            Some(error) => Err(error),
+            None => Ok(results),
+        }
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -3328,7 +3643,10 @@ pub mod c43 {
         #[tokio::test(start_paused = true)]
         async fn shutdown_drains_until_deadline_then_aborts_the_remainder() {
             let timed_out = drain_jobs_with_deadline(
-                vec![Duration::from_millis(1), Duration::from_millis(100)],
+                vec![
+                    ShutdownJob::CompleteAfter(Duration::from_millis(1)),
+                    ShutdownJob::CompleteAfter(Duration::from_millis(100)),
+                ],
                 Duration::from_millis(10),
             )
             .await;
@@ -3343,7 +3661,10 @@ pub mod c43 {
             );
 
             let clean = drain_jobs_with_deadline(
-                vec![Duration::from_millis(1), Duration::from_millis(2)],
+                vec![
+                    ShutdownJob::CompleteAfter(Duration::from_millis(1)),
+                    ShutdownJob::CompleteAfter(Duration::from_millis(2)),
+                ],
                 Duration::from_millis(10),
             )
             .await;
@@ -3356,6 +3677,21 @@ pub mod c43 {
                     clean: true,
                 },
             );
+
+            let failed = drain_jobs_with_deadline(
+                vec![ShutdownJob::PanicAfter(Duration::from_millis(1))],
+                Duration::from_millis(10),
+            )
+            .await;
+            assert_eq!(
+                failed,
+                ShutdownReport {
+                    completed: 0,
+                    failed: 1,
+                    aborted: 0,
+                    clean: false,
+                },
+            );
         }
 
         #[test]
@@ -3366,7 +3702,7 @@ pub mod c43 {
                 HttpProblem {
                     status: 500,
                     code: "internal",
-                    message: "error interno",
+                    message: "internal error",
                 },
             );
             assert_eq!(
@@ -3374,7 +3710,7 @@ pub mod c43 {
                 IpcProblem {
                     code: "INTERNAL",
                     retryable: false,
-                    message: "error interno",
+                    message: "internal error",
                 },
             );
             assert!(to_ipc_problem(AppFailure::TemporarilyUnavailable).retryable);
@@ -3425,9 +3761,9 @@ pub mod c43 {
         async fn blocking_work_is_bounded_and_results_keep_input_order() {
             let batch = parse_word_counts_bounded(
                 vec![
-                    String::from("uno dos"),
-                    String::from("tres"),
-                    String::from("cuatro cinco seis"),
+                    String::from("one two"),
+                    String::from("three"),
+                    String::from("four five six"),
                 ],
                 NonZeroUsize::new(2).unwrap(),
             )
@@ -3436,6 +3772,45 @@ pub mod c43 {
 
             assert_eq!(batch.word_counts, [2, 1, 3]);
             assert!((1..=2).contains(&batch.observed_peak_parallelism));
+        }
+
+        #[tokio::test(start_paused = true)]
+        async fn collecting_worker_failures_still_waits_for_the_remaining_handles() {
+            let finished = Arc::new(AtomicUsize::new(0));
+            let observed = Arc::clone(&finished);
+            let failed = tokio::spawn(async { panic!("simulated worker panic") });
+            let slow = tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                observed.store(1, Ordering::Relaxed);
+                (1, 42)
+            });
+            assert_eq!(
+                collect_blocking_results(vec![failed, slow]).await,
+                Err(BlockingBatchError::WorkerPanicked)
+            );
+            assert_eq!(finished.load(Ordering::Relaxed), 1);
+            let cancelled = tokio::spawn(std::future::pending::<(usize, usize)>());
+            cancelled.abort();
+            assert_eq!(
+                collect_blocking_results(vec![cancelled]).await,
+                Err(BlockingBatchError::WorkerCancelled)
+            );
+        }
+
+        #[tokio::test]
+        async fn revision_exhaustion_does_not_overwrite_the_account() {
+            let initial = AccountSnapshot {
+                account: Account::new(10),
+                revision: u64::MAX,
+            };
+            let repository = MemoryRepository {
+                account: tokio::sync::Mutex::new(Some(initial.clone())),
+            };
+            assert_eq!(
+                deposit(&repository, 1).await,
+                Err(DepositError::Save(MemoryRepositoryError::RevisionExhausted))
+            );
+            assert_eq!(repository.load().await.unwrap(), initial);
         }
 
         #[tokio::test(start_paused = true)]

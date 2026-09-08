@@ -1316,7 +1316,7 @@ pub mod c09 {
     // SOLUTION: C09-E06
     pub fn severity(error: &ServiceError) -> Severity {
         match error {
-            ServiceError::Http { status, .. } if *status >= 500 => Severity::Severe,
+            ServiceError::Http { status, .. } if (500..=599).contains(status) => Severity::Severe,
             ServiceError::Http { .. } | ServiceError::Timeout => Severity::Normal,
         }
     }

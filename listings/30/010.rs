@@ -3,24 +3,24 @@ use std::thread;
 
 enum Command {
     Add(u64),
-    Total(Sender<u64>), // el canal de respuesta viaja dentro del comando
+    Total(Sender<u64>), // Each request includes its own reply channel.
 }
 
 fn spawn_counter() -> (Sender<Command>, thread::JoinHandle<u64>) {
     let (tx, rx) = mpsc::channel();
 
     let handle = thread::spawn(move || {
-        let mut total = 0; // estado SIN locks: un solo dueño
+        let mut total = 0_u64; // Only this thread can modify the total.
         for command in rx {
             match command {
-                Command::Add(value) => total += value,
+                Command::Add(value) => total = total.saturating_add(value),
                 Command::Total(reply) => {
-                    // Si el solicitante ya no espera, ignorar es la política:
+                    // Keep running if the caller no longer wants the reply.
                     let _ = reply.send(total);
                 }
             }
         }
-        total // el for terminó: no quedan senders vivos
+        total // All senders are gone and the queue is empty.
     });
 
     (tx, handle)

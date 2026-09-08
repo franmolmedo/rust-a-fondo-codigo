@@ -14,9 +14,9 @@ PDF 或 EPUB。
 
 ## 仓库内容
 
-- `listings/` 中按章节保存的 **891 个代码块**。
+- `listings/` 中按章节保存的 **892 个代码块**。
 - `solutions/` 中的 **403 个可执行参考解答**。
-- 与参考解答对应的 **447 个测试**。
+- 与参考解答对应的 **604 个测试**。
 - doctest、`compile_fail` 示例和 `should_panic` 用例。
 - 可实际运行的过程宏、MIR、LLVM IR 和 assembly 实验。
 - 为每个 listing 提供追踪信息及 SHA-256 哈希的 manifest。
@@ -31,7 +31,7 @@ PDF 或 EPUB。
 - Windows 上运行 `verify.ps1` 需要 PowerShell 5.1 或更高版本。
 
 `rust-toolchain.toml` 会自动安装包含 Clippy 和 rustfmt 的 Rust 1.95.0。
-各 crate 声明的最低支持版本为 Rust 1.85。
+正文配套代码最低需要 Rust 1.86；附录的独立工作区需要 Rust 1.95。
 
 ## 快速开始
 
@@ -55,6 +55,20 @@ cargo test --workspace --all-targets --all-features --locked
 
 该流程会检查哈希、TOML、feature 配置、测试、doctest、格式、Clippy，
 以及 MIR、LLVM IR 和 assembly 的实际生成结果。
+两个脚本也会执行附录工作区的本机验证。
+
+## 第二版（v2）
+
+本分支包含第二版修正后的示例和回归测试，以及
+[附录 A–G 实验](appendices/README.md)和
+[第26章工作区](fixtures/chapter26-workspace/README.md)。
+已有章节及解答的标识符保持不变。附录拥有独立的 Cargo 工作区、
+锁定文件、doctest 和验证脚本。
+
+[附录工作流](.github/workflows/appendices.yml)会检查 Windows 和 Linux、
+交叉编译、打包、Miri 以及短时间的 fuzzing。这些高级检查与本机验证脚本
+分开执行。要验证正文配套代码的最低编译器版本，请安装 Rust 1.86.0，
+然后运行 `python tools/verify.py --msrv`。
 
 ## 人工智能使用声明
 
@@ -94,6 +108,8 @@ cargo test -p course-solutions projects
 ```text
 .
 ├── solutions/         带测试的解答、kata 和项目
+├── appendices/        附录 A–G 的独立实验与应用程序
+├── fixtures/          第26章的完整工作区
 ├── listings/          书中每个代码块对应一个文件
 ├── doctests/          文档测试及 compile_fail 用例
 ├── macro_lab/         过程宏实现

@@ -47,8 +47,8 @@ pub mod c15 {
         clock.now_millis() >= deadline
     }
 
-    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-    pub struct ExternalId(pub u64);
+    // El alias conserva un tipo realmente externo, definido en la biblioteca estándar.
+    pub type ExternalId = std::num::NonZeroU64;
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct DisplayId(pub ExternalId);
@@ -62,7 +62,7 @@ pub mod c15 {
 
     impl fmt::Display for DisplayId {
         fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(formatter, "ID-{}", self.0.0)
+            write!(formatter, "ID-{}", self.0.get())
         }
     }
 
@@ -251,7 +251,7 @@ pub mod c15 {
 
         #[test]
         fn local_newtype_owns_the_external_formatting_contract() {
-            let display = DisplayId::from(ExternalId(7));
+            let display = DisplayId::from(ExternalId::new(7).unwrap());
             assert_eq!(display.to_string(), "ID-7");
         }
 
@@ -353,15 +353,15 @@ pub mod c16 {
     }
 
     pub trait Operation {
-        fn apply(&self, value: i64) -> i64;
+        fn apply(&self, value: i64) -> i128;
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     pub struct Increase(pub i64);
 
     impl Operation for Increase {
-        fn apply(&self, value: i64) -> i64 {
-            value + self.0
+        fn apply(&self, value: i64) -> i128 {
+            i128::from(value) + i128::from(self.0)
         }
     }
 
@@ -369,8 +369,8 @@ pub mod c16 {
     pub struct Scale(pub i64);
 
     impl Operation for Scale {
-        fn apply(&self, value: i64) -> i64 {
-            value * self.0
+        fn apply(&self, value: i64) -> i128 {
+            i128::from(value) * i128::from(self.0)
         }
     }
 
@@ -381,24 +381,24 @@ pub mod c16 {
     }
 
     impl OperationKind {
-        pub fn apply(self, value: i64) -> i64 {
+        pub fn apply(self, value: i64) -> i128 {
             match self {
-                Self::Increase(amount) => value + amount,
-                Self::Scale(factor) => value * factor,
+                Self::Increase(amount) => i128::from(value) + i128::from(amount),
+                Self::Scale(factor) => i128::from(value) * i128::from(factor),
             }
         }
     }
 
     // SOLUTION: C16-E03
-    pub fn apply_static(operation: &impl Operation, value: i64) -> i64 {
+    pub fn apply_static(operation: &impl Operation, value: i64) -> i128 {
         operation.apply(value)
     }
 
-    pub fn apply_closed(operation: OperationKind, value: i64) -> i64 {
+    pub fn apply_closed(operation: OperationKind, value: i64) -> i128 {
         operation.apply(value)
     }
 
-    pub fn apply_dynamic(operation: &dyn Operation, value: i64) -> i64 {
+    pub fn apply_dynamic(operation: &dyn Operation, value: i64) -> i128 {
         operation.apply(value)
     }
 
@@ -450,7 +450,7 @@ pub mod c16 {
         type Output = Self;
 
         fn add(self, other: Self) -> Self::Output {
-            Self(self.0 + other.0)
+            Self(self.0.checked_add(other.0).expect("amount overflow"))
         }
     }
 
@@ -562,11 +562,14 @@ pub mod c17 {
     }
 
     // SOLUTION: C17-E02
-    pub fn total_text_len<'a, I>(items: I) -> usize
+    pub fn total_text_len<'a, I>(items: I) -> Option<usize>
     where
         I: IntoIterator<Item = &'a str>,
     {
-        items.into_iter().map(str::len).sum()
+        items
+            .into_iter()
+            .map(str::len)
+            .try_fold(0, usize::checked_add)
     }
 
     // SOLUTION: C17-E03
@@ -592,7 +595,7 @@ pub mod c17 {
         where
             Self: 'a;
 
-        // El lifetime explícito muestra la relación entre cada préstamo y el GAT.
+        // The explicit lifetime connects each borrow with the GAT.
         #[allow(clippy::needless_lifetimes)]
         fn next<'a>(&'a mut self) -> Option<Self::Item<'a>>;
     }
@@ -718,10 +721,10 @@ pub mod c17 {
 
         #[test]
         fn explicit_item_lifetime_accepts_arrays_and_vectors_of_views() {
-            assert_eq!(total_text_len(["Rust", "GAT"]), 7);
+            assert_eq!(total_text_len(["Rust", "GAT"]), Some(7));
             let values: Vec<_> = ["Ada", "Grace"].into_iter().map(String::from).collect();
             let views = values.iter().map(String::as_str).collect::<Vec<_>>();
-            assert_eq!(total_text_len(views), 8);
+            assert_eq!(total_text_len(views), Some(8));
         }
 
         #[test]
@@ -789,12 +792,12 @@ pub mod c18 {
     use std::fmt::{Debug, Display};
 
     // SOLUTION: C18-E01
-    pub fn positive_doubled(values: &[i32]) -> impl Iterator<Item = i32> + '_ {
+    pub fn positive_doubled(values: &[i32]) -> impl Iterator<Item = i64> + '_ {
         values
             .iter()
             .copied()
             .filter(|value| *value > 0)
-            .map(|value| value * 2)
+            .map(|value| i64::from(value) * 2)
     }
 
     // SOLUTION: C18-E02
@@ -1150,7 +1153,7 @@ pub mod c19 {
 
     // SOLUTION: C19-E07
     pub trait Operation {
-        fn apply(&self, value: i64) -> i64;
+        fn apply(&self, value: i64) -> i128;
     }
 
     pub struct Increase(pub i64);
@@ -1158,20 +1161,20 @@ pub mod c19 {
     pub struct Negate;
 
     impl Operation for Increase {
-        fn apply(&self, value: i64) -> i64 {
-            value + self.0
+        fn apply(&self, value: i64) -> i128 {
+            i128::from(value) + i128::from(self.0)
         }
     }
 
     impl Operation for Scale {
-        fn apply(&self, value: i64) -> i64 {
-            value * self.0
+        fn apply(&self, value: i64) -> i128 {
+            i128::from(value) * i128::from(self.0)
         }
     }
 
     impl Operation for Negate {
-        fn apply(&self, value: i64) -> i64 {
-            -value
+        fn apply(&self, value: i64) -> i128 {
+            -i128::from(value)
         }
     }
 
@@ -1183,23 +1186,23 @@ pub mod c19 {
     }
 
     impl OperationKind {
-        pub fn apply(self, value: i64) -> i64 {
+        pub fn apply(self, value: i64) -> i128 {
             match self {
-                Self::Increase(amount) => value + amount,
-                Self::Scale(factor) => value * factor,
-                Self::Negate => -value,
+                Self::Increase(amount) => i128::from(value) + i128::from(amount),
+                Self::Scale(factor) => i128::from(value) * i128::from(factor),
+                Self::Negate => -i128::from(value),
             }
         }
     }
 
-    pub fn run_closed(operations: &[OperationKind], value: i64) -> Vec<i64> {
+    pub fn run_closed(operations: &[OperationKind], value: i64) -> Vec<i128> {
         operations
             .iter()
             .map(|operation| operation.apply(value))
             .collect()
     }
 
-    pub fn run_dynamic(operations: &[Box<dyn Operation>], value: i64) -> Vec<i64> {
+    pub fn run_dynamic(operations: &[Box<dyn Operation>], value: i64) -> Vec<i128> {
         operations
             .iter()
             .map(|operation| operation.apply(value))
@@ -1297,6 +1300,14 @@ pub mod c20 {
     }
 
     // SOLUTION: C20-E04
+    /// This ownership marker inherits the thread-safety restrictions of `T`.
+    ///
+    /// ```compile_fail
+    /// use course_solutions::abstraction::c20::Owns;
+    /// use std::rc::Rc;
+    /// fn require_send<T: Send>() {}
+    /// require_send::<Owns<Rc<()>>>();
+    /// ```
     pub struct Owns<T> {
         id: usize,
         marker: PhantomData<T>,
@@ -1375,7 +1386,7 @@ pub mod c20 {
 
         #[test]
         fn static_reference_can_be_shortened_to_the_required_scope() {
-            // El tipo concreto hace visible que la salida elidida se liga al anchor.
+            // The elided output lifetime is tied to the borrowed anchor.
             #[allow(clippy::ptr_arg)]
             fn tied_to(_anchor: &String) -> &str {
                 shorten("long lived")

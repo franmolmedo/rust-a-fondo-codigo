@@ -6,9 +6,9 @@ struct RawOwner<T> {
     owns: PhantomData<T>,
 }
 
-// SAFETY: la prueba completa debe justificar ownership único, accesos y Drop.
+// SAFETY: the complete proof must justify unique ownership, access, and Drop.
 unsafe impl<T: Send> Send for RawOwner<T> {}
-// SAFETY: desde &RawOwner<T> solo debe poder obtenerse &T.
+// SAFETY: only shared &T references may be obtained from &RawOwner<T>.
 unsafe impl<T: Sync> Sync for RawOwner<T> {}
 
 fn main() {}

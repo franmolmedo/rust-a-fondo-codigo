@@ -11,14 +11,19 @@ impl<T> Pair<T> {
 }
 
 impl<T: PartialOrd> Pair<T> {
-    fn larger(&self) -> &T {
-        if self.left >= self.right { &self.left } else { &self.right }
+    fn larger(&self) -> Option<&T> {
+        use std::cmp::Ordering;
+        match self.left.partial_cmp(&self.right)? {
+            Ordering::Less => Some(&self.right),
+            Ordering::Equal | Ordering::Greater => Some(&self.left),
+        }
     }
 }
 
 fn main() {
     let numbers = Pair::new(10, 30);
-    assert_eq!(numbers.larger(), &30);
+    assert_eq!(numbers.larger(), Some(&30));
+    assert_eq!(Pair::new(f64::NAN, 1.0).larger(), None);
 
     struct Token;
     let tokens = Pair::new(Token, Token);
